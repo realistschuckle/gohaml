@@ -3,16 +3,15 @@
 # license that can be found in the LICENSE file.
 
 all: package
-exe: $(TARG)
 package: _obj/$(TARG).a
 testpackage: _test/$(TARG).a
 
 # ugly hack to deal with whitespaces in $GOROOT
 nullstring :=
 space := $(nullstring) # a space at the end
-QUOTED_GOROOT:=.#$(subst $(space),\ ,$(GOROOT))
+QUOTED_GOROOT:=$(subst $(space),\ ,$(GOROOT))
 
-include Make.common
+include $(QUOTED_GOROOT)/src/Make.common
 
 # GNU Make 3.80 has a bug in lastword
 # elem=$(lastword $(subst /, ,$(TARG)))
@@ -46,13 +45,10 @@ coverage:
 	$(QUOTED_GOBIN)/gotest
 	$(QUOTED_GOBIN)/6cov -g $(shell pwd) $O.out | grep -v '_test\.go:'
 
-CLEANFILES+=*.cgo1.go *.cgo2.c _cgo_defun.c _cgo_gotypes.go _cgo_export.* *.so _obj _test _testmain.go $(TARG)
-
-$(TARG): _obj/$(TARG).a
-	$(QUOTED_GOBIN)/$(LD) -o $(TARG) -L _obj/ $<
+CLEANFILES+=*.cgo1.go *.cgo2.c _cgo_defun.c _cgo_gotypes.go _cgo_export.* *.so _obj _test _testmain.go
 
 test:
-	$(QUOTED_GOBIN)/gotest -v
+	$(QUOTED_GOBIN)/gotest
 
 bench:
 	$(QUOTED_GOBIN)/gotest -benchmarks=. -match="Do not run tests"

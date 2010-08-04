@@ -1,0 +1,44 @@
+h1. What is it?
+
+I have started implementing a HAML processor in the GO language.
+You can find out more about HAML at "haml-lang.com":haml-lang.com.
+You can find out more about GO at "golang.org":golang.org.
+
+h1. Is it done?
+
+No. Not even close. I just started yesterday with a language I just
+found out existed three days ago. However, in just that little time,
+I feel like I've come pretty far.
+
+h1. How can I install this?
+
+Just follow the simple directions from the command line:
+
+@
+git clone git://github.com/realistschuckle/gohaml.git gohaml
+cd gohaml
+make install
+@
+
+h1. How can I use it?
+
+How about something like this?
+
+pre. package main
+
+pre. import (
+	"gohaml"
+	"fmt"
+)
+
+pre. func main() {
+	var scope = make(map[string]interface{})
+	scope["lang"] = "HAML"
+	content := "I love<\n =lang<\n!"
+	engine := gohaml.NewEngine(content)
+	output := engine.render(scope)
+	fmt.Println(output) // Prints "I love HAML!"
+}
+
+
+Then compile it, link it, and run it!

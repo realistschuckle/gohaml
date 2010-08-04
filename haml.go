@@ -1,4 +1,4 @@
-package haml
+package gohaml
 
 import (
 	"bytes"

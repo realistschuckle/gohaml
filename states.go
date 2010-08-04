@@ -1,4 +1,4 @@
-package haml
+package gohaml
 
 type state struct {
 	transitions map[int]*state
