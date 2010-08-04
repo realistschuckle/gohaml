@@ -14,24 +14,23 @@ h1. How can I install this?
 
 Just follow the simple directions from the command line:
 
-@
-git clone git://github.com/realistschuckle/gohaml.git gohaml
+pre. git clone git://github.com/realistschuckle/gohaml.git gohaml
 cd gohaml
 make install
-@
+
 
 h1. How can I use it?
 
 How about something like this?
 
-pre. package main
+bc.. package main
 
-pre. import (
+import (
 	"gohaml"
 	"fmt"
 )
 
-pre. func main() {
+func main() {
 	var scope = make(map[string]interface{})
 	scope["lang"] = "HAML"
 	content := "I love<\n =lang<\n!"
@@ -41,4 +40,4 @@ pre. func main() {
 }
 
 
-Then compile it, link it, and run it!
+p. Then compile it, link it, and run it!
