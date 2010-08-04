@@ -4,7 +4,7 @@
 
 include Make.$(GOARCH)
 
-TARG=haml
+TARG=gohaml
 GOFILES=\
 	haml.go\
 	states.go\
