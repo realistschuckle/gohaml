@@ -21,7 +21,7 @@ make install
 
 h1. How can I use it?
 
-How about something like this?
+How about something like this? Save it, compile it, link it, and run it!
 
 bc.. package main
 
@@ -38,6 +38,3 @@ func main() {
 	output := engine.render(scope)
 	fmt.Println(output) // Prints "I love HAML!"
 }
-
-
-p. Then compile it, link it, and run it!
