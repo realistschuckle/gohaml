@@ -8,7 +8,7 @@ type IO struct {
 }
 
 var autoCloseTests = []IO{
-	IO{"plain text", "plain text"},
+	IO{"plain ∏ text", "plain ∏ text"},
 	IO{"%tag", "<tag />"},
 	IO{"%tag tag content", "<tag>tag content</tag>"},
 	IO{"%tag.tagClass", "<tag class=\"tagClass\" />"},
@@ -23,6 +23,8 @@ var autoCloseTests = []IO{
 	IO{"%tag#tagId", "<tag id=\"tagId\" />"},
 	IO{"#tagId", "<div id=\"tagId\" />"},
 	IO{"%tag#tagId.tagClass= key1", "<tag id=\"tagId\" class=\"tagClass\">value1</tag>"},
+	IO{"#tagId tag content", "<div id=\"tagId\">tag content</div>"},
+	IO{"%tag#tagId= key1", "<tag id=\"tagId\">value1</tag>"},
 } 
 
 func TestAutoCloseIO(t *testing.T) {
@@ -39,7 +41,7 @@ func TestAutoCloseIO(t *testing.T) {
 }
 
 var noAutoCloseTests = []IO {
-	IO{"plain text", "plain text"},
+	IO{"plain ∏ text", "plain ∏ text"},
 	IO{"%tag", "<tag>"},
 	IO{"%tag tag content", "<tag>tag content</tag>"},
 	IO{"%tag.tagClass", "<tag class=\"tagClass\">"},
@@ -54,6 +56,8 @@ var noAutoCloseTests = []IO {
 	IO{"%tag#tagId", "<tag id=\"tagId\">"},
 	IO{"#tagId", "<div id=\"tagId\">"},
 	IO{"%tag#tagId.tagClass= key1", "<tag id=\"tagId\" class=\"tagClass\">value1</tag>"},
+	IO{"#tagId tag content", "<div id=\"tagId\">tag content</div>"},
+	IO{"%tag#tagId= key1", "<tag id=\"tagId\">value1</tag>"},
 }
 
 func TestNoAutoCloseIO(t *testing.T) {

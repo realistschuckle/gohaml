@@ -26,111 +26,138 @@ type Engine struct {
 	Options map[string]interface{}
 	Indentation string
 	input string
-	parsingState int
+	parsingState *state
+	tag string
+	attrs attrMap
+	remainder string
+	indentCount int
 }
 
-const (
-	leadingSpace = iota
-	tagName
-	keyName
-	className
-	content
-	id
-)
-
 func NewEngine(input string) (engine *Engine) {
-	engine = &Engine{make(map[string]interface{}), "\t", input, leadingSpace}
+	engine = &Engine{make(map[string]interface{}), "\t", input, nil, "", make(map[string]string), "", 0}
+	engine.makeStates()
 	engine.Options["autoclose"] = true
 	return
 }
 
-func (engine *Engine) Render(scope map[string]interface{}) (output string) {
+func (self *Engine) makeStates() {
+	exitLeadingSpace := func(s *state, line []int, scope map[string]interface{}) {
+		self.indentCount++
+		return
+	}
+	
+	exitTagState := func(s *state, line []int, scope map[string]interface{}) {
+		self.tag = string(line[s.leftIndex + 1:s.rightIndex])
+		return
+	}
+	
+	exitIdState := func(s *state, line []int, scope map[string]interface{}) {
+		if 0 == len(self.tag) {self.tag = "div"}
+		self.attrs["id"] = string(line[s.leftIndex + 1:s.rightIndex])
+		return
+	}
+	
+	exitClassState := func(s *state, line []int, scope map[string]interface{}) {
+		if 0 == len(self.tag) {self.tag = "div"}
+		if _, ok := self.attrs["class"]; !ok {
+			self.attrs["class"] = string(line[s.leftIndex + 1:s.rightIndex])
+		} else {
+			self.attrs["class"] += " " + string(line[s.leftIndex + 1:s.rightIndex])
+		}
+	}
+	
+	exitKeyState := func(s *state, line []int, scope map[string]interface{}) {
+		key := string(line[s.leftIndex + 1:s.rightIndex])
+		key = strings.TrimFunc(key, unicode.IsSpace)
+		self.remainder = fmt.Sprint(scope[key])
+	}
+	
+	exitContentState := func(s *state, line []int, scope map[string]interface{}) {
+		self.remainder = string(line[s.leftIndex:s.rightIndex])
+		return
+	}
+	
+	exitBackslashState := func(s *state, line []int, scope map[string]interface{}) {
+		self.remainder = string(line[1:])
+		return
+	}
+	
+ 	leadingSpaceState := newState(exitLeadingSpace)
+	tagState := newState(exitTagState)
+	idState := newState(exitIdState)
+	classState := newState(exitClassState)
+	keyState := newState(exitKeyState)
+	contentState := newState(exitContentState)
+	backslashState := newState(exitBackslashState)
+	
+	matchTag := func(rune int) bool {return '%' == rune}
+	matchId := func(rune int) bool {return '#' == rune}
+	matchClass := func(rune int) bool {return '.' == rune}
+	matchKey := func(rune int) bool {return '=' == rune}
+	matchLeadingContent := func(rune int) bool {return !unicode.IsSpace(rune)}
+	matchContent := func(rune int) bool {return unicode.IsSpace(rune)}
+	matchBackslashState := func(rune int) bool {return '\\' == rune && 0 == self.indentCount}
+	
+	leadingSpaceState.addTransition(matchBackslashState, backslashState)
+	leadingSpaceState.addTransition(matchTag, tagState)
+	leadingSpaceState.addTransition(matchId, idState)
+	leadingSpaceState.addTransition(matchClass, classState)
+	leadingSpaceState.addTransition(matchKey, keyState)
+	leadingSpaceState.addTransition(matchLeadingContent, contentState)
+	
+	tagState.addTransition(matchContent, contentState)
+	tagState.addTransition(matchClass, classState)
+	tagState.addTransition(matchId, idState)
+	
+	idState.addTransition(matchClass, classState)
+	idState.addTransition(matchKey, keyState)
+	idState.addTransition(matchContent, contentState)
+	
+	classState.addTransition(matchClass, classState)
+	classState.addTransition(matchKey, keyState)
+	classState.addTransition(matchContent, contentState)
+	
+	self.parsingState = leadingSpaceState
+	
+	return
+}
+
+func (self *Engine) Render(scope map[string]interface{}) (output string) {
 	autoclose := ""
-	if engine.Options["autoclose"].(bool) {
+	if self.Options["autoclose"].(bool) {
 		autoclose = " /"
 	}
-	lines := strings.Split(engine.input, "\n", -1)
-	if 0 == len(lines) {lines = []string{engine.input}}
+	lines := strings.Split(self.input, "\n", -1)
+	if 0 == len(lines) {lines = []string{self.input}}
 	for _, line := range lines {
 		if 0 == len(line) {continue}
-		_, tag, attrs, remainder := engine.splitTag(line, scope)
-		switch len(tag) {
+		self.parseLine(line, scope)
+		switch len(self.tag) {
 		case 0:
-			output += remainder
+			output += self.remainder
 		default:
-			switch len(remainder) {
+			switch len(self.remainder) {
 			case 0:
-				output += fmt.Sprintf("<%s%s%s>", tag, attrs, autoclose)
+				output += fmt.Sprintf("<%s%s%s>", self.tag, self.attrs, autoclose)
 			default:
-				output += fmt.Sprintf("<%s%s>%s</%s>", tag, attrs, remainder, tag)
+				output += fmt.Sprintf("<%s%s>%s</%s>", self.tag, self.attrs, self.remainder, self.tag)
 			}
 		}
 	}
 	return
 }
 
-func (engine *Engine) splitTag(line string, scope map[string]interface{}) (indentCount int, tag string, attrs attrMap, remainder string) {
-	i, r := 0, 0
-	key := ""
-	attrs = make(map[string]string)
-	for i, r = range line {
-		if '\\' == r && leadingSpace == engine.parsingState {
-			remainder = line[1:]
-			break
-		}
-		if '=' == r {
-			engine.parsingState = keyName
-			key = line[i + 1:]
-			break
-		}
-		if '%' == r {
-			engine.parsingState = tagName
-			continue
-		}
-		if '#' == r {
-			if 0 == len(tag) {tag = "div"}
-			engine.parsingState = id
-			continue
-		}
-		if '.' == r {
-			if 0 == len(tag) {tag = "div"}
-			if className == engine.parsingState {attrs["class"] += " "}
-			engine.parsingState = className
-			continue
-		}
-		if !unicode.IsSpace(r) && leadingSpace == engine.parsingState {
-			remainder = line[i:]
-			engine.parsingState = content
-			break
-		}
-		if unicode.IsSpace(r) {
-			if keyName == engine.parsingState {
-				remainder = fmt.Sprint(scope[key])
-			}
-			engine.parsingState = content
-			remainder += line[i:]
-			break
-		}
-		switch engine.parsingState {
-		case id:
-			if _, ok := attrs["id"]; !ok {
-				attrs["id"] = ""
-			}
-			attrs["id"] += line[i:i + 1]
-		case tagName:
-			tag += line[i:i + 1]
-		case className:
-			if _, ok := attrs["class"]; !ok {
-				attrs["class"] = ""
-			}
-			attrs["class"] += line[i:i + 1]
-		}
+func (self *Engine) String() string {
+	return fmt.Sprintf("<Engine tag: %s\nattrs: %s\nremainder: %s>", self.tag, self.attrs, self.remainder)
+}
+
+func (self *Engine) parseLine(line string, scope map[string]interface{}) {
+	linen := []int(line)
+	for i, _ := range linen {
+		self.parsingState = self.parsingState.input(i, linen, scope)
 	}
-	if keyName == engine.parsingState {
-		key = strings.TrimLeftFunc(key, unicode.IsSpace)
-		remainder = fmt.Sprint(scope[key])
-	}
-	tag = strings.TrimRightFunc(tag, unicode.IsSpace)
-	remainder = strings.TrimLeftFunc(remainder, unicode.IsSpace)
+	self.parsingState.exit(self.parsingState, linen, scope)
+	self.tag = strings.TrimRightFunc(self.tag, unicode.IsSpace)
+	self.remainder = strings.TrimLeftFunc(self.remainder, unicode.IsSpace)
 	return
 }
