@@ -27,14 +27,16 @@ type Engine struct {
 	Indentation string
 	input string
 	parsingState *state
+	startState *state
 	tag string
 	attrs attrMap
 	remainder string
 	indentCount int
+	closeTag bool
 }
 
 func NewEngine(input string) (engine *Engine) {
-	engine = &Engine{make(map[string]interface{}), "\t", input, nil, "", make(map[string]string), "", 0}
+	engine = &Engine{make(map[string]interface{}), "\t", input, nil, nil, "", make(map[string]string), "", 0, false}
 	engine.makeStates()
 	engine.Options["autoclose"] = true
 	return
@@ -42,7 +44,7 @@ func NewEngine(input string) (engine *Engine) {
 
 func (self *Engine) makeStates() {
 	exitLeadingSpace := func(s *state, line []int, scope map[string]interface{}) {
-		self.indentCount++
+		self.indentCount = s.rightIndex
 		return
 	}
 	
@@ -82,6 +84,11 @@ func (self *Engine) makeStates() {
 		return
 	}
 	
+	exitCloseTagState := func(s *state, line []int, scope map[string]interface{}) {
+		self.closeTag = true
+		return
+	}
+	
  	leadingSpaceState := newState(exitLeadingSpace)
 	tagState := newState(exitTagState)
 	idState := newState(exitIdState)
@@ -89,6 +96,7 @@ func (self *Engine) makeStates() {
 	keyState := newState(exitKeyState)
 	contentState := newState(exitContentState)
 	backslashState := newState(exitBackslashState)
+	closeTagState := newState(exitCloseTagState)
 	
 	matchTag := func(rune int) bool {return '%' == rune}
 	matchId := func(rune int) bool {return '#' == rune}
@@ -97,6 +105,7 @@ func (self *Engine) makeStates() {
 	matchLeadingContent := func(rune int) bool {return !unicode.IsSpace(rune)}
 	matchContent := func(rune int) bool {return unicode.IsSpace(rune)}
 	matchBackslashState := func(rune int) bool {return '\\' == rune && 0 == self.indentCount}
+	matchCloseTagState := func(rune int) bool {return '/' == rune}
 	
 	leadingSpaceState.addTransition(matchBackslashState, backslashState)
 	leadingSpaceState.addTransition(matchTag, tagState)
@@ -104,10 +113,11 @@ func (self *Engine) makeStates() {
 	leadingSpaceState.addTransition(matchClass, classState)
 	leadingSpaceState.addTransition(matchKey, keyState)
 	leadingSpaceState.addTransition(matchLeadingContent, contentState)
-	
-	tagState.addTransition(matchContent, contentState)
+
+	tagState.addTransition(matchCloseTagState, closeTagState)
 	tagState.addTransition(matchClass, classState)
 	tagState.addTransition(matchId, idState)
+	tagState.addTransition(matchContent, contentState)
 	
 	idState.addTransition(matchClass, classState)
 	idState.addTransition(matchKey, keyState)
@@ -118,31 +128,45 @@ func (self *Engine) makeStates() {
 	classState.addTransition(matchContent, contentState)
 	
 	self.parsingState = leadingSpaceState
+	self.startState = leadingSpaceState
 	
 	return
 }
 
 func (self *Engine) Render(scope map[string]interface{}) (output string) {
-	autoclose := ""
-	if self.Options["autoclose"].(bool) {
-		autoclose = " /"
-	}
 	lines := strings.Split(self.input, "\n", -1)
 	if 0 == len(lines) {lines = []string{self.input}}
-	for _, line := range lines {
+	lineEnd := "\n"
+	for i, line := range lines {
 		if 0 == len(line) {continue}
+		if i == len(lines) - 1 {lineEnd = ""}
+		self.parsingState = self.startState
+		self.tag = ""
+		self.attrs = make(map[string]string)
+		self.remainder = ""
+		self.indentCount = 0
+		self.closeTag = false
 		self.parseLine(line, scope)
+		autoclose := self.tagClose()
 		switch len(self.tag) {
 		case 0:
 			output += self.remainder
 		default:
 			switch len(self.remainder) {
 			case 0:
-				output += fmt.Sprintf("<%s%s%s>", self.tag, self.attrs, autoclose)
+				output += fmt.Sprintf("<%s%s%s>%s", self.tag, self.attrs, autoclose, lineEnd)
 			default:
-				output += fmt.Sprintf("<%s%s>%s</%s>", self.tag, self.attrs, self.remainder, self.tag)
+				output += fmt.Sprintf("<%s%s>%s</%s>%s", self.tag, self.attrs, self.remainder, self.tag, lineEnd)
 			}
 		}
+	}
+	return
+}
+
+func (self *Engine) tagClose() (close string) {
+	close = ""
+	if self.Options["autoclose"].(bool) || self.closeTag {
+		close = " /"
 	}
 	return
 }
