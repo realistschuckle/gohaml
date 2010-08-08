@@ -1,30 +1,15 @@
 package gohaml
 
 import (
-	"bytes"
 	"unicode"
 	"fmt"
 	"strings"
 )
 
-type attrMap map[string]string
-
-func (m attrMap) String() (s string) {
-	buf := bytes.NewBuffer([]byte{})
-	for k, v := range m {
-		buf.WriteString(" ")
-		buf.WriteString(k)
-		buf.WriteString("=\"")
-		buf.WriteString(v)
-		buf.WriteString("\"")
-	}
-	s = buf.String()
-	return
-}
-
 type Engine struct {
 	Options map[string]interface{}
 	Indentation string
+	stk *stack
 	input string
 	parsingState *state
 	startState *state
@@ -36,7 +21,7 @@ type Engine struct {
 }
 
 func NewEngine(input string) (engine *Engine) {
-	engine = &Engine{make(map[string]interface{}), "\t", input, nil, nil, "", make(map[string]string), "", 0, false}
+	engine = &Engine{make(map[string]interface{}), "\t", newStack(), input, nil, nil, "", make(map[string]string), "", 0, false}
 	engine.makeStates()
 	engine.Options["autoclose"] = true
 	return
@@ -139,7 +124,9 @@ func (self *Engine) Render(scope map[string]interface{}) (output string) {
 	lineEnd := "\n"
 	for i, line := range lines {
 		if 0 == len(line) {continue}
-		if i == len(lines) - 1 {lineEnd = ""}
+		if _, _, hadChildren := self.stk.peek(); i == len(lines) - 1 && !hadChildren {
+			lineEnd = ""
+		}
 		self.parsingState = self.startState
 		self.tag = ""
 		self.attrs = make(map[string]string)
@@ -147,17 +134,59 @@ func (self *Engine) Render(scope map[string]interface{}) (output string) {
 		self.indentCount = 0
 		self.closeTag = false
 		self.parseLine(line, scope)
-		autoclose := self.tagClose()
-		switch len(self.tag) {
-		case 0:
-			output += self.remainder
-		default:
-			switch len(self.remainder) {
-			case 0:
-				output += fmt.Sprintf("<%s%s%s>%s", self.tag, self.attrs, autoclose, lineEnd)
-			default:
-				output += fmt.Sprintf("<%s%s>%s</%s>%s", self.tag, self.attrs, self.remainder, self.tag, lineEnd)
+		
+		indent := ""
+		for i := 0; i < self.stk.len(); i++ {
+			indent += self.Indentation
+		}
+
+		if 0 == len(self.tag) {
+			output += indent + self.remainder
+		} else if len(self.remainder) > 0 {
+			if self.stk.len() > 0 {
+				output += ">\n"
+				self.stk.topHasChildren()
+				lineEnd = "\n"
 			}
+			output += indent + fmt.Sprintf("<%s%s>%s</%s>%s", self.tag, self.attrs, self.remainder, self.tag, lineEnd)
+		} else {
+			_, topIndent, _ := self.stk.peek()
+			if topIndent < self.indentCount {
+				if self.stk.len() > 0 {
+					output += ">\n"
+				}
+				self.stk.push(self.tag, self.indentCount)
+				output += indent + fmt.Sprintf("<%s%s", self.tag, self.attrs)
+			} else if topIndent == self.indentCount {
+				autoclose := self.tagClose()
+				name, _, hadChildren := self.stk.pop()
+				if hadChildren {
+					output += indent + fmt.Sprintf("</%s>\n", name)
+				} else {
+					output += fmt.Sprintf("%s>\n", autoclose)
+				}
+				indent = ""
+				for i := 0; i < self.stk.len(); i++ {
+					indent += self.Indentation
+				}
+				self.stk.push(self.tag, self.indentCount)
+				output += indent + fmt.Sprintf("<%s%s", self.tag, self.attrs)
+			}
+		}
+	}
+	lineEnd = "\n"
+	for depth := self.stk.len(); depth > 0; depth = self.stk.len() {
+		autoclose := self.tagClose()
+		if 1 == depth {lineEnd = ""}
+		indent := ""
+		for i := 0; i < depth - 1; i++ {
+			indent += self.Indentation
+		}
+		name, _, hadChildren := self.stk.pop()
+		if hadChildren {
+			output += indent + fmt.Sprintf("</%s>%s", name, lineEnd)
+		} else {
+			output += fmt.Sprintf("%s>%s", autoclose, lineEnd)
 		}
 	}
 	return

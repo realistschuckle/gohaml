@@ -25,7 +25,7 @@ var autoCloseTests = []IO{
 	IO{"%tag#tagId.tagClass= key1", "<tag id=\"tagId\" class=\"tagClass\">value1</tag>"},
 	IO{"#tagId tag content", "<div id=\"tagId\">tag content</div>"},
 	IO{"%tag#tagId= key1", "<tag id=\"tagId\">value1</tag>"},
-	IO{"%tag1#tagId1= key1\n%tag2#tagId2= key2", "<tag1 id=\"tagId1\">value1</tag1>\n<tag2 id=\"tagId2\">value2</tag2>"},	
+	IO{"%tag1#tagId1= key1\n%tag2#tagId2= key2", "<tag1 id=\"tagId1\">value1</tag1>\n<tag2 id=\"tagId2\">value2</tag2>"},
 } 
 
 func TestAutoCloseIO(t *testing.T) {

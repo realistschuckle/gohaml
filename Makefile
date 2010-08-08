@@ -8,5 +8,7 @@ TARG=gohaml
 GOFILES=\
 	haml.go\
 	states.go\
+	stack.go\
+	tree.go\
 
 include Make.pkg
