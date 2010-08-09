@@ -13,8 +13,8 @@ Well, getting closer to something useful. The *gohaml* parser now supports the f
 * Tags with
 ** empty content;
 ** attributes of the form {:attr => "value"};
-** id moniker using #; and,
-** class moniker using .;
+** id moniker using "#" (#divId); and,
+** class moniker using "." (.divClass).
 * Tag nesting
 * Simple lookup
 * Engine-level autoclose option (&lt;br /&gt; vs. &lt;br&gt;)
