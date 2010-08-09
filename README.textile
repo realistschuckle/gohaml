@@ -17,8 +17,8 @@ Well, getting closer to something useful. The *gohaml* parser now supports the f
 ** class moniker using .;
 * Tag nesting
 * Simple lookup
-* Engine-level autoclose option (<br /> vs. <br>)
-* Tag-specific close option (%br/ becomes <br /> regardless of autoclose setting)
+* Engine-level autoclose option (&lt;br /&gt; vs. &lt;br&gt;)
+* Tag-specific close option (%br/ becomes &lt;br /&gt; regardless of autoclose setting)
 * Whitespace removal with the < operator
 
 This parser hasn't the same level of error reporting as the Ruby-based parser. That, of course, comes next. I want to make sure that I have the same reporting style and type of messages that comes with the other parser.
