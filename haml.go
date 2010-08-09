@@ -136,6 +136,8 @@ func (self *Engine) makeStates() {
 	endAttributeState.addTransition(matchContent, contentState)
 	endAttributeState.addTransition(matchNoNewlineState, noNewlineState)
 	
+	keyState.addTransition(matchNoNewlineState, noNewlineState)
+	
 	idState.addTransition(matchClass, classState)
 	idState.addTransition(matchKey, keyState)
 	idState.addTransition(matchContent, contentState)
