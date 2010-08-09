@@ -18,12 +18,13 @@ type Engine struct {
 	remainder string
 	indentCount int
 	closeTag bool
+	noNewline bool
 	tree *tree
 	currentNode *node
 }
 
 func NewEngine(input string) (engine *Engine) {
-	engine = &Engine{make(map[string]interface{}), "\t", newStack(), input, nil, nil, "", make(map[string]string), "", 0, false, newTree(), nil}
+	engine = &Engine{make(map[string]interface{}), "\t", newStack(), input, nil, nil, "", make(map[string]string), "", 0, false, false, newTree(), nil}
 	engine.makeStates()
 	engine.Options["autoclose"] = true
 	return
@@ -86,6 +87,10 @@ func (self *Engine) makeStates() {
 		}
 	}
 	
+	exitNoNewlineState := func(s *state, line []int, scope map[string]interface{}) {
+		self.noNewline = true
+	}
+	
 	nilFunc := func(s *state, line []int, scope map[string]interface{}) {}
 	
  	leadingSpaceState := newState(exitLeadingSpace)
@@ -98,6 +103,7 @@ func (self *Engine) makeStates() {
 	closeTagState := newState(exitCloseTagState)
 	attributeState := newState(exitAttributeState)
 	endAttributeState := newState(nilFunc)
+	noNewlineState := newState(exitNoNewlineState)
 	
 	matchTag := func(rune int) bool {return '%' == rune}
 	matchId := func(rune int) bool {return '#' == rune}
@@ -109,6 +115,7 @@ func (self *Engine) makeStates() {
 	matchCloseTagState := func(rune int) bool {return '/' == rune}
 	matchStartAttributeState := func(rune int) bool {return '{' == rune}
 	matchEndAttributeState := func(rune int) bool {return '}' == rune}
+	matchNoNewlineState := func(rune int) bool {return '<' == rune}
 	
 	leadingSpaceState.addTransition(matchBackslashState, backslashState)
 	leadingSpaceState.addTransition(matchTag, tagState)
@@ -122,10 +129,12 @@ func (self *Engine) makeStates() {
 	tagState.addTransition(matchId, idState)
 	tagState.addTransition(matchContent, contentState)
 	tagState.addTransition(matchStartAttributeState, attributeState)
+	tagState.addTransition(matchNoNewlineState, noNewlineState)
 	
 	attributeState.addTransition(matchEndAttributeState, endAttributeState)
 	
 	endAttributeState.addTransition(matchContent, contentState)
+	endAttributeState.addTransition(matchNoNewlineState, noNewlineState)
 	
 	idState.addTransition(matchClass, classState)
 	idState.addTransition(matchKey, keyState)
@@ -136,6 +145,8 @@ func (self *Engine) makeStates() {
 	classState.addTransition(matchKey, keyState)
 	classState.addTransition(matchContent, contentState)
 	classState.addTransition(matchStartAttributeState, attributeState)
+	
+	contentState.addTransition(matchNoNewlineState, noNewlineState)
 	
 	self.parsingState = leadingSpaceState
 	self.startState = leadingSpaceState
@@ -154,6 +165,7 @@ func (self *Engine) Render(scope map[string]interface{}) (output string) {
 		self.remainder = ""
 		self.indentCount = 0
 		self.closeTag = false
+		self.noNewline = false;
 		self.parseLine(line, scope)
 
 		var n *node = nil
@@ -167,6 +179,7 @@ func (self *Engine) Render(scope map[string]interface{}) (output string) {
 			self.currentNode = self.tree.createChild(self.tag, self.remainder, self.indentCount)
 		}
 		if !self.tagClose() {self.currentNode.setAutocloseOff()}
+		if self.noNewline {self.currentNode.setNoNewline()}
 		for key, value := range self.attrs {
 			self.currentNode.appendAttr(key, value)
 		}

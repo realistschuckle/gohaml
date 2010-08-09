@@ -30,6 +30,10 @@ var autoCloseTests = []IO{
 	IO{"%tag{:attribute1 => \"value1\", :attribute2 => \"value2\"} tag content", "<tag attribute2=\"value2\" attribute1=\"value1\">tag content</tag>"},
 	IO{"%tag#tagId.tagClass{:id => \"tagId\", :class => \"tagClass\"} tag content", "<tag id=\"tagId tagId\" class=\"tagClass tagClass\">tag content</tag>"},
 	IO{"%tag#tagId{:attribute => \"value\"} tag content", "<tag id=\"tagId\" attribute=\"value\">tag content</tag>"},
+	IO{"I love <\nHAML!", "I love HAML!"},
+	IO{"%a{:href => \"/another/page\"}<\n  %span.button Press me!", "<a href=\"/another/page\"><span class=\"button\">Press me!</span></a>"},
+	IO{"%a{:href => \"/another/page\"}<\n  %span.button Press me!\n  %span Me, too!", "<a href=\"/another/page\"><span class=\"button\">Press me!</span>\n<span>Me, too!</span></a>"},
+	IO{"%p\n  %a<\n    %span Press me!\n    %span\n      %span Me, too\n    %span And, me!", "<p>\n\t<a><span>Press me!</span>\n\t<span>\n\t\t<span>Me, too</span>\n\t</span>\n\t<span>And, me!</span></a>\n</p>"},
 } 
 
 func TestAutoCloseIO(t *testing.T) {
