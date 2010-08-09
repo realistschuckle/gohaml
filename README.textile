@@ -13,7 +13,7 @@ Well, getting closer to something useful. The *gohaml* parser now supports the f
 * Tags with
 ** empty content;
 ** attributes of the form {:attr => "value"};
-** id moniker using #;
+** id moniker using #; and,
 ** class moniker using .;
 * Tag nesting
 * Simple lookup
