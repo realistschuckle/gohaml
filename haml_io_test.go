@@ -53,12 +53,13 @@ var noAutoCloseTests = []IO {
 }
 
 func TestNoAutoCloseIO(t *testing.T) {
-	for _, io := range autoCloseTests {
+	for _, io := range noAutoCloseTests {
 		scope := make(map[string]interface{})
 		scope["key1"] = "value1"
 		scope["key2"] = "value2"
 	
 		engine := NewEngine(io.input)
+		engine.Options["autoclose"] = false
 		output := engine.Render(scope)
 		if output != io.expected {
 			t.Errorf("Input    %q\nexpected %q\ngot      %q", io.input, io.expected, output)

@@ -18,10 +18,12 @@ type Engine struct {
 	remainder string
 	indentCount int
 	closeTag bool
+	tree *tree
+	currentNode *node
 }
 
 func NewEngine(input string) (engine *Engine) {
-	engine = &Engine{make(map[string]interface{}), "\t", newStack(), input, nil, nil, "", make(map[string]string), "", 0, false}
+	engine = &Engine{make(map[string]interface{}), "\t", newStack(), input, nil, nil, "", make(map[string]string), "", 0, false, newTree(), nil}
 	engine.makeStates()
 	engine.Options["autoclose"] = true
 	return
@@ -121,12 +123,8 @@ func (self *Engine) makeStates() {
 func (self *Engine) Render(scope map[string]interface{}) (output string) {
 	lines := strings.Split(self.input, "\n", -1)
 	if 0 == len(lines) {lines = []string{self.input}}
-	lineEnd := "\n"
-	for i, line := range lines {
+	for _, line := range lines {
 		if 0 == len(line) {continue}
-		if _, _, hadChildren := self.stk.peek(); i == len(lines) - 1 && !hadChildren {
-			lineEnd = ""
-		}
 		self.parsingState = self.startState
 		self.tag = ""
 		self.attrs = make(map[string]string)
@@ -134,69 +132,28 @@ func (self *Engine) Render(scope map[string]interface{}) (output string) {
 		self.indentCount = 0
 		self.closeTag = false
 		self.parseLine(line, scope)
-		
-		indent := ""
-		for i := 0; i < self.stk.len(); i++ {
-			indent += self.Indentation
-		}
 
-		if 0 == len(self.tag) {
-			output += indent + self.remainder
-		} else if len(self.remainder) > 0 {
-			if self.stk.len() > 0 {
-				output += ">\n"
-				self.stk.topHasChildren()
-				lineEnd = "\n"
-			}
-			output += indent + fmt.Sprintf("<%s%s>%s</%s>%s", self.tag, self.attrs, self.remainder, self.tag, lineEnd)
+		var n *node = nil
+		for n = self.currentNode; n != nil && n.indentCount >= self.indentCount; n = self.currentNode.parent {
+			self.currentNode = n
+		}
+		self.currentNode = n
+		if nil != self.currentNode {
+	 		self.currentNode = self.currentNode.createChild(self.tag, self.remainder, self.indentCount)
 		} else {
-			_, topIndent, _ := self.stk.peek()
-			if topIndent < self.indentCount {
-				if self.stk.len() > 0 {
-					output += ">\n"
-				}
-				self.stk.push(self.tag, self.indentCount)
-				output += indent + fmt.Sprintf("<%s%s", self.tag, self.attrs)
-			} else if topIndent == self.indentCount {
-				autoclose := self.tagClose()
-				name, _, hadChildren := self.stk.pop()
-				if hadChildren {
-					output += indent + fmt.Sprintf("</%s>\n", name)
-				} else {
-					output += fmt.Sprintf("%s>\n", autoclose)
-				}
-				indent = ""
-				for i := 0; i < self.stk.len(); i++ {
-					indent += self.Indentation
-				}
-				self.stk.push(self.tag, self.indentCount)
-				output += indent + fmt.Sprintf("<%s%s", self.tag, self.attrs)
-			}
+			self.currentNode = self.tree.createChild(self.tag, self.remainder, self.indentCount)
+		}
+		if !self.tagClose() {self.currentNode.setAutocloseOff()}
+		for key, value := range self.attrs {
+			self.currentNode.appendAttr(key, value)
 		}
 	}
-	lineEnd = "\n"
-	for depth := self.stk.len(); depth > 0; depth = self.stk.len() {
-		autoclose := self.tagClose()
-		if 1 == depth {lineEnd = ""}
-		indent := ""
-		for i := 0; i < depth - 1; i++ {
-			indent += self.Indentation
-		}
-		name, _, hadChildren := self.stk.pop()
-		if hadChildren {
-			output += indent + fmt.Sprintf("</%s>%s", name, lineEnd)
-		} else {
-			output += fmt.Sprintf("%s>%s", autoclose, lineEnd)
-		}
-	}
+	output = self.tree.String()
 	return
 }
 
-func (self *Engine) tagClose() (close string) {
-	close = ""
-	if self.Options["autoclose"].(bool) || self.closeTag {
-		close = " /"
-	}
+func (self *Engine) tagClose() (close bool) {
+	close = self.Options["autoclose"].(bool) || self.closeTag
 	return
 }
 

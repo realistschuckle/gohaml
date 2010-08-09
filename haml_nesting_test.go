@@ -9,8 +9,10 @@ var nestingTests = []IO{
 	IO{"%tag1\n  %tag2\n  %tag3", "<tag1>\n\t<tag2 />\n\t<tag3 />\n</tag1>"},
 	IO{"%tag1\n  %tag2\n    %tag3", "<tag1>\n\t<tag2>\n\t\t<tag3 />\n\t</tag2>\n</tag1>"},
 	IO{"%tag1\n  %tag2\n    %tag3 tag content", "<tag1>\n\t<tag2>\n\t\t<tag3>tag content</tag3>\n\t</tag2>\n</tag1>"},
-//	IO{"%tag1\n  %tag2\n    %tag3 tag content\n    %tag4", "<tag1>\n\t<tag2>\n\t\t<tag3>tag content</tag3>\n\t\t<tag4 />\n\t</tag2>\n</tag1>"},
-	// IO{"%tag1\n  %tag2\n    %tag3\n    %tag4 tag content", "<tag1>\n\t<tag2>\n\t\t<tag3 />\n\t\t<tag4>tag content</tag4>\n\t</tag2>\n</tag1>"},
+	IO{"%tag1\n  %tag2\n    %tag3 tag content\n    %tag4", "<tag1>\n\t<tag2>\n\t\t<tag3>tag content</tag3>\n\t\t<tag4 />\n\t</tag2>\n</tag1>"},
+	IO{"%tag1\n  %tag2\n    %tag3\n    %tag4 tag content", "<tag1>\n\t<tag2>\n\t\t<tag3 />\n\t\t<tag4>tag content</tag4>\n\t</tag2>\n</tag1>"},
+	IO{"%tag1\n  %tag2\n    %tag3\n  %tag4", "<tag1>\n\t<tag2>\n\t\t<tag3 />\n\t</tag2>\n\t<tag4 />\n</tag1>"},
+	IO{"%tag1\n  %tag4 tag content\n  %tag2#tag2Id.class2.class3\n    %tag3", "<tag1>\n\t<tag4>tag content</tag4>\n\t<tag2 id=\"tag2Id\" class=\"class2 class3\">\n\t\t<tag3 />\n\t</tag2>\n</tag1>"},
 }
 
 func TestNesting(t *testing.T) {

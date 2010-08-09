@@ -3,6 +3,7 @@ package gohaml
 import (
 	"bytes"
 	"container/vector"
+	"fmt"
 )
 
 type attrMap map[string]string
@@ -20,35 +21,80 @@ func (m attrMap) String() (s string) {
 	return
 }
 
-type Node struct {
+type node struct {
 	name string
 	attrs attrMap
 	remainder string
 	indentCount int
-	parent *Node
+	parent *node
 	children *vector.Vector
+	closeTag string
 }
 
-type Tree struct {
-	Node
+type tree struct {
+	node
 }
 
-func newTree() (tree *Tree) {
-	tree = &Tree{}
+func newTree() (t *tree) {
+	t = &tree{node{"tree", nil, "", -1, nil, new(vector.Vector), " /"}}
 	return
 }
 
-func (self *Node) createChild(name string, remainder string, indentCount int) (node *Node) {
-	node = &Node{name, make(attrMap), remainder, indentCount, self, new(vector.Vector)}
+func (self *node) createChild(name string, remainder string, indentCount int) (out *node) {
+	out = &node{name, make(attrMap), remainder, indentCount, self, new(vector.Vector), " /"}
+	self.children.Push(out)
 	return
 }
 
-func (self *Node) topLevel() (isTopLevel bool) {
+func (self *node) topLevel() (isTopLevel bool) {
 	return nil == self.parent.parent
 	return
 }
 
-func (self *Node) childAt(i int) (child *Node) {
-	child = self.children.At(i).(*Node)
+func (self *node) childAt(i int) (child *node) {
+	child = self.children.At(i).(*node)
 	return;
+}
+
+func (self *node) setAutocloseOff() {
+	self.closeTag = ""
+}
+
+func (self *node) appendAttr(name string, value string) {
+	if _, ok := self.attrs[name]; ok {
+		self.attrs[name] += " " + value
+	} else {
+		self.attrs[name] = value
+	}
+	return
+}
+
+func (self *tree) String() (output string) {
+	output = ""
+	for i := 0; i < self.children.Len(); i++ {
+		node := self.childAt(i)
+		output += node.String(i == self.children.Len() - 1, "")
+	}
+	return
+}
+
+func (self *node) String(last bool, indent string) (output string) {
+	lineEnd := "\n"
+	if last {lineEnd = ""}
+	if len(self.name) > 0 && len(self.remainder) > 0 {
+		output += indent + fmt.Sprintf("<%s%s>%s</%s>%s", self.name, self.attrs, self.remainder, self.name, lineEnd)
+	} else if len(self.name) > 0 && self.children.Len() > 0 {
+		output += indent + fmt.Sprintf("<%s%s>\n", self.name, self.attrs)
+		childIndent := indent + "\t"
+		for i := 0; i < self.children.Len(); i++ {
+			node := self.childAt(i)
+			output += node.String(false, childIndent)
+		}
+		output += indent + fmt.Sprintf("</%s>%s", self.name, lineEnd)
+	} else if len(self.name) > 0 {
+		output += indent + fmt.Sprintf("<%s%s%s>%s", self.name, self.attrs, self.closeTag, lineEnd)
+	} else if len(self.remainder) > 0 {
+		output += indent + self.remainder + lineEnd
+	}
+	return
 }
