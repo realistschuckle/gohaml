@@ -2,13 +2,34 @@ h1. What is it?
 
 I have started implementing a HAML processor in the GO language.
 You can find out more about HAML at "haml-lang.com":haml-lang.com.
-You can find out more about GO at "golang.org":golang.org.
+You can find out more about GO at "golang.org":golang.org. I've
+tried to remain diligent about reproducing the output from the
+canonical Ruby-based parser, so if you feel familiar with the one,
+then you should feel familiar with the other.
 
 h1. Is it done?
 
-No. Not even close. I just started yesterday with a language I just
-found out existed three days ago. However, in just that little time,
-I feel like I've come pretty far.
+Well, getting closer to something useful. The *gohaml* parser now
+supports the following:
+
+* Tags with
+** empty content;
+** attributes of the form {:attr => "value"};
+** id moniker using #;
+** class moniker using .;
+* Tag nesting
+* Simple lookup
+* Engine-level autoclose option (<br /> vs. <br>)
+* Tag-specific close option (%br/ becomes <br /> regardless of autoclose setting)
+* Whitespace removal with the < operator
+
+This parser hasn't the same level of error reporting as the Ruby-based parser.
+That, of course, comes next. I want to make sure that I have the same reporting
+style and type of messages that comes with the other parser.
+
+- No. Not even close. I just started yesterday with a language I just -
+- found out existed three days ago. However, in just that little time, -
+- I feel like I've come pretty far. -
 
 h1. How can I install this?
 
@@ -17,7 +38,6 @@ Just follow the simple directions from the command line:
 pre. git clone git://github.com/realistschuckle/gohaml.git gohaml
 cd gohaml
 make install
-
 
 h1. How can I use it?
 
