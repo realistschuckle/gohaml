@@ -21,6 +21,15 @@ func (m attrMap) String() (s string) {
 	return
 }
 
+func (self attrMap) appendAttr(name string, value string) {
+	if _, ok := self[name]; ok {
+		self[name] += " " + value
+	} else {
+		self[name] = value
+	}
+	return
+}
+
 type node struct {
 	name string
 	attrs attrMap
@@ -61,11 +70,7 @@ func (self *node) setAutocloseOff() {
 }
 
 func (self *node) appendAttr(name string, value string) {
-	if _, ok := self.attrs[name]; ok {
-		self.attrs[name] += " " + value
-	} else {
-		self.attrs[name] = value
-	}
+	self.attrs.appendAttr(name, value)
 	return
 }
 

@@ -26,6 +26,10 @@ var autoCloseTests = []IO{
 	IO{"#tagId tag content", "<div id=\"tagId\">tag content</div>"},
 	IO{"%tag#tagId= key1", "<tag id=\"tagId\">value1</tag>"},
 	IO{"%tag1#tagId1= key1\n%tag2#tagId2= key2", "<tag1 id=\"tagId1\">value1</tag1>\n<tag2 id=\"tagId2\">value2</tag2>"},
+	IO{"%tag{:attribute1 => \"value1\", :attribute2 => \"value2\"}", "<tag attribute2=\"value2\" attribute1=\"value1\" />"},
+	IO{"%tag{:attribute1 => \"value1\", :attribute2 => \"value2\"} tag content", "<tag attribute2=\"value2\" attribute1=\"value1\">tag content</tag>"},
+	IO{"%tag#tagId.tagClass{:id => \"tagId\", :class => \"tagClass\"} tag content", "<tag id=\"tagId tagId\" class=\"tagClass tagClass\">tag content</tag>"},
+	IO{"%tag#tagId{:attribute => \"value\"} tag content", "<tag id=\"tagId\" attribute=\"value\">tag content</tag>"},
 } 
 
 func TestAutoCloseIO(t *testing.T) {
@@ -50,6 +54,7 @@ var noAutoCloseTests = []IO {
 	IO{".tagClass", "<div class=\"tagClass\">"},
 	IO{"%tag#tagId", "<tag id=\"tagId\">"},
 	IO{"#tagId", "<div id=\"tagId\">"},
+	IO{"%tag{:attribute1 => \"value1\", :attribute2 => \"value2\"}", "<tag attribute2=\"value2\" attribute1=\"value1\">"},
 }
 
 func TestNoAutoCloseIO(t *testing.T) {

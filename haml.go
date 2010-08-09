@@ -76,6 +76,18 @@ func (self *Engine) makeStates() {
 		return
 	}
 	
+	exitAttributeState := func(s *state, line []int, scope map[string]interface{}) {
+		trimFunc := func(rune int) bool {return unicode.IsSpace(rune) || ':' == rune || '"' == rune}
+		attrPairs := strings.Split(string(line[s.leftIndex + 1:s.rightIndex]), ",", -1)
+		for _, attrPair := range attrPairs {
+			pair := strings.Split(attrPair, "=>", -1)
+			key, value := strings.TrimFunc(pair[0], trimFunc), strings.TrimFunc(pair[1], trimFunc)
+			self.attrs.appendAttr(key, value)
+		}
+	}
+	
+	nilFunc := func(s *state, line []int, scope map[string]interface{}) {}
+	
  	leadingSpaceState := newState(exitLeadingSpace)
 	tagState := newState(exitTagState)
 	idState := newState(exitIdState)
@@ -84,6 +96,8 @@ func (self *Engine) makeStates() {
 	contentState := newState(exitContentState)
 	backslashState := newState(exitBackslashState)
 	closeTagState := newState(exitCloseTagState)
+	attributeState := newState(exitAttributeState)
+	endAttributeState := newState(nilFunc)
 	
 	matchTag := func(rune int) bool {return '%' == rune}
 	matchId := func(rune int) bool {return '#' == rune}
@@ -93,6 +107,8 @@ func (self *Engine) makeStates() {
 	matchContent := func(rune int) bool {return unicode.IsSpace(rune)}
 	matchBackslashState := func(rune int) bool {return '\\' == rune && 0 == self.indentCount}
 	matchCloseTagState := func(rune int) bool {return '/' == rune}
+	matchStartAttributeState := func(rune int) bool {return '{' == rune}
+	matchEndAttributeState := func(rune int) bool {return '}' == rune}
 	
 	leadingSpaceState.addTransition(matchBackslashState, backslashState)
 	leadingSpaceState.addTransition(matchTag, tagState)
@@ -105,14 +121,21 @@ func (self *Engine) makeStates() {
 	tagState.addTransition(matchClass, classState)
 	tagState.addTransition(matchId, idState)
 	tagState.addTransition(matchContent, contentState)
+	tagState.addTransition(matchStartAttributeState, attributeState)
+	
+	attributeState.addTransition(matchEndAttributeState, endAttributeState)
+	
+	endAttributeState.addTransition(matchContent, contentState)
 	
 	idState.addTransition(matchClass, classState)
 	idState.addTransition(matchKey, keyState)
 	idState.addTransition(matchContent, contentState)
+	idState.addTransition(matchStartAttributeState, attributeState)
 	
 	classState.addTransition(matchClass, classState)
 	classState.addTransition(matchKey, keyState)
 	classState.addTransition(matchContent, contentState)
+	classState.addTransition(matchStartAttributeState, attributeState)
 	
 	self.parsingState = leadingSpaceState
 	self.startState = leadingSpaceState
