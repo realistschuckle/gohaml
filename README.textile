@@ -35,6 +35,6 @@ func main() {
 	scope["lang"] = "HAML"
 	content := "I love <\n=lang<\n!"
 	engine := gohaml.NewEngine(content)
-	output := engine.render(scope)
+	output := engine.Render(scope)
 	fmt.Println(output) // Prints "I love HAML!"
 }
