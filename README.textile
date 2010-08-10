@@ -16,7 +16,9 @@ Well, getting closer to something useful. The *gohaml* parser now supports the f
 ** id moniker using "#" (@#divId@); and,
 ** class moniker using "." (@.divClass@).
 * Tag nesting
-* Simple lookup
+* Simple lookup for tag content (@%p= someKeyInScope@)
+* Simple lookup for attribute names (@%p{keyForAttrName => "value"}@)
+* Simple lookup for attribute values (@%p{:attr => keyForAttrValue}@)
 * Engine-level autoclose option (@&lt;br /&gt;@ vs. @&lt;br&gt;@)
 * Tag-specific close option (@%br/@ becomes @&lt;br /&gt;@ regardless of autoclose setting)
 * Whitespace removal with the @<@ operator
