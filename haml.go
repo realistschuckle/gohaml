@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"utf8"
+	"reflect"
 )
 
 type Engine struct {
@@ -60,7 +61,7 @@ func (self *Engine) makeStates() {
 	exitKeyState := func(s *state, line []int, scope map[string]interface{}) {
 		key := string(line[s.leftIndex + 1:s.rightIndex])
 		key = strings.TrimFunc(key, unicode.IsSpace)
-		self.remainder = fmt.Sprint(scope[key])
+		self.remainder = fmt.Sprint(self.lookup(key, scope))
 	}
 	
 	exitContentState := func(s *state, line []int, scope map[string]interface{}) {
@@ -198,6 +199,39 @@ func (self *Engine) cleanAttr(attr string, scope map[string]interface{}) (output
 		output = fmt.Sprint(scope[output]) // Translate key
 	} else {
 		output = strings.TrimFunc(output, trimFunc)
+	}
+	return
+}
+
+func (self *Engine) lookup(complexKey string, scope map[string]interface{}) (output string) {
+	keyComponents := strings.Split(complexKey, ".", -1)
+	if 1 == len(keyComponents) {
+		output = fmt.Sprint(scope[complexKey])
+	} else {
+		var ongoingScope reflect.Value
+		for i, keyPart := range keyComponents {
+			if 0 == i {
+				ongoingScope = reflect.NewValue(scope[keyPart])
+			} else {
+				var structValue *reflect.StructValue
+				
+				switch t := ongoingScope.(type) {
+				case *reflect.PtrValue:
+					structValue = t.Elem().(*reflect.StructValue)
+				case *reflect.StructValue:
+					structValue = t
+				}
+				ongoingScope = structValue.FieldByName(keyPart)
+			}
+		}
+		switch t := ongoingScope.(type) {
+		case *reflect.IntValue:
+			output += fmt.Sprint(t.Get())
+		case *reflect.StringValue:
+			output += fmt.Sprint(t.Get())
+		case *reflect.FloatValue:
+			output += fmt.Sprint(t.Get())
+		}
 	}
 	return
 }
