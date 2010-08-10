@@ -79,17 +79,10 @@ func (self *Engine) makeStates() {
 	}
 	
 	exitAttributeState := func(s *state, line []int, scope map[string]interface{}) {
-		trimFunc := func(rune int) bool {return unicode.IsSpace(rune) || ':' == rune || '"' == rune}
 		attrPairs := strings.Split(string(line[s.leftIndex + 1:s.rightIndex]), ",", -1)
 		for _, attrPair := range attrPairs {
 			pair := strings.Split(attrPair, "=>", -1)
-			key, value := strings.TrimFunc(pair[0], trimFunc), strings.TrimFunc(pair[1], unicode.IsSpace)
-			firstLetter, _ := utf8.DecodeRuneInString(value)
-			if unicode.IsLetter(firstLetter) {
-				value = fmt.Sprintf("%s", scope[value]) // Translate key
-			} else {
-				value = strings.TrimFunc(pair[1], trimFunc)
-			}
+			key, value := self.cleanAttr(pair[0], scope), self.cleanAttr(pair[1], scope)
 			self.attrs.appendAttr(key, value)
 		}
 	}
@@ -194,6 +187,18 @@ func (self *Engine) Render(scope map[string]interface{}) (output string) {
 		}
 	}
 	output = self.tree.String()
+	return
+}
+
+func (self *Engine) cleanAttr(attr string, scope map[string]interface{}) (output string) {
+	trimFunc := func(rune int) bool {return unicode.IsSpace(rune) || ':' == rune || '"' == rune}
+	output = strings.TrimFunc(attr, unicode.IsSpace)
+	firstLetter, _ := utf8.DecodeRuneInString(output)
+	if unicode.IsLetter(firstLetter) {
+		output = fmt.Sprint(scope[output]) // Translate key
+	} else {
+		output = strings.TrimFunc(output, trimFunc)
+	}
 	return
 }
 
