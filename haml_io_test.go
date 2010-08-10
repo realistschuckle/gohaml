@@ -35,6 +35,7 @@ var autoCloseTests = []IO{
 	IO{"%a{:href => \"/another/page\"}<\n  %span.button Press me!\n  %span Me, too!", "<a href=\"/another/page\"><span class=\"button\">Press me!</span>\n<span>Me, too!</span></a>"},
 	IO{"%p\n  %a<\n    %span Press me!\n    %span\n      %span Me, too\n    %span And, me!", "<p>\n\t<a><span>Press me!</span>\n\t<span>\n\t\t<span>Me, too</span>\n\t</span>\n\t<span>And, me!</span></a>\n</p>"},
 	IO{"I love <\n=lang<\n!", "I love HAML!"},
+	IO{".tagClass{:attribute => key2}", "<div attribute=\"value2\" class=\"tagClass\" />"},
 } 
 
 func TestAutoCloseIO(t *testing.T) {

@@ -4,6 +4,7 @@ import (
 	"unicode"
 	"fmt"
 	"strings"
+	"utf8"
 )
 
 type Engine struct {
@@ -82,7 +83,13 @@ func (self *Engine) makeStates() {
 		attrPairs := strings.Split(string(line[s.leftIndex + 1:s.rightIndex]), ",", -1)
 		for _, attrPair := range attrPairs {
 			pair := strings.Split(attrPair, "=>", -1)
-			key, value := strings.TrimFunc(pair[0], trimFunc), strings.TrimFunc(pair[1], trimFunc)
+			key, value := strings.TrimFunc(pair[0], trimFunc), strings.TrimFunc(pair[1], unicode.IsSpace)
+			firstLetter, _ := utf8.DecodeRuneInString(value)
+			if unicode.IsLetter(firstLetter) {
+				value = fmt.Sprintf("%s", scope[value]) // Translate key
+			} else {
+				value = strings.TrimFunc(pair[1], trimFunc)
+			}
 			self.attrs.appendAttr(key, value)
 		}
 	}
