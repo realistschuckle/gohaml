@@ -45,10 +45,11 @@ type node struct {
 
 type tree struct {
 	node
+	indent string
 }
 
 func newTree() (t *tree) {
-	t = &tree{node{"tree", nil, "", -1, nil, new(vector.Vector), " /", false}}
+	t = &tree{node{"tree", nil, "", -1, nil, new(vector.Vector), " /", false}, "\t"}
 	return
 }
 
@@ -85,12 +86,12 @@ func (self *tree) String() (output string) {
 	output = ""
 	for i := 0; i < self.children.Len(); i++ {
 		node := self.childAt(i)
-		output += node.String(i == self.children.Len() - 1, "")
+		output += node.String(i == self.children.Len() - 1, "", self.indent)
 	}
 	return
 }
 
-func (self *node) String(last bool, indent string) (output string) {
+func (self *node) String(last bool, indent string, customIndent string) (output string) {
 	lineEnd := "\n"
 	if last || self.noNewline {lineEnd = ""}
 	if len(self.name) > 0 && len(self.remainder) > 0 {
@@ -101,7 +102,7 @@ func (self *node) String(last bool, indent string) (output string) {
 		} else {
 			output += indent + fmt.Sprintf("<%s%s>\n", self.name, self.attrs)
 		}
-		childIndent := indent + "\t"
+		childIndent := indent + customIndent
 		for i := 0; i < self.children.Len(); i++ {
 			nextIndent := childIndent
 			if 0 == i && self.noNewline {
@@ -110,7 +111,7 @@ func (self *node) String(last bool, indent string) (output string) {
 				nextIndent = indent
 			}
 			node := self.childAt(i)
-			output += node.String(false, nextIndent)
+			output += node.String(false, nextIndent, customIndent)
 		}
 		if self.noNewline {
 			output = strings.TrimRightFunc(output, unicode.IsSpace)

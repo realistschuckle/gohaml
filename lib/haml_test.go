@@ -26,3 +26,12 @@ func checkIndent(expectedCount int, input string, t *testing.T) {
 		t.Errorf("Expected indent count of %d but got %d.", expectedCount, engine.indentCount)
 	}
 }
+
+func TestCustomIndentPropertyAffectOnOutput(t *testing.T) {
+	engine := NewEngine("%tag\n  %subTag")
+	engine.Indentation = "    "
+	output := engine.Render(nil)
+	if output != "<tag>\n    <subTag />\n</tag>" {
+		t.Errorf("Expected custom-indented tags but got %q", output)
+	}
+}

@@ -1,8 +1,6 @@
-/*
-The gohaml package contains a HAML parser similar to the one found at http://www.haml-lang.com.
-
-You can find the specifics about this implementation at http://github.com/realistschuckle/gohaml.
-*/
+// The gohaml package contains a HAML parser similar to the one found at http://www.haml-lang.com.
+//
+//You can find the specifics about this implementation at http://github.com/realistschuckle/gohaml.
 package gohaml
 
 import (
@@ -19,12 +17,13 @@ corresponding tag-based representation.
 
 Available options are:
   engine.Options["autoclose"] = true|false, default true
+
+The Options field contains the values to modify the way that the engine produces the markup.
+
+The Indentation field contains the string used by the engine to perform indentation.
 */
 type Engine struct {
-	// The options available that change the template processing logic.
 	Options map[string]interface{}
-	
-	// The string used by the Engine to perform indentation. By default, it is the TAB character.
 	Indentation string
 	stk *stack
 	input string
@@ -40,6 +39,7 @@ type Engine struct {
 	currentNode *node
 }
 
+// NewEngine returns a new Engine with the given input.
 func NewEngine(input string) (engine *Engine) {
 	engine = &Engine{make(map[string]interface{}), "\t", newStack(), input, nil, nil, "", make(map[string]string), "", 0, false, false, newTree(), nil}
 	engine.makeStates()
@@ -172,7 +172,9 @@ func (self *Engine) makeStates() {
 	return
 }
 
+// Render uses the provided scope to generate the tag-based representation of the HAML given to the NewFile function.
 func (self *Engine) Render(scope map[string]interface{}) (output string) {
+	self.tree.indent = self.Indentation
 	lines := strings.Split(self.input, "\n", -1)
 	if 0 == len(lines) {lines = []string{self.input}}
 	for _, line := range lines {
@@ -254,10 +256,6 @@ func (self *Engine) lookup(complexKey string, scope map[string]interface{}) (out
 func (self *Engine) tagClose() (close bool) {
 	close = self.Options["autoclose"].(bool) || self.closeTag
 	return
-}
-
-func (self *Engine) String() string {
-	return fmt.Sprintf("<Engine tag: %s\nattrs: %s\nremainder: %s>", self.tag, self.attrs, self.remainder)
 }
 
 func (self *Engine) parseLine(line string, scope map[string]interface{}) {
