@@ -1,3 +1,8 @@
+/*
+The gohaml package contains a HAML parser similar to the one found at http://www.haml-lang.com.
+
+You can find the specifics about this implementation at http://github.com/realistschuckle/gohaml.
+*/
 package gohaml
 
 import (

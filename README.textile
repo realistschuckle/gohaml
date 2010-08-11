@@ -34,8 +34,17 @@ h1. How can I install this?
 Just follow the simple directions from the command line:
 
 pre. git clone git://github.com/realistschuckle/gohaml.git gohaml
-cd gohaml
+cd lib
 make install
+cd ../exe
+make install
+
+h1. Wow, Five Commands? Isn't there an easier way to install this?
+
+Go has the nifty @goinstall@ experimental package manager. You can try this, but I won't guarantee its success.
+
+pre. goinstall "github.com/realistschuckle/gohaml/lib"
+goinstall "github.com/realistschuckle/gohaml/exe"
 
 h1. How can I use it?
 
