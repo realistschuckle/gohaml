@@ -10,5 +10,8 @@ GOFILES=\
 	states.go\
 	stack.go\
 	tree.go\
+	
+XGOFILES=\
+	hamlx.go\
 
 include Make.pkg

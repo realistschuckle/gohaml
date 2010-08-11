@@ -25,8 +25,9 @@ dir=$(patsubst %/$(elem),%,$(TARG))
 endif
 
 pkgdir=$(QUOTED_GOROOT)/pkg/$(GOOS)_$(GOARCH)
+bindir=$(QUOTED_GOROOT)/bin
 
-INSTALLFILES+=$(pkgdir)/$(TARG).a
+INSTALLFILES+=$(pkgdir)/$(TARG).a $(bindir)/$(TARG)
 
 # The rest of the cgo rules are below, but these variable updates
 # must be done here so they apply to the main rules.
@@ -55,6 +56,7 @@ bench:
 
 nuke: clean
 	rm -f $(pkgdir)/$(TARG).a
+	rm -f $(bindir)/$(TARG)
 
 testpackage-clean:
 	rm -f _test/$(TARG).a _gotest_.$O
@@ -64,6 +66,10 @@ install: $(INSTALLFILES)
 $(pkgdir)/$(TARG).a: _obj/$(TARG).a
 	@test -d $(QUOTED_GOROOT)/pkg && mkdir -p $(pkgdir)/$(dir)
 	cp _obj/$(TARG).a "$@"
+
+$(bindir)/$(TARG): $(pkgdir)/$(TARG).a hamlx.go
+	$(QUOTED_GOBIN)/$(GC) -o $@.8 $(XGOFILES)
+	$(QUOTED_GOBIN)/$(LD) -o $@ $@.8
 
 _go_.$O: $(GOFILES) $(PREREQ)
 	$(QUOTED_GOBIN)/$(GC) -o $@ $(GOFILES)
