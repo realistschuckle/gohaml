@@ -13,8 +13,18 @@ import (
 	"reflect"
 )
 
+/*
+Engine provides the template interpretation functionality to convert a HAML template into its
+corresponding tag-based representation.
+
+Available options are:
+  engine.Options["autoclose"] = true|false, default true
+*/
 type Engine struct {
+	// The options available that change the template processing logic.
 	Options map[string]interface{}
+	
+	// The string used by the Engine to perform indentation. By default, it is the TAB character.
 	Indentation string
 	stk *stack
 	input string
