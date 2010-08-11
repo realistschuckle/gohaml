@@ -41,7 +41,7 @@ h1. Gosh! Isn't there an easier way to do that?
 
 Yep. Try:
 
-pre. goinstall "github.com/reaslistschuckle/gohaml"
+pre. goinstall "github.com/realistschuckle/gohaml"
 
 h1. How can I use it?
 
