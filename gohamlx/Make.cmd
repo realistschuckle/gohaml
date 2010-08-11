@@ -9,7 +9,7 @@ nullstring :=
 space := $(nullstring) # a space at the end
 QUOTED_GOROOT:=$(subst $(space),\ ,$(GOROOT))
 
-include $(QUOTED_GOROOT)/src/Make.common
+include ../Make.common
 
 ifeq ($(GOOS),windows) 
 TARG:=$(TARG).exe 

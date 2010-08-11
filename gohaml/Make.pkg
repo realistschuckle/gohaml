@@ -1,4 +1,4 @@
-# Copyright 2009 The Go Authors. All rights reserved.
+#inc Copyright 2009 The Go Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
@@ -11,7 +11,7 @@ nullstring :=
 space := $(nullstring) # a space at the end
 QUOTED_GOROOT:=$(subst $(space),\ ,$(GOROOT))
 
-include $(QUOTED_GOROOT)/src/Make.common
+include ../Make.common
 
 # GNU Make 3.80 has a bug in lastword
 # elem=$(lastword $(subst /, ,$(TARG)))
@@ -56,7 +56,6 @@ bench:
 
 nuke: clean
 	rm -f $(pkgdir)/$(TARG).a
-	rm -f $(bindir)/$(TARG)
 
 testpackage-clean:
 	rm -f _test/$(TARG).a _gotest_.$O
