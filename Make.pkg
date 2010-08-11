@@ -68,9 +68,9 @@ $(pkgdir)/$(TARG).a: _obj/$(TARG).a
 	cp _obj/$(TARG).a "$@"
 
 $(bindir)/$(TARG): $(pkgdir)/$(TARG).a hamlx.go
-	$(QUOTED_GOBIN)/$(GC) -o $@.8 $(XGOFILES)
-	$(QUOTED_GOBIN)/$(LD) -o $@ $@.8
-	rm -f $(QUOTED_GOBIN)/$@.8
+	$(QUOTED_GOBIN)/$(GC) -o $@.$O $(XGOFILES)
+	$(QUOTED_GOBIN)/$(LD) -o $@ $@.$O
+	rm -f $@.$O
 
 _go_.$O: $(GOFILES) $(PREREQ)
 	$(QUOTED_GOBIN)/$(GC) -o $@ $(GOFILES)
