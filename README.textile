@@ -37,12 +37,6 @@ pre. git clone git://github.com/realistschuckle/gohaml.git gohaml
 cd gohaml
 make install
 
-h1. Gosh! Isn't there an easier way to do that?
-
-Yep. Try:
-
-pre. goinstall "github.com/realistschuckle/gohaml"
-
 h1. How can I use it?
 
 How about something like this? Save it, compile it, link it, and run it!
