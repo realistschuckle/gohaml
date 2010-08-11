@@ -37,6 +37,12 @@ pre. git clone git://github.com/realistschuckle/gohaml.git gohaml
 cd gohaml
 make install
 
+h1. Gosh! Isn't there an easier way to do that?
+
+Yep. Try:
+
+pre. goinstall "github.com/reaslistschuckle/gohaml"
+
 h1. How can I use it?
 
 How about something like this? Save it, compile it, link it, and run it!
@@ -56,3 +62,9 @@ func main() {
 	output := engine.Render(scope)
 	fmt.Println(output) // Prints "I love HAML!"
 }
+
+h1. Can I use it some other way, too?
+
+Yes, you sure can! After you install the @gohaml@ package, the @gohaml@ executable will be installed into your @$GOROOT/bin@ directory. You can just type
+
+pre. gohaml input.haml output.html

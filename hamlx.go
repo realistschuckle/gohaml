@@ -37,6 +37,8 @@ func main() {
 	output := engine.Render(make(map[string]interface{}))
 	
 	io.WriteString(out, output)
+/bin/bash: -c: line 0: syntax error near unexpected token `out,'
+/bin/bash: -c: line 0: `	io.WriteString(out, output)'
 	
 	return
 }
