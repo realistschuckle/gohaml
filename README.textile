@@ -8,7 +8,7 @@ I've tried to remain diligent about reproducing the output from the canonical Ru
 
 h1. Is it done?
 
-Well, getting closer to something useful. The *gohaml* parser now supports the following:
+Pretty darn close. It doesn't have scripting support because Go is not a scripting language. I'm trying to think how I want to implement this because, quite frankly, I don't think that I have the time to write an interpreter.
 
 * Tags with
 ** empty content;
@@ -66,3 +66,7 @@ h1. Can I use it some other way, too?
 Yes, you sure can! After you install the @gohaml@ package, the @gohaml@ executable will be installed into your @$GOROOT/bin@ directory. You can just type
 
 pre. gohaml input.haml output.html
+
+h1. Can I type to gohaml on stdin?
+
+Yep. And, it'll print to standard out, too. Just type @gohaml@ at the command prompt after installation and you can type all you want with a CTRL+D to signal EOF.
