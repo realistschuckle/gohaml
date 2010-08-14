@@ -12,6 +12,7 @@ type simpleLookup struct {
 type complexLookup struct {
 	SubKey1 string
 	SubKey2 simpleLookup
+	SubKey3 map[string]interface{}
 }
 
 type io struct {
@@ -57,12 +58,20 @@ var autoCloseTests = []io{
 	io{"#tagId= complexKey.SubKey2.SubKey4.SubKey2", "<div id=\"tagId\">3</div>"},
 	io{"#tagId= complexKey.SubKey2.SubKey4.SubKey3", "<div id=\"tagId\">0.20000000298023224</div>"},
 	io{"#tagId= complexKey.SubKey2.SubKey4.SubKey4", "<div id=\"tagId\" />"},
+	io{"=complexKey.SubKey2.SubKey3", "0.10000000149011612"},
+	io{"=complexKey.SubKey3.key", "I got map!"},
 } 
 
 func TestAutoCloseIO(t *testing.T) {
 	for _, io := range autoCloseTests {
 		scope := make(map[string]interface{})
-		scope["complexKey"] = complexLookup{"Fortune presents gifts not according to the book.", simpleLookup{"That's what I said.", 5, .1, &simpleLookup{"Down deep.", 3, .2, nil}}}
+		subMap := map[string]interface{} {"key": "I got map!"}
+		complexLookup :=  complexLookup{"Fortune presents gifts not according to the book.",
+										simpleLookup{"That's what I said.", 5, .1,
+										    		 &simpleLookup{"Down deep.", 3, .2, nil}},
+										nil}
+		complexLookup.SubKey3 = subMap
+		scope["complexKey"] = complexLookup
 		scope["key1"] = "value1"
 		scope["key2"] = "value2"
 		scope["lang"] = "HAML"

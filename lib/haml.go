@@ -237,17 +237,25 @@ func (self *Engine) lookup(complexKey string, scope map[string]interface{}) (out
 					structValue = t.Elem().(*reflect.StructValue)
 				case *reflect.StructValue:
 					structValue = t
+				case *reflect.MapValue:
+					ongoingScope = t.Elem(reflect.NewValue(keyPart))
+					continue
 				}
 				ongoingScope = structValue.FieldByName(keyPart)
 			}
 		}
+		
+		Print:
 		switch t := ongoingScope.(type) {
 		case *reflect.IntValue:
-			output += fmt.Sprint(t.Get())
+			output = fmt.Sprint(t.Get())
 		case *reflect.StringValue:
-			output += fmt.Sprint(t.Get())
+			output = fmt.Sprint(t.Get())
 		case *reflect.FloatValue:
-			output += fmt.Sprint(t.Get())
+			output = fmt.Sprint(t.Get())
+		case *reflect.InterfaceValue:
+			ongoingScope = t.Elem()
+			goto Print
 		}
 	}
 	return
