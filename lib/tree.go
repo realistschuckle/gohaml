@@ -83,27 +83,33 @@ func (self *node) appendAttr(name string, value string) {
 }
 
 func (self *tree) String() (output string) {
+	buf := bytes.NewBuffer(make([]byte, 0))
 	output = ""
 	for i := 0; i < self.children.Len(); i++ {
 		node := self.childAt(i)
-		output += node.String(i == self.children.Len() - 1, "", self.indent)
+		node.String(i == self.children.Len() - 1, "", self.indent, buf)
 	}
+	output = buf.String()
 	return
 }
 
-func (self *node) String(last bool, indent string, customIndent string) (output string) {
+func (self *node) String(last bool, indent string, customIndent string, buf *bytes.Buffer) (output string) {
 	lineEnd := "\n"
 	if last || self.noNewline {lineEnd = ""}
 	if len(self.name) > 0 && len(self.remainder) > 0 {
-		output += indent + fmt.Sprintf("<%s%s>%s</%s>%s", self.name, self.attrs, self.remainder, self.name, lineEnd)
+		buf.WriteString(indent)
+		buf.WriteString(fmt.Sprintf("<%s%s>%s</%s>%s", self.name, self.attrs, self.remainder, self.name, lineEnd))
 	} else if len(self.name) > 0 && self.children.Len() > 0 {
 		if self.noNewline {
-			output += indent + fmt.Sprintf("<%s%s>", self.name, self.attrs)
+			buf.WriteString(indent)
+			buf.WriteString(fmt.Sprintf("<%s%s>", self.name, self.attrs))
 		} else {
-			output += indent + fmt.Sprintf("<%s%s>\n", self.name, self.attrs)
+			buf.WriteString(indent)
+			buf.WriteString(fmt.Sprintf("<%s%s>\n", self.name, self.attrs))
 		}
 		childIndent := indent + customIndent
-		for i := 0; i < self.children.Len(); i++ {
+		childrenLen := self.children.Len()
+		for i := 0; i < childrenLen; i++ {
 			nextIndent := childIndent
 			if 0 == i && self.noNewline {
 				nextIndent = ""
@@ -111,18 +117,23 @@ func (self *node) String(last bool, indent string, customIndent string) (output 
 				nextIndent = indent
 			}
 			node := self.childAt(i)
-			output += node.String(false, nextIndent, customIndent)
+			lastNodeNeedsNoNewline := self.noNewline && i == childrenLen - 1
+			node.String(lastNodeNeedsNoNewline, nextIndent, customIndent, buf)
 		}
 		if self.noNewline {
-			output = strings.TrimRightFunc(output, unicode.IsSpace)
+			buf.WriteString(strings.TrimRightFunc(output, unicode.IsSpace))
 			indent = ""
 			if !last {lineEnd = "\n"}
 		}
-		output += indent + fmt.Sprintf("</%s>%s", self.name, lineEnd)
+		buf.WriteString(indent)
+		buf.WriteString(fmt.Sprintf("</%s>%s", self.name, lineEnd))
 	} else if len(self.name) > 0 {
-		output += indent + fmt.Sprintf("<%s%s%s>%s", self.name, self.attrs, self.closeTag, lineEnd)
+		buf.WriteString(indent)
+		buf.WriteString(fmt.Sprintf("<%s%s%s>%s", self.name, self.attrs, self.closeTag, lineEnd))
 	} else if len(self.remainder) > 0 {
-		output += indent + self.remainder + lineEnd
+		buf.WriteString(indent)
+		buf.WriteString(self.remainder)
+		buf.WriteString(lineEnd)
 	}
 	return
 }

@@ -47,6 +47,42 @@ func NewEngine(input string) (engine *Engine) {
 	return
 }
 
+// Render uses the provided scope to generate the tag-based representation of the HAML given to the NewFile function.
+func (self *Engine) Render(scope map[string]interface{}) (output string) {
+	self.tree.indent = self.Indentation
+	lines := strings.Split(self.input, "\n", -1)
+	if 0 == len(lines) {lines = []string{self.input}}
+	for _, line := range lines {
+		if 0 == len(line) {continue}
+		self.parsingState = self.startState
+		self.tag = ""
+		self.attrs = make(map[string]string)
+		self.remainder = ""
+		self.indentCount = 0
+		self.closeTag = false
+		self.noNewline = false;
+		self.parseLine(line, scope)
+
+		var n *node = nil
+		for n = self.currentNode; n != nil && n.indentCount >= self.indentCount; n = self.currentNode.parent {
+			self.currentNode = n
+		}
+		self.currentNode = n
+		if nil != self.currentNode {
+	 		self.currentNode = self.currentNode.createChild(self.tag, self.remainder, self.indentCount)
+		} else {
+			self.currentNode = self.tree.createChild(self.tag, self.remainder, self.indentCount)
+		}
+		if !self.tagClose() {self.currentNode.setAutocloseOff()}
+		if self.noNewline {self.currentNode.setNoNewline()}
+		for key, value := range self.attrs {
+			self.currentNode.appendAttr(key, value)
+		}
+	}
+	output = self.tree.String()
+	return
+}
+
 func (self *Engine) makeStates() {
 	exitLeadingSpace := func(s *state, line []int, scope map[string]interface{}) {
 		self.indentCount = s.rightIndex
@@ -169,42 +205,6 @@ func (self *Engine) makeStates() {
 	self.parsingState = leadingSpaceState
 	self.startState = leadingSpaceState
 	
-	return
-}
-
-// Render uses the provided scope to generate the tag-based representation of the HAML given to the NewFile function.
-func (self *Engine) Render(scope map[string]interface{}) (output string) {
-	self.tree.indent = self.Indentation
-	lines := strings.Split(self.input, "\n", -1)
-	if 0 == len(lines) {lines = []string{self.input}}
-	for _, line := range lines {
-		if 0 == len(line) {continue}
-		self.parsingState = self.startState
-		self.tag = ""
-		self.attrs = make(map[string]string)
-		self.remainder = ""
-		self.indentCount = 0
-		self.closeTag = false
-		self.noNewline = false;
-		self.parseLine(line, scope)
-
-		var n *node = nil
-		for n = self.currentNode; n != nil && n.indentCount >= self.indentCount; n = self.currentNode.parent {
-			self.currentNode = n
-		}
-		self.currentNode = n
-		if nil != self.currentNode {
-	 		self.currentNode = self.currentNode.createChild(self.tag, self.remainder, self.indentCount)
-		} else {
-			self.currentNode = self.tree.createChild(self.tag, self.remainder, self.indentCount)
-		}
-		if !self.tagClose() {self.currentNode.setAutocloseOff()}
-		if self.noNewline {self.currentNode.setNoNewline()}
-		for key, value := range self.attrs {
-			self.currentNode.appendAttr(key, value)
-		}
-	}
-	output = self.tree.String()
 	return
 }
 
