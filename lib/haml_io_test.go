@@ -61,6 +61,9 @@ var autoCloseTests = []io{
 	io{"=complexKey.SubKey2.SubKey3", "0.10000000149011612"},
 	io{"=complexKey.SubKey3.key", "I got map!"},
 	io{"%p= key1", "<p>value1</p>"},
+	io{"%input{:type => \"checkbox\", :checked => true}", "<input type=\"checkbox\" checked=\"checked\" />"},
+	io{"%input{:type => \"checkbox\", :checked => false}", "<input type=\"checkbox\" />"},
+	io{"%input{:type => \"checkbox\", :checked => outputTrue}", "<input type=\"checkbox\" checked=\"checked\" />"},
 } 
 
 func TestAutoCloseIO(t *testing.T) {
@@ -76,7 +79,9 @@ func TestAutoCloseIO(t *testing.T) {
 		scope["key1"] = "value1"
 		scope["key2"] = "value2"
 		scope["lang"] = "HAML"
-		
+		scope["outputFalse"] = "false"
+		scope["outputTrue"] = "true"
+				
 		engine := NewEngine(io.input)
 		output := engine.Render(scope)
 		if output != io.expected {

@@ -23,6 +23,9 @@ Available options are:
 The Options field contains the values to modify the way that the engine produces the markup.
 
 The Indentation field contains the string used by the engine to perform indentation.
+
+The IncludeCallback field contains the callback invoked by the gohaml engine to process other files
+included through the %include extension.
 */
 type Engine struct {
 	Options map[string]interface{}
@@ -158,6 +161,8 @@ func (self *Engine) makeStates() {
 		for _, attrPair := range attrPairs {
 			pair := strings.Split(attrPair, "=>", -1)
 			key, value := self.cleanAttr(pair[0], scope), self.cleanAttr(pair[1], scope)
+			if value == "true" {value = key}
+			if value == "false" {continue}
 			self.attrs.appendAttr(key, value)
 		}
 	}
@@ -236,7 +241,9 @@ func (self *Engine) cleanAttr(attr string, scope map[string]interface{}) (output
 	trimFunc := func(rune int) bool {return unicode.IsSpace(rune) || ':' == rune || '"' == rune}
 	output = strings.TrimFunc(attr, unicode.IsSpace)
 	firstLetter, _ := utf8.DecodeRuneInString(output)
-	if unicode.IsLetter(firstLetter) {
+	if output == "true" || output == "false" {
+		// Preserve value
+	} else if unicode.IsLetter(firstLetter) {
 		output = fmt.Sprint(scope[output]) // Translate key
 	} else {
 		output = strings.TrimFunc(output, trimFunc)
