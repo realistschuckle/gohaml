@@ -64,6 +64,7 @@ var autoCloseTests = []io{
 	io{"%input{:type => \"checkbox\", :checked => true}", "<input type=\"checkbox\" checked=\"checked\" />"},
 	io{"%input{:type => \"checkbox\", :checked => false}", "<input type=\"checkbox\" />"},
 	io{"%input{:type => \"checkbox\", :checked => outputTrue}", "<input type=\"checkbox\" checked=\"checked\" />"},
+	io{"%input{:type => \"checkbox\", cd => outputTrue}", "<input type=\"checkbox\" checked=\"checked\" />"},
 } 
 
 func TestAutoCloseIO(t *testing.T) {
@@ -81,6 +82,7 @@ func TestAutoCloseIO(t *testing.T) {
 		scope["lang"] = "HAML"
 		scope["outputFalse"] = "false"
 		scope["outputTrue"] = "true"
+		scope["cd"] = "checked"
 				
 		engine := NewEngine(io.input)
 		output := engine.Render(scope)
