@@ -24,7 +24,7 @@ func main() {
 		}
 	}
 	if len(os.Args) > 2 {
-		out, _ = os.Open(os.Args[2], os.O_CREATE | os.O_WRONLY | os.O_TRUNC, 0666)
+		out, err = os.Open(os.Args[2], os.O_CREATE | os.O_WRONLY | os.O_TRUNC, 0666)
 		if nil != err {
 			fmt.Println("Cannot create output file", os.Args[2], ":", err)
 			os.Exit(-1)

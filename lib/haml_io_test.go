@@ -60,6 +60,7 @@ var autoCloseTests = []io{
 	io{"#tagId= complexKey.SubKey2.SubKey4.SubKey4", "<div id=\"tagId\" />"},
 	io{"=complexKey.SubKey2.SubKey3", "0.10000000149011612"},
 	io{"=complexKey.SubKey3.key", "I got map!"},
+	io{"%p= key1", "<p>value1</p>"},
 } 
 
 func TestAutoCloseIO(t *testing.T) {

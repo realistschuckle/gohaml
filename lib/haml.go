@@ -9,6 +9,8 @@ import (
 	"strings"
 	"utf8"
 	"reflect"
+	"os"
+	"io/ioutil"
 )
 
 /*
@@ -25,6 +27,7 @@ The Indentation field contains the string used by the engine to perform indentat
 type Engine struct {
 	Options map[string]interface{}
 	Indentation string
+	IncludeCallback func(string, map[string]interface{}) string
 	stk *stack
 	input string
 	parsingState *state
@@ -41,7 +44,7 @@ type Engine struct {
 
 // NewEngine returns a new Engine with the given input.
 func NewEngine(input string) (engine *Engine) {
-	engine = &Engine{make(map[string]interface{}), "\t", newStack(), input, nil, nil, "", make(map[string]string), "", 0, false, false, newTree(), nil}
+	engine = &Engine{make(map[string]interface{}), "\t", loadExternalTemplate, newStack(), input, nil, nil, "", make(map[string]string), "", 0, false, false, newTree(), nil}
 	engine.makeStates()
 	engine.Options["autoclose"] = true
 	return
@@ -62,6 +65,11 @@ func (self *Engine) Render(scope map[string]interface{}) (output string) {
 		self.closeTag = false
 		self.noNewline = false;
 		self.parseLine(line, scope)
+		
+		if "include" == self.tag {
+			self.remainder = self.IncludeCallback(self.remainder, scope)
+			self.tag = ""
+		}
 
 		var n *node = nil
 		for n = self.currentNode; n != nil && n.indentCount >= self.indentCount; n = self.currentNode.parent {
@@ -80,6 +88,21 @@ func (self *Engine) Render(scope map[string]interface{}) (output string) {
 		}
 	}
 	output = self.tree.String()
+	return
+}
+
+func loadExternalTemplate(path string, scope map[string]interface{}) (output string) {
+	in, err := os.Open(path, os.O_RDONLY, 0)
+	if nil != err {
+		return
+	}
+	defer func() {
+		if nil != in {in.Close()}
+	}()
+	
+	bytes, _ := ioutil.ReadAll(in)
+	engine := NewEngine(string(bytes))
+	output = engine.Render(scope)
 	return
 }
 
@@ -182,6 +205,7 @@ func (self *Engine) makeStates() {
 	tagState.addTransition(matchContent, contentState)
 	tagState.addTransition(matchStartAttributeState, attributeState)
 	tagState.addTransition(matchNoNewlineState, noNewlineState)
+	tagState.addTransition(matchKey, keyState)
 	
 	attributeState.addTransition(matchEndAttributeState, endAttributeState)
 	
