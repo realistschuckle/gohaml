@@ -42,13 +42,14 @@ type Engine struct {
 	indentCount int
 	closeTag bool
 	noNewline bool
+	remainderLookup bool
 	tree *tree
 	currentNode *node
 }
 
 // NewEngine returns a new Engine with the given input.
 func NewEngine(input string) (engine *Engine) {
-	engine = &Engine{make(map[string]interface{}), "\t", loadExternalTemplate, newStack(), input, nil, nil, "", make(map[string]string), "", 0, false, false, newTree(), nil}
+	engine = &Engine{make(map[string]interface{}), "\t", loadExternalTemplate, newStack(), input, nil, nil, "", make(map[string]string), "", 0, false, false, false, newTree(), nil}
 	engine.makeStates()
 	engine.Options["autoclose"] = true
 	return
@@ -67,7 +68,8 @@ func (self *Engine) Render(scope map[string]interface{}) (output string) {
 		self.remainder = ""
 		self.indentCount = 0
 		self.closeTag = false
-		self.noNewline = false;
+		self.noNewline = false
+		self.remainderLookup = false
 		self.parseLine(line, scope)
 		
 		if "include" == self.tag {
@@ -85,13 +87,14 @@ func (self *Engine) Render(scope map[string]interface{}) (output string) {
 		} else {
 			self.currentNode = self.tree.createChild(self.tag, self.remainder, self.indentCount)
 		}
+		if self.remainderLookup {self.currentNode.needsLookup()}
 		if !self.tagClose() {self.currentNode.setAutocloseOff()}
 		if self.noNewline {self.currentNode.setNoNewline()}
 		for key, value := range self.attrs {
 			self.currentNode.appendAttr(key, value)
 		}
 	}
-	output = self.tree.String()
+	output = self.tree.String(func(input string) (output string) {return self.lookup(input, scope)})
 	return
 }
 
@@ -139,7 +142,8 @@ func (self *Engine) makeStates() {
 	exitKeyState := func(s *state, line []int, scope map[string]interface{}) {
 		key := string(line[s.leftIndex + 1:s.rightIndex])
 		key = strings.TrimFunc(key, unicode.IsSpace)
-		self.remainder = fmt.Sprint(self.lookup(key, scope))
+		self.remainder = key
+		self.remainderLookup = true
 	}
 	
 	exitContentState := func(s *state, line []int, scope map[string]interface{}) {
@@ -176,7 +180,7 @@ func (self *Engine) makeStates() {
 		code := string(line[s.leftIndex + 1:s.rightIndex])
 		assignment := strings.Split(code, ":=", -1)
 		if len(assignment) != 2 {
-			// TODO: Report error
+			// TODO: Report error (Invalid assignment)
 		}
 		lhs, rhs := self.cleanAttr(assignment[0], nil), self.cleanAttr(assignment[1], scope)
 		scope[lhs] = self.convertToType(rhs)

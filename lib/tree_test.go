@@ -69,7 +69,7 @@ func TopLevelChildAppearsInTreeNodeChildrenCollection(t *testing.T) {
 }
 
 func TestStringRepresentationOfAnEmptyTreeIsAnEmptyString(t *testing.T) {
-	ts := newTree().String()
+	ts := newTree().String(func(input string) (output string) {output = ""; return})
 	if ts != "" {t.Errorf("Expected empty tree string representation to be empty but got %q", ts)}
 }
 
@@ -77,7 +77,7 @@ func TestStringRepOfNodeWithNoNameIsOnlyRemainder(t *testing.T) {
 	expectedValue := "remainder"
 	tree := newTree()
 	tree.createChild("", expectedValue, 0)
-	ts := tree.String()
+	ts := tree.String(func(input string) (output string) {output = ""; return})
 	if expectedValue != ts {t.Errorf("Expected tree to be %q but got %q", expectedValue, ts)}
 }
 
@@ -85,7 +85,7 @@ func TestStringRepOfNodeWithTagIsTagNameOnly(t *testing.T) {
 	expectedValue := "<tag1 />"
 	tree := newTree()
 	tree.createChild("tag1", "", 0)
-	ts := tree.String()
+	ts := tree.String(func(input string) (output string) {output = ""; return})
 	if expectedValue != ts {t.Errorf("Expected tree to be %q but got %q", expectedValue, ts)}
 }
 
@@ -93,7 +93,7 @@ func TestStringRepOfNodeWithTagAndRemainderIsTagAndRemainder(t *testing.T) {
 	expectedValue := "<tag1>tag content</tag1>"
 	tree := newTree()
 	tree.createChild("tag1", "tag content", 0)
-	ts := tree.String()
+	ts := tree.String(func(input string) (output string) {output = ""; return})
 	if expectedValue != ts {t.Errorf("Expected tree to be %q but got %q", expectedValue, ts)}
 }
 
@@ -104,7 +104,7 @@ func TestStringRepOfNodeWithAttributes(t *testing.T) {
 	node.appendAttr("id", "tagId")
 	node.appendAttr("class", "tagClass1")
 	node.appendAttr("class", "tagClass2")
-	ts := tree.String()
+	ts := tree.String(func(input string) (output string) {output = ""; return})
 	if expectedValue != ts {t.Errorf("Expected tree to be %q but got %q", expectedValue, ts)}
 }
 
@@ -113,7 +113,7 @@ func TestStringRepOfMutlipleTopLevelNodes(t *testing.T) {
 	tree := newTree()
 	tree.createChild("tag1", "tag content 1", 0)
 	tree.createChild("tag2", "tag content 2", 0)
-	ts := tree.String()
+	ts := tree.String(func(input string) (output string) {output = ""; return})
 	if expectedValue != ts {t.Errorf("Expected tree to be %q but got %q", expectedValue, ts)}
 }
 
@@ -124,7 +124,7 @@ func TestNestedTreeStringRep(t *testing.T) {
 	root.createChild("child1", "child 1 content", 0)
 	root.createChild("child2", "", 0)
 	root.createChild("", "Plain text", 0)
-	ts := tree.String()
+	ts := tree.String(func(input string) (output string) {output = ""; return})
 	if expectedValue != ts {t.Errorf("Expected tree to be %q\nbut got             %q", expectedValue, ts)}
 }
 
@@ -135,7 +135,7 @@ func TestDeepNestedTreeStringRep(t *testing.T) {
 	node := root.createChild("child1", "", 0)
 	node = node.createChild("child2", "", 0)
 	node.createChild("child3", "", 0)
-	ts := tree.String()
+	ts := tree.String(func(input string) (output string) {output = ""; return})
 	if expectedValue != ts {t.Errorf("Expected tree to be %q\nbut got             %q", expectedValue, ts)}
 }
 
@@ -145,6 +145,6 @@ func TestTurnOffCloseTag(t *testing.T) {
 	root := tree.createChild("tag", "", 0)
 	root.setAutocloseOff()
 	
-	ts := tree.String()
+	ts := tree.String(func(input string) (output string) {output = ""; return})
 	if expectedValue != ts {t.Errorf("Expected tree to be %q\nbut got             %q", expectedValue, ts)}
 }

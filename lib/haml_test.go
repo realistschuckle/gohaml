@@ -69,6 +69,10 @@ func TestDefaultIncludeWorks(t *testing.T) {
 	}
 }
 
+func TestBig(t *testing.T) {
+
+}
+
 func writeFile(dir string, filename string, content string) (err os.Error) {
 	includePath := dir + "/" + filename;
 	{
@@ -84,3 +88,30 @@ func writeFile(dir string, filename string, content string) (err os.Error) {
 	}
 	return
 }
+
+var bigTestScope = map[string]interface{} {
+	"title" : "My Big Test",
+}
+var bigTestInput string = "%html\n" +
+                          "  %head\n" +
+					 	  "    %title= title\n" +
+					 	  "  %body{:bgcolor => \"#cdcdcd\"}\n" +
+					 	  "    #mainContent\n" +
+					 	  "      %p It was many and many a year ago in a kingdom by the sea<\n" +
+					 	  "      %p That a maiden there lived whom you may know by the name of Annabel Lee\n" +
+					 	  "    #leftBar\n" +
+					 	  "      .navItem Home"
+
+var bigTestOutput string = "<html>\n" +
+						   "	<head>\n" +
+						   "		<title>My Big Test</title>\n" +
+						   "	</head>\n" +
+						   "	<body bgcolor=\"cdcdcd\">\n" +
+						   "		<div id=\"mainContent\">\n" +
+						   "			<p>It was many and many a year ago in a kingdom by the sea</p><p>That a maiden there lived whom you may know by the name of Annabel Lee</p>\n" +
+						   "		</div>\n" +
+						   "		<div id=\"leftBar\">\n" +
+						   "			<div class=\"navItem\">Home</div>\n" +
+						   "		</div>\n" +
+						   "	</body>\n" +
+						   "</html>"
