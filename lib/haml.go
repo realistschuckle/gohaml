@@ -11,6 +11,7 @@ import (
 	"reflect"
 	"os"
 	"io/ioutil"
+	"strconv"
 )
 
 /*
@@ -171,6 +172,16 @@ func (self *Engine) makeStates() {
 		self.noNewline = true
 	}
 	
+	exitCodeState := func(s *state, line []int, scope map[string]interface{}) {
+		code := string(line[s.leftIndex + 1:s.rightIndex])
+		assignment := strings.Split(code, ":=", -1)
+		if len(assignment) != 2 {
+			// TODO: Report error
+		}
+		lhs, rhs := self.cleanAttr(assignment[0], nil), self.cleanAttr(assignment[1], scope)
+		scope[lhs] = self.convertToType(rhs)
+	}
+	
 	nilFunc := func(s *state, line []int, scope map[string]interface{}) {}
 	
  	leadingSpaceState := newState(exitLeadingSpace)
@@ -184,6 +195,7 @@ func (self *Engine) makeStates() {
 	attributeState := newState(exitAttributeState)
 	endAttributeState := newState(nilFunc)
 	noNewlineState := newState(exitNoNewlineState)
+	codeState := newState(exitCodeState)
 	
 	matchTag := func(rune int) bool {return '%' == rune}
 	matchId := func(rune int) bool {return '#' == rune}
@@ -196,7 +208,9 @@ func (self *Engine) makeStates() {
 	matchStartAttributeState := func(rune int) bool {return '{' == rune}
 	matchEndAttributeState := func(rune int) bool {return '}' == rune}
 	matchNoNewlineState := func(rune int) bool {return '<' == rune}
+	matchCodeState := func(rune int) bool { return '-' == rune}
 	
+	leadingSpaceState.addTransition(matchCodeState, codeState)
 	leadingSpaceState.addTransition(matchBackslashState, backslashState)
 	leadingSpaceState.addTransition(matchTag, tagState)
 	leadingSpaceState.addTransition(matchId, idState)
@@ -240,10 +254,10 @@ func (self *Engine) makeStates() {
 func (self *Engine) cleanAttr(attr string, scope map[string]interface{}) (output string) {
 	trimFunc := func(rune int) bool {return unicode.IsSpace(rune) || ':' == rune || '"' == rune}
 	output = strings.TrimFunc(attr, unicode.IsSpace)
-	firstLetter, _ := utf8.DecodeRuneInString(output)
-	if output == "true" || output == "false" {
+	firstRune, _ := utf8.DecodeRuneInString(output)
+	if output == "true" || output == "false" || unicode.IsDigit(firstRune) {
 		// Preserve value
-	} else if unicode.IsLetter(firstLetter) {
+	} else if nil != scope && unicode.IsLetter(firstRune) {
 		output = fmt.Sprint(scope[output]) // Translate key
 	} else {
 		output = strings.TrimFunc(output, trimFunc)
@@ -305,5 +319,21 @@ func (self *Engine) parseLine(line string, scope map[string]interface{}) {
 	self.parsingState.exit(self.parsingState, linen, scope)
 	self.tag = strings.TrimRightFunc(self.tag, unicode.IsSpace)
 	self.remainder = strings.TrimLeftFunc(self.remainder, unicode.IsSpace)
+	return
+}
+
+func (self *Engine) convertToType(input string) (output interface{}) {
+	if "true" == input {return true}
+	if "false" == input {return false}
+	firstRune, _ := utf8.DecodeRuneInString(input)
+	if unicode.IsLetter(firstRune) {return input}
+	if unicode.IsDigit(firstRune) {
+		i, err := strconv.Atoi(input)
+		if nil == err {return i}
+		f, err := strconv.Atof(input)
+		if nil == err {return f}
+		// TODO: Report error (cannot convert number)
+	}
+	// TODO: Report error (unknown parse)
 	return
 }
