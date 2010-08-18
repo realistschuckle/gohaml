@@ -7,8 +7,7 @@ include ../Make.$(GOARCH)
 TARG=gohaml
 GOFILES=\
 	haml.go\
-	states.go\
-	stack.go\
+	parser.go\
 	tree.go\
 	
 include Make.pkg

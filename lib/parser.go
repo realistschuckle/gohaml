@@ -1,9 +1,9 @@
 package gohaml
 
-type parser struct {
+type hamlParser struct {
 	
 }
 
-func (self parser) parse(input string) (output *tree) {
+func (self hamlParser) parse(input string) (output *tree) {
 	return
 }
