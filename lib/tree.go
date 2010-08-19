@@ -3,6 +3,8 @@ package gohaml
 import (
 	"bytes"
 	"container/vector"
+	"strings"
+	"reflect"
 	"fmt"
 )
 
@@ -17,10 +19,12 @@ type resPair struct {
 }
 
 type node struct {
+	parent *node
 	remainder res
 	name string
 	attrs vector.Vector
 	noNewline bool
+	autoclose bool
 	indentLevel int
 	children vector.Vector
 }
@@ -36,16 +40,49 @@ func newTree() (output *tree) {
 
 func (self res) resolve(scope map[string]interface{}) (output string) {
 	output = self.value
-	if self.needsResolution {output = fmt.Sprint(scope[self.value])}
+	if self.needsResolution {
+		keyPath := strings.Split(self.value, ".", -1)
+		curr := reflect.NewValue(scope[keyPath[0]])
+		for _, key := range keyPath[1:] {
+			TypeSwitch:
+			switch t := curr.(type) {
+			case *reflect.PtrValue:
+				curr = t.Elem()
+				goto TypeSwitch
+			case *reflect.StructValue:
+				curr = t.FieldByName(key)
+			case *reflect.MapValue:
+				curr = t.Elem(reflect.NewValue(key))
+			}
+		}
+		
+		OutputSwitch:
+		switch t := curr.(type) {
+		case *reflect.StringValue:
+			output = t.Get()
+		case *reflect.IntValue:
+			output = fmt.Sprint(t.Get())
+		case *reflect.FloatValue:
+			output = fmt.Sprint(t.Get())
+		case *reflect.PtrValue:
+			if !t.IsNil() {goto OutputSwitch}
+			output = ""
+		case *reflect.InterfaceValue:
+			curr = t.Elem()
+			goto OutputSwitch
+		default:
+			output = fmt.Sprint(curr)
+		}
+	}
 	return
 }
 
-func (self tree) resolve(scope map[string]interface{}) (output string) {
+func (self tree) resolve(scope map[string]interface{}, indent string, autoclose bool) (output string) {
 	treeLen := self.nodes.Len()
 	buf := bytes.NewBuffer(make([]byte, 0))
 	for i, n := range self.nodes {
 		node := n.(*node)
-		node.resolve(scope, buf)
+		node.resolve(scope, buf, "", indent, autoclose)
 		if i != treeLen - 1 && !node.noNewline {
 			buf.WriteString("\n")
 		}
@@ -54,24 +91,7 @@ func (self tree) resolve(scope map[string]interface{}) (output string) {
 	return
 }
 
-func (self *node) addAttr(key string, value string) {
-	keyLookup, valueLookup := true, true
-	if key[0] == ':' {
-		keyLookup = false
-		key = key[1:]
-	}
-	if value[0] == '"' {
-		valueLookup = false
-		value = value[1:len(value) - 1]
-	}
-	self.attrs.Push(&resPair{res{key, keyLookup}, res{value, valueLookup}})
-}
-
-func (self *node) addAttrNoLookup(key string, value string) {
-	self.attrs.Push(&resPair{res{key, false}, res{value, false}})
-}
-
-func (self node) resolve(scope map[string]interface{}, buf *bytes.Buffer) {
+func (self node) resolve(scope map[string]interface{}, buf *bytes.Buffer, curIndent string, indent string, autoclose bool) {
 	remainder := self.remainder.resolve(scope)
 	if self.attrs.Len() > 0 && len(remainder) > 0 {
 		if len(self.name) == 0 {self.name = "div"}
@@ -88,22 +108,7 @@ func (self node) resolve(scope map[string]interface{}, buf *bytes.Buffer) {
 		buf.WriteString("<")
 		buf.WriteString(self.name)
 		self.resolveAttrs(scope, buf)
-		childLen := self.children.Len()
-		if childLen > 0 {
-			buf.WriteString(">")
-			for i, n := range self.children {
-				node := n.(*node)
-				node.resolve(scope, buf)
-				if i != childLen - 1 && !node.noNewline {
-					buf.WriteString("\n")
-				}
-			}
-			buf.WriteString("</")
-			buf.WriteString(self.name)
-			buf.WriteString(">")
-		} else {
-			buf.WriteString(" />")
-		}
+		self.outputChildren(scope, buf, curIndent, indent, autoclose)
 	} else if len(self.name) > 0 && len(remainder) > 0 {
 		buf.WriteString("<")
 		buf.WriteString(self.name)
@@ -115,9 +120,39 @@ func (self node) resolve(scope map[string]interface{}, buf *bytes.Buffer) {
 	} else if len(self.name) > 0 {
 		buf.WriteString("<")
 		buf.WriteString(self.name)
-		buf.WriteString(" />")
+		self.outputChildren(scope, buf, curIndent, indent, autoclose)
 	} else {
 		buf.WriteString(remainder)
+	}
+}
+
+func (self node) outputChildren(scope map[string]interface{}, buf *bytes.Buffer, curIndent string, indent string, autoclose bool) {
+	ind := curIndent + indent
+	if self.noNewline {ind = curIndent}
+	childLen := self.children.Len()
+	if childLen > 0 {
+		buf.WriteString(">")
+		for i, n := range self.children {
+			node := n.(*node)
+			if i != 0 || !self.noNewline {
+				buf.WriteString("\n")
+				buf.WriteString(ind)
+			}
+			node.resolve(scope, buf, ind, indent, autoclose)
+		}
+		if !self.noNewline {
+			buf.WriteString("\n")
+			buf.WriteString(curIndent)
+		}
+		buf.WriteString("</")
+		buf.WriteString(self.name)
+		buf.WriteString(">")
+	} else {
+		if autoclose || self.autoclose {
+			buf.WriteString(" />")
+		} else {
+			buf.WriteString(">")
+		}
 	}
 }
 
@@ -133,10 +168,40 @@ func (self node) resolveAttrs(scope map[string]interface{}, buf *bytes.Buffer) {
 		}
 	}
 	for key, value := range attrMap {
+		if value == "false" {continue}
 		buf.WriteString(" ")
 		buf.WriteString(key)
 		buf.WriteString("=\"")
-		buf.WriteString(value)
+		if value == "true" {
+			buf.WriteString(key)
+		} else {
+			buf.WriteString(value)
+		}
 		buf.WriteString("\"")
 	}
+}
+
+func (self *node) addChild(n *node) {
+	n.parent = self
+	self.children.Push(n)
+}
+
+func (self *node) addAttr(key string, value string) {
+	keyLookup, valueLookup := true, true
+	if key[0] == ':' {
+		keyLookup = false
+		key = key[1:]
+	}
+	if value == "true" || value == "false" {
+		valueLookup = false
+	}
+	if value[0] == '"' {
+		valueLookup = false
+		value = value[1:len(value) - 1]
+	}
+	self.attrs.Push(&resPair{res{key, keyLookup}, res{value, valueLookup}})
+}
+
+func (self *node) addAttrNoLookup(key string, value string) {
+	self.attrs.Push(&resPair{res{key, false}, res{value, false}})
 }

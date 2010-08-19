@@ -15,7 +15,7 @@ var nestingTests = []io{
 	io{"%tag1\n  %tag4 tag content\n  %tag2#tag2Id.class2.class3\n    %tag3", "<tag1>\n\t<tag4>tag content</tag4>\n\t<tag2 id=\"tag2Id\" class=\"class2 class3\">\n\t\t<tag3 />\n\t</tag2>\n</tag1>"},
 }
 
-func XTestNesting(t *testing.T) {
+func TestNesting(t *testing.T) {
 	for _, io := range nestingTests {
 		scope := make(map[string]interface{})
 		scope["key1"] = "value1"

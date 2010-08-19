@@ -94,8 +94,8 @@ func TestAutoCloseIO(t *testing.T) {
 }
 
 var noAutoCloseTests = []io {
-	io{"%tag/", "<tag />"},
 	io{"%tag", "<tag>"},
+	io{"%tag/", "<tag />"},
 	io{"%tag.tagClass", "<tag class=\"tagClass\">"},
 	io{"%tag.tagClass1.tagClass2", "<tag class=\"tagClass1 tagClass2\">"},
 	io{".tagClass", "<div class=\"tagClass\">"},
@@ -104,7 +104,7 @@ var noAutoCloseTests = []io {
 	io{"%tag{:attribute1 => \"value1\", :attribute2 => \"value2\"}", "<tag attribute2=\"value2\" attribute1=\"value1\">"},
 }
 
-func XTestNoAutoCloseIO(t *testing.T) {
+func TestNoAutoCloseIO(t *testing.T) {
 	for _, io := range noAutoCloseTests {
 		scope := make(map[string]interface{})
 		scope["key1"] = "value1"

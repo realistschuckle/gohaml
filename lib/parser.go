@@ -15,22 +15,29 @@ func (self *hamlParser) parse(input string) (output *tree) {
 	for i, r := range input {
 		if r == '\n' {
 			node := parseLeadingSpace(input[j:i])
-			if currentNode == nil  || node.indentLevel == currentNode.indentLevel {
-				output.nodes.Push(node)
-			} else if node.indentLevel > currentNode.indentLevel {
-				currentNode.children.Push(node)
-			}
+			putNodeInPlace(currentNode, node, output)
 			currentNode = node
 			j = i + 1
 		}
 	}
 	node := parseLeadingSpace(input[j:])
-	if currentNode == nil  || node.indentLevel == currentNode.indentLevel {
-		output.nodes.Push(node)
-	} else if node.indentLevel > currentNode.indentLevel {
-		currentNode.children.Push(node)
-	}
+	putNodeInPlace(currentNode, node, output)
 	return
+}
+
+func putNodeInPlace(cn *node, node *node, t *tree) {
+	if cn == nil {
+		t.nodes.Push(node)
+	} else if node.indentLevel < cn.indentLevel {
+		for cn = cn.parent; cn != nil && node.indentLevel < cn.indentLevel; cn = cn.parent {}
+		putNodeInPlace(cn, node, t)
+	} else if node.indentLevel == cn.indentLevel && cn.parent != nil{
+		cn.parent.addChild(node)
+	} else if node.indentLevel == cn.indentLevel {
+		t.nodes.Push(node)
+	} else if node.indentLevel > cn.indentLevel {
+		cn.addChild(node)
+	}
 }
 
 var parser hamlParser
@@ -81,6 +88,12 @@ func parseTag(input string, node *node) (output *node) {
 			output = parseId(input[i + 1:], node)
 		case r == '{':
 			output = parseAttributes(tl(input[i + 1:]), node)
+		case r == '<':
+			output = parseNoNewline(input[i + 1:], node)
+		case r == '=':
+			output = parseKey(tl(input[i + 1:]), node)
+		case r == '/':
+			output = parseAutoclose("", node)
 		case unicode.IsSpace(r):
 			output = parseRemainder(input[i + 1:], node)
 		}
@@ -93,6 +106,12 @@ func parseTag(input string, node *node) (output *node) {
 		node.name = input
 		output = node;
 	}
+	return
+}
+
+func parseAutoclose(input string, node *node) (output *node) {
+	node.autoclose = true
+	output = node
 	return
 }
 
@@ -114,7 +133,7 @@ func parseAttributes(input string, node *node) (output *node) {
 			break
 		} else if r == '}' {
 			node.addAttr(input[0:keyEnd], t(input[attrStart:i]))
-			output = node
+			output = parseTag(input[i + 1:], node)
 			break
 		}
 	}
@@ -130,6 +149,9 @@ func parseId(input string, node *node) (output *node) {
 		case r == '=':
 			node.addAttrNoLookup("id", input[0:i])
 			output = parseKey(tl(input[i + 1:]), node)
+		case r == '{':
+			node.addAttrNoLookup("id", input[0:i])
+			output = parseAttributes(tl(input[i + 1:]), node)
 		case unicode.IsSpace(r):
 			node.addAttrNoLookup("id", input[0:i])
 			output = parseRemainder(input[i + 1:], node)
@@ -146,6 +168,9 @@ func parseId(input string, node *node) (output *node) {
 func parseClass(input string, node *node) (output *node) {
 	for i, r := range input {
 		switch {
+		case r == '{':
+			node.addAttrNoLookup("class", input[0:i])
+			output = parseAttributes(tl(input[i + 1:]), node)
 		case r == '.':
 			node.addAttrNoLookup("class", input[0:i])
 			output = parseClass(input[i + 1:], node)
