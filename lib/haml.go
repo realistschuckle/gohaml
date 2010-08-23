@@ -33,6 +33,7 @@ func NewEngine(input string) (engine *Engine) {
 	return
 }
 
+// Render interprets the HAML supplied to the NewEngine method.
 func (self *Engine) Render(scope map[string]interface{}) (output string) {
 	output = self.ast.resolve(scope, self.Indentation, self.Autoclose)
 	return
