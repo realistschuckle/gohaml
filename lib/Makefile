@@ -9,5 +9,6 @@ GOFILES=\
 	haml.go\
 	parser.go\
 	tree.go\
-	
+	lang.go\
+
 include Make.pkg

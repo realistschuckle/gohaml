@@ -18,15 +18,31 @@ type resPair struct {
 	value res
 }
 
+type inode interface {
+	parent() inode
+	indentLevel() int
+	setIndentLevel(i int)
+	setName(name string)
+	setRemainder(value string, needsResolution bool)
+	setNoNewline(b bool)
+	setAutoclose(b bool)
+	addAttr(key string, value string)
+	addAttrNoLookup(key string, value string)
+	addChild(n inode)
+	noNewline() bool
+	resolve(scope map[string]interface{}, buf *bytes.Buffer, curIndent string, indent string, autoclose bool)
+	setParent(n inode)
+}
+
 type node struct {
-	parent *node
-	remainder res
-	name string
-	attrs vector.Vector
-	noNewline bool
-	autoclose bool
-	indentLevel int
-	children vector.Vector
+	_parent inode
+	_remainder res
+	_name string
+	_attrs vector.Vector
+	_noNewline bool
+	_autoclose bool
+	_indentLevel int
+	_children vector.Vector
 }
 
 type tree struct {
@@ -81,9 +97,9 @@ func (self tree) resolve(scope map[string]interface{}, indent string, autoclose 
 	treeLen := self.nodes.Len()
 	buf := bytes.NewBuffer(make([]byte, 0))
 	for i, n := range self.nodes {
-		node := n.(*node)
+		node := n.(*inode)
 		node.resolve(scope, buf, "", indent, autoclose)
-		if i != treeLen - 1 && !node.noNewline {
+		if i != treeLen - 1 && !node.noNewline() {
 			buf.WriteString("\n")
 		}
 	}
@@ -92,34 +108,34 @@ func (self tree) resolve(scope map[string]interface{}, indent string, autoclose 
 }
 
 func (self node) resolve(scope map[string]interface{}, buf *bytes.Buffer, curIndent string, indent string, autoclose bool) {
-	remainder := self.remainder.resolve(scope)
-	if self.attrs.Len() > 0 && len(remainder) > 0 {
-		if len(self.name) == 0 {self.name = "div"}
+	remainder := self._remainder.resolve(scope)
+	if self._attrs.Len() > 0 && len(remainder) > 0 {
+		if len(self._name) == 0 {self._name = "div"}
 		buf.WriteString("<")
-		buf.WriteString(self.name)
+		buf.WriteString(self._name)
 		self.resolveAttrs(scope, buf)
 		buf.WriteString(">")
 		buf.WriteString(remainder)
 		buf.WriteString("</")
-		buf.WriteString(self.name)
+		buf.WriteString(self._name)
 		buf.WriteString(">")
-	} else if self.attrs.Len() > 0 {
-		if len(self.name) == 0 {self.name = "div"}
+	} else if self._attrs.Len() > 0 {
+		if len(self._name) == 0 {self._name = "div"}
 		buf.WriteString("<")
-		buf.WriteString(self.name)
+		buf.WriteString(self._name)
 		self.resolveAttrs(scope, buf)
 		self.outputChildren(scope, buf, curIndent, indent, autoclose)
-	} else if len(self.name) > 0 && len(remainder) > 0 {
+	} else if len(self._name) > 0 && len(remainder) > 0 {
 		buf.WriteString("<")
-		buf.WriteString(self.name)
+		buf.WriteString(self._name)
 		buf.WriteString(">")
 		buf.WriteString(remainder)
 		buf.WriteString("</")
-		buf.WriteString(self.name)
+		buf.WriteString(self._name)
 		buf.WriteString(">")
-	} else if len(self.name) > 0 {
+	} else if len(self._name) > 0 {
 		buf.WriteString("<")
-		buf.WriteString(self.name)
+		buf.WriteString(self._name)
 		self.outputChildren(scope, buf, curIndent, indent, autoclose)
 	} else {
 		buf.WriteString(remainder)
@@ -128,27 +144,27 @@ func (self node) resolve(scope map[string]interface{}, buf *bytes.Buffer, curInd
 
 func (self node) outputChildren(scope map[string]interface{}, buf *bytes.Buffer, curIndent string, indent string, autoclose bool) {
 	ind := curIndent + indent
-	if self.noNewline {ind = curIndent}
-	childLen := self.children.Len()
+	if self._noNewline {ind = curIndent}
+	childLen := self._children.Len()
 	if childLen > 0 {
 		buf.WriteString(">")
-		for i, n := range self.children {
-			node := n.(*node)
-			if i != 0 || !self.noNewline {
+		for i, n := range self._children {
+			node := n.(*inode)
+		if i != 0 || !self._noNewline {
 				buf.WriteString("\n")
 				buf.WriteString(ind)
 			}
 			node.resolve(scope, buf, ind, indent, autoclose)
 		}
-		if !self.noNewline {
+		if !self._noNewline {
 			buf.WriteString("\n")
 			buf.WriteString(curIndent)
 		}
 		buf.WriteString("</")
-		buf.WriteString(self.name)
+		buf.WriteString(self._name)
 		buf.WriteString(">")
 	} else {
-		if autoclose || self.autoclose {
+	if autoclose || self._autoclose {
 			buf.WriteString(" />")
 		} else {
 			buf.WriteString(">")
@@ -158,8 +174,8 @@ func (self node) outputChildren(scope map[string]interface{}, buf *bytes.Buffer,
 
 func (self node) resolveAttrs(scope map[string]interface{}, buf *bytes.Buffer) {
 	attrMap := make(map[string]string)
-	for i := 0; i < self.attrs.Len(); i++ {
-		resPair := self.attrs.At(i).(*resPair)
+	for i := 0; i < self._attrs.Len(); i++ {
+		resPair := self._attrs.At(i).(*resPair)
 		key, value := resPair.key.resolve(scope), resPair.value.resolve(scope)
 		if _, ok := attrMap[key]; ok {
 			attrMap[key] += " " + value
@@ -181,9 +197,9 @@ func (self node) resolveAttrs(scope map[string]interface{}, buf *bytes.Buffer) {
 	}
 }
 
-func (self *node) addChild(n *node) {
-	n.parent = self
-	self.children.Push(n)
+func (self *node) addChild(n inode) {
+	n.setParent(self)
+	self._children.Push(n)
 }
 
 func (self *node) addAttr(key string, value string) {
@@ -192,16 +208,52 @@ func (self *node) addAttr(key string, value string) {
 		keyLookup = false
 		key = key[1:]
 	}
-	if value == "true" || value == "false" {
+if value == "true" || value == "false" {
 		valueLookup = false
 	}
 	if value[0] == '"' {
 		valueLookup = false
 		value = value[1:len(value) - 1]
 	}
-	self.attrs.Push(&resPair{res{key, keyLookup}, res{value, valueLookup}})
+	self._attrs.Push(&resPair{res{key, keyLookup}, res{value, valueLookup}})
 }
 
 func (self *node) addAttrNoLookup(key string, value string) {
-	self.attrs.Push(&resPair{res{key, false}, res{value, false}})
+	self._attrs.Push(&resPair{res{key, false}, res{value, false}})
+}
+
+func (self *node) parent() inode {
+	return self._parent
+}
+
+func (self *node) indentLevel() int {
+	return self._indentLevel
+}
+
+func (self *node) setIndentLevel(i int) {
+	self._indentLevel = i
+}
+
+func (self *node) setName(name string) {
+	self._name = name
+}
+
+func (self *node) setRemainder(value string, needsResolution bool) {
+	self._remainder = res{value, needsResolution}
+}
+
+func (self *node) setNoNewline(b bool) {
+	self._noNewline = b
+}
+
+func (self *node) setAutoclose(b bool) {
+	self._autoclose = b
+}
+
+func (self *node) noNewline() bool {
+	return self._noNewline;
+}
+
+func (self *node) setParent(n inode) {
+	self._parent = n
 }

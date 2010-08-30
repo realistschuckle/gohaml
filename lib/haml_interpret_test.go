@@ -18,7 +18,7 @@ var assignmentInputs = []assignment {
 	assignment{"localLookup", "commonKey", "commonValue"},
 }
 
-func XTestAssignments(t *testing.T) {
+func TestAssignments(t *testing.T) {
 	for _, assignment := range assignmentInputs {
 		scope := make(map[string]interface{})
 		scope["commonKey"] = "commonValue"

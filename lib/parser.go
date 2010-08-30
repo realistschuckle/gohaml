@@ -25,17 +25,17 @@ func (self *hamlParser) parse(input string) (output *tree) {
 	return
 }
 
-func putNodeInPlace(cn *node, node *node, t *tree) {
+func putNodeInPlace(cn inode, node *node, t *tree) {
 	if cn == nil {
 		t.nodes.Push(node)
-	} else if node.indentLevel < cn.indentLevel {
-		for cn = cn.parent; cn != nil && node.indentLevel < cn.indentLevel; cn = cn.parent {}
+	} else if node.indentLevel() < cn.indentLevel() {
+		for cn = cn.parent(); cn != nil && node.indentLevel() < cn.indentLevel(); cn = cn.parent() {}
 		putNodeInPlace(cn, node, t)
-	} else if node.indentLevel == cn.indentLevel && cn.parent != nil{
-		cn.parent.addChild(node)
-	} else if node.indentLevel == cn.indentLevel {
+	} else if node.indentLevel() == cn.indentLevel() && cn.parent() != nil{
+		cn.parent().addChild(node)
+	} else if node.indentLevel() == cn.indentLevel() {
 		t.nodes.Push(node)
-	} else if node.indentLevel > cn.indentLevel {
+	} else if node.indentLevel() > cn.indentLevel() {
 		cn.addChild(node)
 	}
 }
@@ -46,6 +46,8 @@ func parseLeadingSpace(input string) (output *node) {
 	node := new(node)
 	for i, r := range input {
 		switch {
+		case r == '-':
+			output = parseCode(input[i + 1:], node)
 		case r == '%':
 			output = parseTag(input[i + 1:], node)
 		case r == '#':
@@ -60,22 +62,26 @@ func parseLeadingSpace(input string) (output *node) {
 			output = parseRemainder(input[i:], node)
 		}
 		if nil != output {
-			output.indentLevel = i
+			output.setIndentLevel(i)
 			break
 		}
 	}
 	return
 }
 
+func parseCode(input string, node *node) (output *node) {
+	
+	return
+}
+
 func parseKey(input string, node *node) (output *node) {
 	if input[len(input) - 1] == '<' {
 		output = parseNoNewline("", node)
-		output.remainder.value = input[0:len(input) - 1]
+		output.setRemainder(input[0:len(input) - 1], true)
 	} else {
 		output = node
-		output.remainder.value = input
+		output.setRemainder(input, true)
 	}
-	output.remainder.needsResolution = true
 	return
 }
 
@@ -98,19 +104,19 @@ func parseTag(input string, node *node) (output *node) {
 			output = parseRemainder(input[i + 1:], node)
 		}
 		if nil != output {
-			node.name = input[0:i]
+			node.setName(input[0:i])
 			break
 		}
 	}
 	if nil == output {
-		node.name = input
+		node.setName(input)
 		output = node;
 	}
 	return
 }
 
 func parseAutoclose(input string, node *node) (output *node) {
-	node.autoclose = true
+	node.setAutoclose(true)
 	output = node
 	return
 }
@@ -193,17 +199,16 @@ func parseClass(input string, node *node) (output *node) {
 func parseRemainder(input string, node *node) (output *node) {
 	if input[len(input) - 1] == '<' {
 		output = parseNoNewline("", node)
-		output.remainder.value = input[0:len(input) - 1]
+		output.setRemainder(input[0:len(input) - 1], false)
 	} else {
 		output = node
-		output.remainder.value = input
+		output.setRemainder(input, false)
 	}
-	output.remainder.needsResolution = false
 	return
 }
 
 func parseNoNewline(input string, node *node) (output *node) {
-	node.noNewline = true
+	node.setNoNewline(true)
 	output = node
 	return
 }

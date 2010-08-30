@@ -6,6 +6,8 @@ all: package
 package: _obj/$(TARG).a
 testpackage: _test/$(TARG).a
 
+CLEANFILES+=lang.go
+
 # ugly hack to deal with whitespaces in $GOROOT
 nullstring :=
 space := $(nullstring) # a space at the end
@@ -86,6 +88,9 @@ _test/$(TARG).a: _gotest_.$O $(OFILES)
 	@mkdir -p _test/$(dir)
 	rm -f _test/$(TARG).a
 	$(QUOTED_GOBIN)/gopack grc $@ _gotest_.$O $(OFILES)
+
+lang.go: lang.y
+	$(QUOTED_GOBIN)/goll1e lang.y lang.go
 
 importpath:
 	@echo $(TARG)
