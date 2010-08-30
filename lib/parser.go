@@ -25,8 +25,8 @@ func (self *hamlParser) parse(input string) (output *tree) {
 	return
 }
 
-func putNodeInPlace(cn inode, node *node, t *tree) {
-	if cn == nil {
+func putNodeInPlace(cn inode, node inode, t *tree) {
+	if cn.nil() {
 		t.nodes.Push(node)
 	} else if node.indentLevel() < cn.indentLevel() {
 		for cn = cn.parent(); cn != nil && node.indentLevel() < cn.indentLevel(); cn = cn.parent() {}

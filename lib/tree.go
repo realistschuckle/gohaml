@@ -32,6 +32,7 @@ type inode interface {
 	noNewline() bool
 	resolve(scope map[string]interface{}, buf *bytes.Buffer, curIndent string, indent string, autoclose bool)
 	setParent(n inode)
+	nil() bool
 }
 
 type node struct {
@@ -97,7 +98,7 @@ func (self tree) resolve(scope map[string]interface{}, indent string, autoclose 
 	treeLen := self.nodes.Len()
 	buf := bytes.NewBuffer(make([]byte, 0))
 	for i, n := range self.nodes {
-		node := n.(*inode)
+		node := n.(inode)
 		node.resolve(scope, buf, "", indent, autoclose)
 		if i != treeLen - 1 && !node.noNewline() {
 			buf.WriteString("\n")
@@ -149,7 +150,7 @@ func (self node) outputChildren(scope map[string]interface{}, buf *bytes.Buffer,
 	if childLen > 0 {
 		buf.WriteString(">")
 		for i, n := range self._children {
-			node := n.(*inode)
+			node := n.(inode)
 		if i != 0 || !self._noNewline {
 				buf.WriteString("\n")
 				buf.WriteString(ind)
@@ -256,4 +257,8 @@ func (self *node) noNewline() bool {
 
 func (self *node) setParent(n inode) {
 	self._parent = n
+}
+
+func (self *node) nil() bool {
+	return self == nil
 }
