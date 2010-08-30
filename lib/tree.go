@@ -22,12 +22,6 @@ type inode interface {
 	parent() inode
 	indentLevel() int
 	setIndentLevel(i int)
-	setName(name string)
-	setRemainder(value string, needsResolution bool)
-	setNoNewline(b bool)
-	setAutoclose(b bool)
-	addAttr(key string, value string)
-	addAttrNoLookup(key string, value string)
 	addChild(n inode)
 	noNewline() bool
 	resolve(scope map[string]interface{}, buf *bytes.Buffer, curIndent string, indent string, autoclose bool)
@@ -235,20 +229,12 @@ func (self *node) setIndentLevel(i int) {
 	self._indentLevel = i
 }
 
-func (self *node) setName(name string) {
-	self._name = name
-}
-
 func (self *node) setRemainder(value string, needsResolution bool) {
 	self._remainder = res{value, needsResolution}
 }
 
 func (self *node) setNoNewline(b bool) {
 	self._noNewline = b
-}
-
-func (self *node) setAutoclose(b bool) {
-	self._autoclose = b
 }
 
 func (self *node) noNewline() bool {
@@ -260,5 +246,88 @@ func (self *node) setParent(n inode) {
 }
 
 func (self *node) nil() bool {
+	return self == nil
+}
+
+type rangenode struct {
+	_parent inode
+	_indentLevel int
+	_children vector.Vector
+	
+	_first, _second, _third string
+}
+
+func (self *rangenode) parent() inode {
+	return self._parent
+}
+
+func (self *rangenode) indentLevel() int {
+	return self._indentLevel
+}
+
+func (self *rangenode) setIndentLevel(i int) {
+	self._indentLevel = i
+}
+
+func (self *rangenode) addChild(n inode) {
+	n.setParent(self)
+	self._children.Push(n)
+}
+
+func (self *rangenode) noNewline() bool {
+	return false
+}
+
+func (self *rangenode) resolve(scope map[string]interface{}, buf *bytes.Buffer, curIndent string, indent string, autoclose bool) {
+
+}
+
+func (self *rangenode) setParent(n inode) {
+	self._parent = n
+}
+
+func (self *rangenode) nil() bool {
+	return self == nil
+}
+
+type declassnode struct {
+	_parent inode
+	_indentLevel int
+	_children vector.Vector
+	
+	_lhs string
+	_rhs res
+}
+
+func (self *declassnode) parent() inode {
+	return self._parent
+}
+
+func (self *declassnode) indentLevel() int {
+	return self._indentLevel
+}
+
+func (self *declassnode) setIndentLevel(i int) {
+	self._indentLevel = i
+}
+
+func (self *declassnode) addChild(n inode) {
+	n.setParent(self)
+	self._children.Push(n)
+}
+
+func (self *declassnode) noNewline() bool {
+	return false
+}
+
+func (self *declassnode) resolve(scope map[string]interface{}, buf *bytes.Buffer, curIndent string, indent string, autoclose bool) {
+	scope[self._lhs] = self._rhs.resolve(scope)
+}
+
+func (self *declassnode) setParent(n inode) {
+	self._parent = n
+}
+
+func (self *declassnode) nil() bool {
 	return self == nil
 }

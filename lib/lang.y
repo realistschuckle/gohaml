@@ -1,18 +1,26 @@
 %package gohaml
 
 %union {
-	b bool
-	n *node
+	n inode
+	s string
 }
 
-%token<b> tfor trange
-%token<n> ident
 %type<n> Statement
+%type<s> ident str
 
 %%
 
 Statement : tfor ident ',' ident ':' '=' trange ident	{
-															$$ = new(node)
-															
+															rn := new(rangenode)
+															rn._first = $2
+															rn._second = $4
+															rn._third = $8
+															$$ = rn
+														}
+		  | ident ':' '=' str							{
+															dan := new(declassnode)
+															dan._lhs = $1
+															dan._rhs = res{$4[1:len($4) - 1], false}
+															$$ = dan
 														}
           ;

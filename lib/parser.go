@@ -3,6 +3,9 @@ package gohaml
 import (
 	"unicode"
 	"strings"
+	"scanner"
+	"fmt"
+	"os"
 )
 
 type hamlParser struct {
@@ -10,7 +13,7 @@ type hamlParser struct {
 
 func (self *hamlParser) parse(input string) (output *tree) {
 	output = newTree()
-	var currentNode *node
+	var currentNode inode
 	j := 0
 	for i, r := range input {
 		if r == '\n' {
@@ -26,7 +29,7 @@ func (self *hamlParser) parse(input string) (output *tree) {
 }
 
 func putNodeInPlace(cn inode, node inode, t *tree) {
-	if cn.nil() {
+	if cn == nil || cn.nil() {
 		t.nodes.Push(node)
 	} else if node.indentLevel() < cn.indentLevel() {
 		for cn = cn.parent(); cn != nil && node.indentLevel() < cn.indentLevel(); cn = cn.parent() {}
@@ -42,7 +45,7 @@ func putNodeInPlace(cn inode, node inode, t *tree) {
 
 var parser hamlParser
 
-func parseLeadingSpace(input string) (output *node) {
+func parseLeadingSpace(input string) (output inode) {
 	node := new(node)
 	for i, r := range input {
 		switch {
@@ -69,23 +72,19 @@ func parseLeadingSpace(input string) (output *node) {
 	return
 }
 
-func parseCode(input string, node *node) (output *node) {
-	
-	return
-}
-
-func parseKey(input string, node *node) (output *node) {
+func parseKey(input string, n *node) (output inode) {
 	if input[len(input) - 1] == '<' {
-		output = parseNoNewline("", node)
-		output.setRemainder(input[0:len(input) - 1], true)
+		n = parseNoNewline("", n)
+		n.setRemainder(input[0:len(input) - 1], true)
 	} else {
-		output = node
-		output.setRemainder(input, true)
+		n.setRemainder(input, true)
+		output = n
 	}
+	output = n
 	return
 }
 
-func parseTag(input string, node *node) (output *node) {
+func parseTag(input string, node *node) (output inode) {
 	for i, r := range input {
 		switch {
 		case r == '.':
@@ -104,24 +103,24 @@ func parseTag(input string, node *node) (output *node) {
 			output = parseRemainder(input[i + 1:], node)
 		}
 		if nil != output {
-			node.setName(input[0:i])
+			node._name = input[0:i]
 			break
 		}
 	}
 	if nil == output {
-		node.setName(input)
+		node._name = input
 		output = node;
 	}
 	return
 }
 
-func parseAutoclose(input string, node *node) (output *node) {
-	node.setAutoclose(true)
+func parseAutoclose(input string, node *node) (output inode) {
+	node._autoclose = true
 	output = node
 	return
 }
 
-func parseAttributes(input string, node *node) (output *node) {
+func parseAttributes(input string, node *node) (output inode) {
 	inKey := true
 	inRocket := false
 	keyEnd, attrStart := 0, 0
@@ -146,7 +145,7 @@ func parseAttributes(input string, node *node) (output *node) {
 	return
 }
 
-func parseId(input string, node *node) (output *node) {
+func parseId(input string, node *node) (output inode) {
 	for i, r := range input {
 		switch{
 		case r == '.':
@@ -171,7 +170,7 @@ func parseId(input string, node *node) (output *node) {
 	return
 }
 
-func parseClass(input string, node *node) (output *node) {
+func parseClass(input string, node *node) (output inode) {
 	for i, r := range input {
 		switch {
 		case r == '{':
@@ -190,20 +189,22 @@ func parseClass(input string, node *node) (output *node) {
 		if nil != output {break}
 	}
 	if nil == output {
+		node.addAttrNoLookup("class", input)
 		output = node
-		output.addAttrNoLookup("class", input)
 	}
 	return
 }
 
-func parseRemainder(input string, node *node) (output *node) {
+func parseRemainder(input string, node *node) (output inode) {
 	if input[len(input) - 1] == '<' {
-		output = parseNoNewline("", node)
-		output.setRemainder(input[0:len(input) - 1], false)
+		node = parseNoNewline("", node)
+		node._remainder.value = input[0:len(input) - 1]
+		node._remainder.needsResolution = false
 	} else {
-		output = node
-		output.setRemainder(input, false)
+		node._remainder.value = input
+		node._remainder.needsResolution = false
 	}
+	output = node
 	return
 }
 
@@ -222,3 +223,35 @@ func tl(input string) (output string) {
  	output = strings.TrimLeft(input, " 	")
 	return
 }
+
+const eof int = yyUSER + 1
+
+func parseCode(input string, node inode) (output inode) {
+	s.Init(strings.NewReader(input))
+	success, result := yyparse(eof, scan)
+	if !success {
+		fmt.Fprintf(os.Stderr, "Did not recognize %s", input)
+	}
+	output = result
+	return
+}
+
+var s scanner.Scanner
+
+func scan(v *yystype) (output int) {
+	i := s.Scan()
+	switch i {
+	case scanner.Ident:
+		output = ident
+		v.s = s.TokenText()
+	case scanner.String, scanner.RawString:
+		output = str
+		v.s = s.TokenText()
+	case scanner.EOF:
+		output = eof
+	default:
+		output = i
+	}
+	return
+}
+
