@@ -1,5 +1,7 @@
 %package gohaml
 
+%import fmt
+
 %union {
 	n inode
 	s string
@@ -9,7 +11,7 @@
 
 %type<n> Statement
 %type<c> RightHandSide
-%type<s> ident
+%type<s> ident ComplexIdent
 %type<i> atom
 
 %%
@@ -32,10 +34,14 @@ RightHandSide : atom									{
 															dan._rhs = $1
 															$$ = dan
 														}
-			  | ident									{
+			  | ident ComplexIdent						{
 															dan := new(vdeclassnode)
-															dan._rhs.value = $1
+															dan._rhs.value = $1 + $2
 															dan._rhs.needsResolution = true
 															$$ = dan			
 														}
 			  ;
+
+ComplexIdent : '.' ident ComplexIdent					{ $$ = fmt.Sprintf(".%s%s", $2, $3)}
+			 |											{ $$ = "" }
+			 ;

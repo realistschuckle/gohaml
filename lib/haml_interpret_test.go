@@ -11,17 +11,27 @@ type assignment struct {
 	value interface{}
 }
 
+func TestForRangeConstruct(t *testing.T) {
+	
+}
+
 var assignmentInputs = []assignment {
 	assignment{"localString", "\"string\"", "string"},
 	assignment{"localInt", "3", 3},
 	assignment{"localFloat", "3.14", 3.14},
 	assignment{"localLookup", "commonKey", "commonValue"},
+	assignment{"localLookup", "akey.subkey", "subkeyvalue"},
+}
+
+type subkey struct {
+	subkey string
 }
 
 func TestAssignments(t *testing.T) {
 	for _, assignment := range assignmentInputs {
 		scope := make(map[string]interface{})
 		scope["commonKey"] = "commonValue"
+		scope["akey"] = &subkey{"subkeyvalue"}
 
 		for _, input := range generateAssignments(assignment) {
 			engine := NewEngine(input)
