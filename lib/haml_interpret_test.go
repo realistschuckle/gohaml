@@ -11,8 +11,70 @@ type assignment struct {
 	value interface{}
 }
 
-func TestForRangeConstruct(t *testing.T) {
+func TestForSliceRangeConstruct(t *testing.T) {
+	scope := make(map[string]interface{})
+	scope["looper"] = []int{4, -128, 38, 99, 1}
 	
+	expected := "<p>\n" +
+				"	<span>0</span><span>4</span>\n" +
+				"	<span>1</span><span>-128</span>\n" +
+				"	<span>2</span><span>38</span>\n" +
+				"	<span>3</span><span>99</span>\n" +
+				"	<span>4</span><span>1</span>\n" +
+				"</p>"
+	input := "%p\n  - for i, v := range looper\n    %span= i<\n    %span= v"
+	engine := NewEngine(input)
+	output := engine.Render(scope)
+	
+	if output != expected {
+		t.Errorf("Expected\n%s\nbut got\n%s\n", expected, output)
+	}
+}
+
+func TestForArrayRangeConstruct(t *testing.T) {
+	scope := make(map[string]interface{})
+	scope["looper"] = [5]int{4, -128, 38, 99, 1}
+	
+	expected := "<p>\n" +
+				"	<span>0</span><span>4</span>\n" +
+				"	<span>1</span><span>-128</span>\n" +
+				"	<span>2</span><span>38</span>\n" +
+				"	<span>3</span><span>99</span>\n" +
+				"	<span>4</span><span>1</span>\n" +
+				"</p>"
+	input := "%p\n  - for i, v := range looper\n    %span= i<\n    %span= v"
+	engine := NewEngine(input)
+	output := engine.Render(scope)
+	
+	if output != expected {
+		t.Errorf("Expected\n%s\nbut got\n%s\n", expected, output)
+	}
+}
+
+func TestForMapRangeConstruct(t *testing.T) {
+	scope := make(map[string]interface{})
+	scope["looper"] = map[int]int {
+		0:4,
+		1:-128,
+		2:38,
+		3:99,
+		4:1,
+	}
+
+	expected := "<p>\n" +
+				"	<span>3</span><span>99</span>\n" +
+				"	<span>0</span><span>4</span>\n" +
+				"	<span>1</span><span>-128</span>\n" +
+				"	<span>4</span><span>1</span>\n" +
+				"	<span>2</span><span>38</span>\n" +
+				"</p>"
+	input := "%p\n  - for i, v := range looper\n    %span= i<\n    %span= v"
+	engine := NewEngine(input)
+	output := engine.Render(scope)
+
+	if output != expected {
+		t.Errorf("Expected\n%s\nbut got\n%s\n", expected, output)
+	}
 }
 
 var assignmentInputs = []assignment {

@@ -18,9 +18,9 @@
 
 Statement : tfor ident ',' ident ':' '=' trange ident	{
 															rn := new(rangenode)
-															rn._first = $2
-															rn._second = $4
-															rn._third = $8
+															rn._lhs1 = $2
+															rn._lhs2 = $4
+															rn._rhs = res{$8, true}
 															$$ = rn
 														}
 		  | ident ':' '=' RightHandSide					{

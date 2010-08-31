@@ -243,7 +243,14 @@ func scan(v *yystype) (output int) {
 	i := s.Scan()
 	switch i {
 	case scanner.Ident:
-		output = ident
+		switch s.TokenText() {
+		case "for":
+			output = tfor
+		case "range":
+			output = trange
+		default:
+			output = ident
+		}
 		v.s = s.TokenText()
 	case scanner.String, scanner.RawString:
 		output = atom
