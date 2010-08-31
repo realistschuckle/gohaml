@@ -24,6 +24,9 @@ Pretty darn close. It doesn't have scripting support because Go is not a scripti
 * Engine-level autoclose option (@&lt;br /&gt;@ vs. @&lt;br&gt;@)
 * Tag-specific close option (@%br/@ becomes @&lt;br /&gt;@ regardless of autoclose setting)
 * Whitespace removal with the @<@ operator
+* Simple scripting
+** Declaration and assignment of strings, floats, and ints (- varname := "value")
+** Range looping construct (- for i, v := range scopeVar)
 
 This parser hasn't the same level of error reporting as the Ruby-based parser. That, of course, comes next. I want to make sure that I have the same reporting style and type of messages that comes with the other parser.
 
