@@ -5,6 +5,7 @@ import (
 	"strings"
 	"scanner"
 	"fmt"
+	"strconv"
 	"os"
 )
 
@@ -245,8 +246,15 @@ func scan(v *yystype) (output int) {
 		output = ident
 		v.s = s.TokenText()
 	case scanner.String, scanner.RawString:
-		output = str
-		v.s = s.TokenText()
+		output = atom
+		text := s.TokenText()
+		v.i = text[1:len(text) - 1]
+	case scanner.Int:
+		output = atom
+		v.i, _ = strconv.Atoi(s.TokenText())
+	case scanner.Float:
+		output = atom
+		v.i, _ = strconv.Atof(s.TokenText())
 	case scanner.EOF:
 		output = eof
 	default:

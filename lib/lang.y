@@ -3,10 +3,14 @@
 %union {
 	n inode
 	s string
+	i interface{}
+	c icodenode
 }
 
 %type<n> Statement
-%type<s> ident str
+%type<c> RightHandSide
+%type<s> ident
+%type<i> atom
 
 %%
 
@@ -17,10 +21,21 @@ Statement : tfor ident ',' ident ':' '=' trange ident	{
 															rn._third = $8
 															$$ = rn
 														}
-		  | ident ':' '=' str							{
-															dan := new(declassnode)
-															dan._lhs = $1
-															dan._rhs = res{$4[1:len($4) - 1], false}
-															$$ = dan
+		  | ident ':' '=' RightHandSide					{
+															$4.setLHS($1)
+															$$ = $4
 														}
           ;
+
+RightHandSide : atom									{
+															dan := new(declassnode)
+															dan._rhs = $1
+															$$ = dan
+														}
+			  | ident									{
+															dan := new(vdeclassnode)
+															dan._rhs.value = $1
+															dan._rhs.needsResolution = true
+															$$ = dan			
+														}
+			  ;

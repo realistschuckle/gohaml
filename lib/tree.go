@@ -29,6 +29,18 @@ type inode interface {
 	nil() bool
 }
 
+type icodenode interface {
+	setLHS(s string)
+	parent() inode
+	indentLevel() int
+	setIndentLevel(i int)
+	addChild(n inode)
+	noNewline() bool
+	resolve(scope map[string]interface{}, buf *bytes.Buffer, curIndent string, indent string, autoclose bool)
+	setParent(n inode)
+	nil() bool
+}
+
 type node struct {
 	_parent inode
 	_remainder res
@@ -296,7 +308,7 @@ type declassnode struct {
 	_children vector.Vector
 	
 	_lhs string
-	_rhs res
+	_rhs interface{}
 }
 
 func (self *declassnode) parent() inode {
@@ -321,7 +333,7 @@ func (self *declassnode) noNewline() bool {
 }
 
 func (self *declassnode) resolve(scope map[string]interface{}, buf *bytes.Buffer, curIndent string, indent string, autoclose bool) {
-	scope[self._lhs] = self._rhs.resolve(scope)
+	scope[self._lhs] = self._rhs
 }
 
 func (self *declassnode) setParent(n inode) {
@@ -330,4 +342,54 @@ func (self *declassnode) setParent(n inode) {
 
 func (self *declassnode) nil() bool {
 	return self == nil
+}
+
+func (self *declassnode) setLHS(s string) {
+	self._lhs = s
+}
+
+type vdeclassnode struct {
+	_parent inode
+	_indentLevel int
+	_children vector.Vector
+	
+	_lhs string
+	_rhs res
+}
+
+func (self *vdeclassnode) parent() inode {
+	return self._parent
+}
+
+func (self *vdeclassnode) indentLevel() int {
+	return self._indentLevel
+}
+
+func (self *vdeclassnode) setIndentLevel(i int) {
+	self._indentLevel = i
+}
+
+func (self *vdeclassnode) addChild(n inode) {
+	n.setParent(self)
+	self._children.Push(n)
+}
+
+func (self *vdeclassnode) noNewline() bool {
+	return false
+}
+
+func (self *vdeclassnode) resolve(scope map[string]interface{}, buf *bytes.Buffer, curIndent string, indent string, autoclose bool) {
+	scope[self._lhs] = self._rhs.resolve(scope)
+}
+
+func (self *vdeclassnode) setParent(n inode) {
+	self._parent = n
+}
+
+func (self *vdeclassnode) nil() bool {
+	return self == nil
+}
+
+func (self *vdeclassnode) setLHS(s string) {
+	self._lhs = s
 }
