@@ -1,6 +1,5 @@
 h1. What is it?
 
-I have started implementing a HAML processor in the GO language.
 You can find out more about HAML at "haml-lang.com":http://haml-lang.com
 You can find out more about GO at "golang.org":http://golang.org
 
@@ -8,7 +7,7 @@ I've tried to remain diligent about reproducing the output from the canonical Ru
 
 h1. Is it done?
 
-Pretty darn close. It doesn't have scripting support because Go is not a scripting language. I'm trying to think how I want to implement this because, quite frankly, I don't think that I have the time to write an interpreter.
+Pretty darn close.
 
 * Tags with
 ** empty content;
@@ -32,17 +31,9 @@ This parser hasn't the same level of error reporting as the Ruby-based parser. T
 
 h1. How can I install this?
 
-Just follow the simple directions from the command line:
+To install the library for use in your project, you can use goinstall.
 
-pre. git clone git://github.com/realistschuckle/gohaml.git gohaml
-cd gohaml/lib
-make install
-cd ../exe
-make install
-
-h1. Wow, Five Commands? Isn't there an easier way to install this?
-
-No. I've tried to get goinstall to play nice, but it doesn't. Therefore, for now, I'm not supporting it.
+pre. goinstall "github.com/realistschuckle/gohaml/lib"
 
 h1. How can I use it?
 
@@ -66,7 +57,9 @@ func main() {
 
 h1. Can I use it some other way, too?
 
-Yes, you sure can! After you install the @gohaml@ package, the @gohaml@ executable will be installed into your @$GOROOT/bin@ directory. You can just type
+Yes, you sure can! The exe directory has a project to run a command-line version of gohaml.
+
+After you install the @gohaml@ package, download the code and type @make install@. Then, command-line it yourself.
 
 pre. gohaml input.haml output.html
 
