@@ -65,6 +65,7 @@ var autoCloseTests = []io{
 	io{"%input{:type => \"checkbox\", :checked => false}", "<input type=\"checkbox\" />"},
 	io{"%input{:type => \"checkbox\", :checked => outputTrue}", "<input type=\"checkbox\" checked=\"checked\" />"},
 	io{"%input{:type => \"checkbox\", cd => outputTrue}", "<input type=\"checkbox\" checked=\"checked\" />"},
+	io{"%one\n  %two\n   %three\n", "<one>\n\t<two>\n\t\t<three />\n\t</two>\n</one>"},
 } 
 
 func TestAutoCloseIO(t *testing.T) {

@@ -19,17 +19,22 @@ func (self *hamlParser) parse(input string) (output *tree) {
 	for i, r := range input {
 		if r == '\n' {
 			node := parseLeadingSpace(input[j:i])
-			putNodeInPlace(currentNode, node, output)
-			currentNode = node
+			if node != nil && !node.nil() {
+				putNodeInPlace(currentNode, node, output)
+				currentNode = node
+			}
 			j = i + 1
 		}
 	}
 	node := parseLeadingSpace(input[j:])
-	putNodeInPlace(currentNode, node, output)
+	if node != nil && !node.nil() {
+		putNodeInPlace(currentNode, node, output)
+	}
 	return
 }
 
 func putNodeInPlace(cn inode, node inode, t *tree) {
+	if node == nil || node.nil() {return}
 	if cn == nil || cn.nil() {
 		t.nodes.Push(node)
 	} else if node.indentLevel() < cn.indentLevel() {

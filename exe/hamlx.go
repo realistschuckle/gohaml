@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"gohaml"
+	"github.com/realistschuckle/gohaml/lib"
 	"os"
 	"io"
 	"io/ioutil"
