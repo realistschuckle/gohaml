@@ -35,6 +35,12 @@ To install the library for use in your project, you can use goinstall.
 
 pre. goinstall "github.com/realistschuckle/gohaml/lib"
 
+h1. How can I build this?
+
+Install "goll1e":https://github.com/realistschuckle/goll1e
+Get the source.
+Run @gomake@ at <projectroot>/lib.
+
 h1. How can I use it?
 
 How about something like this? Save it, compile it, link it, and run it!
