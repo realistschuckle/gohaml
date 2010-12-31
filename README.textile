@@ -7,7 +7,7 @@ I've tried to remain diligent about reproducing the output from the canonical Ru
 
 h1. Is it done?
 
-Pretty darn close.
+I think so. It has...
 
 * Tags with
 ** empty content;
@@ -26,8 +26,9 @@ Pretty darn close.
 * Simple scripting
 ** Declaration and assignment of strings, floats, and ints (- varname := "value")
 ** Range looping construct (- for i, v := range scopeVar)
+* Error messages for badly-formed templates
 
-This parser hasn't the same level of error reporting as the Ruby-based parser. That, of course, comes next. I want to make sure that I have the same reporting style and type of messages that comes with the other parser.
+If you would like another feature added, just log an issue and I'll review it forthright.
 
 h1. How can I install this?
 
