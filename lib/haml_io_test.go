@@ -86,7 +86,7 @@ func TestAutoCloseIO(t *testing.T) {
 		scope["outputTrue"] = "true"
 		scope["cd"] = "checked"
 				
-		engine := NewEngine(io.input)
+		engine, _ := NewEngine(io.input)
 		output := engine.Render(scope)
 		if output != io.expected {
 			t.Errorf("Input    %q\nexpected %q\ngot      %q", io.input, io.expected, output)
@@ -112,7 +112,7 @@ func TestNoAutoCloseIO(t *testing.T) {
 		scope["key1"] = "value1"
 		scope["key2"] = "value2"
 	
-		engine := NewEngine(io.input)
+		engine, _ := NewEngine(io.input)
 		engine.Autoclose = false
 		output := engine.Render(scope)
 		if output != io.expected {

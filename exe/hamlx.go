@@ -33,7 +33,11 @@ func main() {
 	
 	bytes, _ := ioutil.ReadAll(in)
 	
-	engine := gohaml.NewEngine(string(bytes))
+	engine, err := gohaml.NewEngine(string(bytes))
+	if err != nil {
+		os.Stderr.WriteString(err.String())
+		os.Exit(1)
+	}
 	output := engine.Render(make(map[string]interface{}))
 	
 	io.WriteString(out, output)

@@ -26,7 +26,7 @@ else
 dir=$(patsubst %/$(elem),%,$(TARG))
 endif
 
-pkgdir=$(QUOTED_GOROOT)/pkg/$(GOOS)_$(GOARCH)
+pkgdir=$(QUOTED_GOROOT)/pkg/$(GOOS)_$(GOARCH)/github.com/realistschuckle/gohaml
 bindir=$(QUOTED_GOROOT)/bin
 
 INSTALLFILES+=$(pkgdir)/$(TARG).a
@@ -58,6 +58,7 @@ bench:
 
 nuke: clean
 	rm -f $(pkgdir)/$(TARG).a
+	rm -f $(pkgdir)/lib.a
 
 testpackage-clean:
 	rm -f _test/$(TARG).a _gotest_.$O
@@ -66,7 +67,7 @@ install: $(INSTALLFILES)
 
 $(pkgdir)/$(TARG).a: _obj/$(TARG).a
 	@test -d $(QUOTED_GOROOT)/pkg && mkdir -p $(pkgdir)/$(dir)
-	cp _obj/$(TARG).a "$@"
+	cp _obj/$(TARG).a $(pkgdir)/lib.a
 
 $(bindir)/$(TARG): $(pkgdir)/$(TARG).a hamlx.go
 	$(QUOTED_GOBIN)/$(GC) -o _go_.$O $(XGOFILES)

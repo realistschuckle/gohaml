@@ -4,6 +4,7 @@
 package gohaml
 
 import (
+	"os"
 )
 
 /*
@@ -28,8 +29,12 @@ type Engine struct {
 }
 
 // NewEngine returns a new Engine with the given input.
-func NewEngine(input string) (engine *Engine) {
-	engine = &Engine{true, "\t", nil, parser.parse(input)}
+func NewEngine(input string) (engine *Engine, err os.Error) {
+	var output *tree
+	output, err = parser.parse(input)
+	if err == nil {
+		engine = &Engine{true, "\t", nil, output}
+	}
 	return
 }
 
