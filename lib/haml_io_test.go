@@ -5,7 +5,7 @@ import "testing"
 type simpleLookup struct {
 	SubKey1 string
 	SubKey2 int
-	SubKey3 float
+	SubKey3 float64
 	SubKey4 *simpleLookup
 }
 
@@ -49,12 +49,12 @@ var autoCloseTests = []io{
 	io{"#tagId= complexKey.SubKey1", "<div id=\"tagId\">Fortune presents gifts not according to the book.</div>"},
 	io{"#tagId= complexKey.SubKey2.SubKey1", "<div id=\"tagId\">That's what I said.</div>"},
 	io{"#tagId= complexKey.SubKey2.SubKey2", "<div id=\"tagId\">5</div>"},
-	io{"#tagId= complexKey.SubKey2.SubKey3", "<div id=\"tagId\">0.10000000149011612</div>"},
+	io{"#tagId= complexKey.SubKey2.SubKey3", "<div id=\"tagId\">0.1</div>"},
 	io{"#tagId= complexKey.SubKey2.SubKey4.SubKey1", "<div id=\"tagId\">Down deep.</div>"},
 	io{"#tagId= complexKey.SubKey2.SubKey4.SubKey2", "<div id=\"tagId\">3</div>"},
-	io{"#tagId= complexKey.SubKey2.SubKey4.SubKey3", "<div id=\"tagId\">0.20000000298023224</div>"},
+	io{"#tagId= complexKey.SubKey2.SubKey4.SubKey3", "<div id=\"tagId\">0.2</div>"},
 	io{"#tagId= complexKey.SubKey2.SubKey4.SubKey4", "<div id=\"tagId\" />"},
-	io{"=complexKey.SubKey2.SubKey3", "0.10000000149011612"},
+	io{"=complexKey.SubKey2.SubKey3", "0.1"},
 	io{"=complexKey.SubKey3.key", "I got map!"},
 	io{"%p= key1", "<p>value1</p>"},
 	io{"%tag{:attribute1 => \"value1\", :attribute2 => \"value2\"}", "<tag attribute2=\"value2\" attribute1=\"value1\" />"},

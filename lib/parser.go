@@ -336,7 +336,7 @@ func scan(v *yystype) (output int) {
 		v.i, _ = strconv.Atoi(s.TokenText())
 	case scanner.Float:
 		output = atom
-		v.i, _ = strconv.Atof(s.TokenText())
+		v.i, _ = strconv.Atof64(s.TokenText())
 	case scanner.EOF:
 		output = eof
 	default:
