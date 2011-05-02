@@ -42,6 +42,12 @@ Install "goll1e":https://github.com/realistschuckle/goll1e
 Get the source.
 Run @gomake@ at <projectroot>/lib.
 
+h1. HEY! Your this doesn't build! What's wrong with you?
+
+Ok, the release and master branches contain code that compiles against the latest documented release of Go. Sometimes, those
+awesome and crazy Go guys change the cr4p out of the API and that breaks gohaml. Try switching over to the @preview@ branch
+and compiling that one. I try to keep it up to date with breaking changes to Go.
+
 h1. How can I use it?
 
 How about something like this? Save it, compile it, link it, and run it!
