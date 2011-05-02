@@ -2,6 +2,7 @@ package gohaml
 
 import (
 	"testing"
+	"strings"
 	"fmt"
 )
 
@@ -53,27 +54,24 @@ func TestForArrayRangeConstruct(t *testing.T) {
 
 func TestForMapRangeConstruct(t *testing.T) {
 	scope := make(map[string]interface{})
-	scope["looper"] = map[int]int {
+	intmap := map[int]int {
 		0:4,
 		1:-128,
 		2:38,
 		3:99,
 		4:1,
 	}
+	scope["looper"] = intmap
 
-	expected := "<p>\n" +
-				"	<span>3</span><span>99</span>\n" +
-				"	<span>0</span><span>4</span>\n" +
-				"	<span>1</span><span>-128</span>\n" +
-				"	<span>4</span><span>1</span>\n" +
-				"	<span>2</span><span>38</span>\n" +
-				"</p>"
 	input := "%p\n  - for i, v := range looper\n    %span= i<\n    %span= v"
 	engine, _ := NewEngine(input)
 	output := engine.Render(scope)
 
-	if output != expected {
-		t.Errorf("Expected\n%s\nbut got\n%s\n", expected, output)
+	for k, v := range intmap {
+		expect := fmt.Sprintf("<span>%d</span><span>%d</span>", k, v)
+		if !strings.Contains(output, expect) {
+			t.Errorf("Execpted\n%s\nbut got\n%s\n", expect, output)
+		}
 	}
 }
 
