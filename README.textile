@@ -5,6 +5,8 @@ You can find out more about GO at "golang.org":http://golang.org
 
 I've tried to remain diligent about reproducing the output from the canonical Ruby-based parser, so if you feel familiar with the one, then you should feel familiar with the other.
 
+This branch compiels with 6g/8g version release.r57.1 8413.
+
 h1. Is it done?
 
 I think so. It has...
