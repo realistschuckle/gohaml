@@ -9,12 +9,12 @@ import (
 )
 
 type res struct {
-	value string
+	value           string
 	needsResolution bool
 }
 
 type resPair struct {
-	key res
+	key   res
 	value res
 }
 
@@ -42,14 +42,14 @@ type icodenode interface {
 }
 
 type node struct {
-	_parent inode
-	_remainder res
-	_name string
-	_attrs vector.Vector
-	_noNewline bool
-	_autoclose bool
+	_parent      inode
+	_remainder   res
+	_name        string
+	_attrs       vector.Vector
+	_noNewline   bool
+	_autoclose   bool
 	_indentLevel int
-	_children vector.Vector
+	_children    vector.Vector
 }
 
 type tree struct {
@@ -65,22 +65,22 @@ func (self res) resolve(scope map[string]interface{}) (output string) {
 	output = self.value
 	if self.needsResolution {
 		curr := self.resolveValue(scope)
-		
-		OutputSwitch:
-		switch t := curr.(type) {
-		case *reflect.StringValue:
-			output = t.Get()
-		case *reflect.IntValue:
-			output = fmt.Sprint(t.Get())
-		case *reflect.FloatValue:
-			output = fmt.Sprint(t.Get())
-		case *reflect.PtrValue:
+
+	OutputSwitch:
+		switch t := curr; t.Kind() {
+		case reflect.String:
+			output = t.String()
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			output = fmt.Sprint(t.Int())
+		case reflect.Float32, reflect.Float64:
+			output = fmt.Sprint(t.Float())
+		case reflect.Ptr:
 			if !t.IsNil() {
 				curr = t.Elem()
 				goto OutputSwitch
 			}
 			output = ""
-		case *reflect.InterfaceValue:
+		case reflect.Interface:
 			curr = t.Elem()
 			goto OutputSwitch
 		default:
@@ -90,19 +90,19 @@ func (self res) resolve(scope map[string]interface{}) (output string) {
 	return
 }
 
-func (self res) resolveValue(scope map[string]interface{}) (value interface{}) {
+func (self res) resolveValue(scope map[string]interface{}) (value reflect.Value) {
 	keyPath := strings.Split(self.value, ".", -1)
-	curr := reflect.NewValue(scope[keyPath[0]])
+	curr := reflect.ValueOf(scope[keyPath[0]])
 	for _, key := range keyPath[1:] {
-		TypeSwitch:
-		switch t := curr.(type) {
-		case *reflect.PtrValue:
+	TypeSwitch:
+		switch t := curr; t.Kind() {
+		case reflect.Ptr:
 			curr = t.Elem()
 			goto TypeSwitch
-		case *reflect.StructValue:
+		case reflect.Struct:
 			curr = t.FieldByName(key)
-		case *reflect.MapValue:
-			curr = t.Elem(reflect.NewValue(key))
+		case reflect.Map:
+			curr = t.MapIndex(reflect.ValueOf(key))
 		}
 	}
 	value = curr
@@ -115,7 +115,7 @@ func (self tree) resolve(scope map[string]interface{}, indent string, autoclose 
 	for i, n := range self.nodes {
 		node := n.(inode)
 		node.resolve(scope, buf, "", indent, autoclose)
-		if i != treeLen - 1 && !node.noNewline() {
+		if i != treeLen-1 && !node.noNewline() {
 			buf.WriteString("\n")
 		}
 	}
@@ -126,7 +126,9 @@ func (self tree) resolve(scope map[string]interface{}, indent string, autoclose 
 func (self node) resolve(scope map[string]interface{}, buf *bytes.Buffer, curIndent string, indent string, autoclose bool) {
 	remainder := self._remainder.resolve(scope)
 	if self._attrs.Len() > 0 && len(remainder) > 0 {
-		if len(self._name) == 0 {self._name = "div"}
+		if len(self._name) == 0 {
+			self._name = "div"
+		}
 		buf.WriteString("<")
 		buf.WriteString(self._name)
 		self.resolveAttrs(scope, buf)
@@ -136,7 +138,9 @@ func (self node) resolve(scope map[string]interface{}, buf *bytes.Buffer, curInd
 		buf.WriteString(self._name)
 		buf.WriteString(">")
 	} else if self._attrs.Len() > 0 {
-		if len(self._name) == 0 {self._name = "div"}
+		if len(self._name) == 0 {
+			self._name = "div"
+		}
 		buf.WriteString("<")
 		buf.WriteString(self._name)
 		self.resolveAttrs(scope, buf)
@@ -160,7 +164,9 @@ func (self node) resolve(scope map[string]interface{}, buf *bytes.Buffer, curInd
 
 func (self node) outputChildren(scope map[string]interface{}, buf *bytes.Buffer, curIndent string, indent string, autoclose bool) {
 	ind := curIndent + indent
-	if self._noNewline {ind = curIndent}
+	if self._noNewline {
+		ind = curIndent
+	}
 	childLen := self._children.Len()
 	if childLen > 0 {
 		buf.WriteString(">")
@@ -180,7 +186,7 @@ func (self node) outputChildren(scope map[string]interface{}, buf *bytes.Buffer,
 		buf.WriteString(self._name)
 		buf.WriteString(">")
 	} else {
-	if autoclose || self._autoclose {
+		if autoclose || self._autoclose {
 			buf.WriteString(" />")
 		} else {
 			buf.WriteString(">")
@@ -200,7 +206,9 @@ func (self node) resolveAttrs(scope map[string]interface{}, buf *bytes.Buffer) {
 		}
 	}
 	for key, value := range attrMap {
-		if value == "false" {continue}
+		if value == "false" {
+			continue
+		}
 		buf.WriteString(" ")
 		buf.WriteString(key)
 		buf.WriteString("=\"")
@@ -224,12 +232,12 @@ func (self *node) addAttr(key string, value string) {
 		keyLookup = false
 		key = key[1:]
 	}
-if value == "true" || value == "false" {
+	if value == "true" || value == "false" {
 		valueLookup = false
 	}
 	if value[0] == '"' {
 		valueLookup = false
-		value = value[1:len(value) - 1]
+		value = value[1 : len(value)-1]
 	}
 	self._attrs.Push(&resPair{res{key, keyLookup}, res{value, valueLookup}})
 }
@@ -259,7 +267,7 @@ func (self *node) setNoNewline(b bool) {
 }
 
 func (self *node) noNewline() bool {
-	return self._noNewline;
+	return self._noNewline
 }
 
 func (self *node) setParent(n inode) {
@@ -271,12 +279,12 @@ func (self *node) nil() bool {
 }
 
 type rangenode struct {
-	_parent inode
+	_parent      inode
 	_indentLevel int
-	_children vector.Vector
-	
+	_children    vector.Vector
+
 	_lhs1, _lhs2 string
-	_rhs res
+	_rhs         res
 }
 
 func (self *rangenode) parent() inode {
@@ -305,46 +313,20 @@ func (self *rangenode) resolve(scope map[string]interface{}, buf *bytes.Buffer, 
 	oldlhs2, oklhs2 := scope[self._lhs2]
 
 	value := self._rhs.resolveValue(scope)
-	
-	switch t := value.(type) {
-	case *reflect.SliceValue:
+
+	switch t := value; t.Kind() {
+	case reflect.Slice:
 		for i := 0; i < t.Len(); i++ {
-			v := t.Elem(i)
-			var iv interface{}
-			
-			switch t := v.(type) {
-			case *reflect.StringValue:
-				iv = t.Get()
-			case *reflect.IntValue:
-				iv = fmt.Sprint(t.Get())
-			case *reflect.FloatValue:
-				iv = fmt.Sprint(t.Get())
-			}
-			
-			scope[self._lhs1] = i
-			scope[self._lhs2] = iv
-			
-			for _, n := range self._children {
-				node := n.(inode)
-				node.resolve(scope, buf, curIndent, indent, autoclose)
-				if i != t.Len() - 1 &&  !node.noNewline() {
-					buf.WriteString("\n")
-					buf.WriteString(curIndent)
-				}
-			}
-		}
-	case *reflect.ArrayValue:
-		for i := 0; i < t.Len(); i++ {
-			v := t.Elem(i)
+			v := t.Index(i)
 			var iv interface{}
 
-			switch t := v.(type) {
-			case *reflect.StringValue:
-				iv = t.Get()
-			case *reflect.IntValue:
-				iv = fmt.Sprint(t.Get())
-			case *reflect.FloatValue:
-				iv = fmt.Sprint(t.Get())
+			switch t := v; t.Kind() {
+			case reflect.String:
+				iv = t.String()
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				iv = fmt.Sprint(t.Int())
+			case reflect.Float32, reflect.Float64:
+				iv = fmt.Sprint(t.Float())
 			}
 
 			scope[self._lhs1] = i
@@ -353,36 +335,62 @@ func (self *rangenode) resolve(scope map[string]interface{}, buf *bytes.Buffer, 
 			for _, n := range self._children {
 				node := n.(inode)
 				node.resolve(scope, buf, curIndent, indent, autoclose)
-				if i != t.Len() - 1 &&  !node.noNewline() {
+				if i != t.Len()-1 && !node.noNewline() {
 					buf.WriteString("\n")
 					buf.WriteString(curIndent)
 				}
 			}
 		}
-	case *reflect.MapValue:
-		for i, k := range t.Keys() {
-			v := t.Elem(k)
-			
+	case reflect.Array:
+		for i := 0; i < t.Len(); i++ {
+			v := t.Index(i)
 			var iv interface{}
 
-			switch t := k.(type) {
-			case *reflect.StringValue:
-				iv = t.Get()
-			case *reflect.IntValue:
-				iv = fmt.Sprint(t.Get())
-			case *reflect.FloatValue:
-				iv = fmt.Sprint(t.Get())
+			switch t := v; t.Kind() {
+			case reflect.String:
+				iv = t.String()
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				iv = fmt.Sprint(t.Int())
+			case reflect.Float32, reflect.Float64:
+				iv = fmt.Sprint(t.Float())
+			}
+
+			scope[self._lhs1] = i
+			scope[self._lhs2] = iv
+
+			for _, n := range self._children {
+				node := n.(inode)
+				node.resolve(scope, buf, curIndent, indent, autoclose)
+				if i != t.Len()-1 && !node.noNewline() {
+					buf.WriteString("\n")
+					buf.WriteString(curIndent)
+				}
+			}
+		}
+	case reflect.Map:
+		for i, k := range t.MapKeys() {
+			v := t.MapIndex(k)
+
+			var iv interface{}
+
+			switch t := k; t.Kind() {
+			case reflect.String:
+				iv = t.String()
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				iv = fmt.Sprint(t.Int())
+			case reflect.Float32, reflect.Float64:
+				iv = fmt.Sprint(t.Float())
 			}
 
 			scope[self._lhs1] = iv
 
-			switch t := v.(type) {
-			case *reflect.StringValue:
-				iv = t.Get()
-			case *reflect.IntValue:
-				iv = fmt.Sprint(t.Get())
-			case *reflect.FloatValue:
-				iv = fmt.Sprint(t.Get())
+			switch t := v; t.Kind() {
+			case reflect.String:
+				iv = t.String()
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				iv = fmt.Sprint(t.Int())
+			case reflect.Float32, reflect.Float64:
+				iv = fmt.Sprint(t.Float())
 			}
 
 			scope[self._lhs2] = iv
@@ -390,14 +398,14 @@ func (self *rangenode) resolve(scope map[string]interface{}, buf *bytes.Buffer, 
 			for _, n := range self._children {
 				node := n.(inode)
 				node.resolve(scope, buf, curIndent, indent, autoclose)
-				if i != t.Len() - 1 &&  !node.noNewline() {
+				if i != t.Len()-1 && !node.noNewline() {
 					buf.WriteString("\n")
 					buf.WriteString(curIndent)
 				}
 			}
 		}
 	}
-	
+
 	scope[self._lhs1] = oldlhs1, oklhs1
 	scope[self._lhs2] = oldlhs2, oklhs2
 }
@@ -411,10 +419,10 @@ func (self *rangenode) nil() bool {
 }
 
 type declassnode struct {
-	_parent inode
+	_parent      inode
 	_indentLevel int
-	_children vector.Vector
-	
+	_children    vector.Vector
+
 	_lhs string
 	_rhs interface{}
 }
@@ -457,10 +465,10 @@ func (self *declassnode) setLHS(s string) {
 }
 
 type vdeclassnode struct {
-	_parent inode
+	_parent      inode
 	_indentLevel int
-	_children vector.Vector
-	
+	_children    vector.Vector
+
 	_lhs string
 	_rhs res
 }
