@@ -91,7 +91,7 @@ func (self res) resolve(scope map[string]interface{}) (output string) {
 }
 
 func (self res) resolveValue(scope map[string]interface{}) (value reflect.Value) {
-	keyPath := strings.Split(self.value, ".", -1)
+	keyPath := strings.Split(self.value, ".")
 	curr := reflect.ValueOf(scope[keyPath[0]])
 	for _, key := range keyPath[1:] {
 	TypeSwitch:

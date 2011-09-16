@@ -2,10 +2,10 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-include ../Make.$(GOARCH)
+include $(GOROOT)/src/Make.inc
 
 TARG=gohaml
 GOFILES=\
 	hamlx.go\
 
-include Make.cmd
+include $(GOROOT)/src/Make.cmd

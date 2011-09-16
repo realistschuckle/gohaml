@@ -2,7 +2,9 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-include ../Make.$(GOARCH)
+CLEANFILES += lang.go
+
+include $(GOROOT)/src/Make.inc
 
 TARG=gohaml
 GOFILES=\
@@ -11,4 +13,7 @@ GOFILES=\
 	tree.go\
 	lang.go\
 
-include Make.pkg
+include $(GOROOT)/src/Make.pkg
+
+lang.go: lang.y
+	$(QUOTED_GOBIN)/goll1e lang.y lang.go
