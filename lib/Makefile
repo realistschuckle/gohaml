@@ -8,6 +8,7 @@ include $(GOROOT)/src/Make.inc
 
 TARG=gohaml
 GOFILES=\
+	filter.go\
 	haml.go\
 	parser.go\
 	tree.go\
