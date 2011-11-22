@@ -16,7 +16,7 @@ type hamlParser struct {
 
 func newHamlParser() *hamlParser { return &hamlParser{-1, defaultFilterMap} }
 
-func (self *hamlParser) wrapFilter(filterNode *node, filterbuff []string, line int) os.Error {
+func (self *hamlParser) wrapFilter(filterNode *node, filterbuff *[]string, line int) os.Error {
 	// Search for the named filter.
 	name := filterNode._name[1:]
 	fn, found := self.FilterMap[name]
@@ -26,8 +26,8 @@ func (self *hamlParser) wrapFilter(filterNode *node, filterbuff []string, line i
 	}
 
 	// Compute filter input
-	input := strings.Join(filterbuff, "")
-	filterbuff = nil
+	input := strings.Join(*filterbuff, "")
+	*filterbuff = nil
 	if input == "" || input[len(input)-1] != '\n' {
 		input += "\n"
 	}
@@ -62,8 +62,7 @@ func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 				return
 			}
 			if self.filter >= 0 && len(nod.(*node)._name) > 0 { // A filter terminated with a new filter.
-				err = self.wrapFilter(filterNode.(*node), filterbuff, line)
-				filterbuff = nil
+				err = self.wrapFilter(filterNode.(*node), &filterbuff, line)
 				if err != nil {
 					return
 				}
@@ -86,8 +85,7 @@ func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 				j = i + 1
 				continue // Do not place the node
 			case self.filter >= 0: // We were filtering, but now out of filter scope.
-				err = self.wrapFilter(filterNode.(*node), filterbuff, line)
-				filterbuff = nil
+				err = self.wrapFilter(filterNode.(*node), &filterbuff, line)
 				if err != nil {
 					return
 				}
@@ -104,8 +102,7 @@ func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 		return
 	}
 	if self.filter >= 0 && nod != nil && len(nod.(*node)._name) > 0 { // A filter terminated with new filter.
-		err = self.wrapFilter(filterNode.(*node), filterbuff, line)
-		filterbuff = nil
+		err = self.wrapFilter(filterNode.(*node), &filterbuff, line)
 		if err != nil {
 			return
 		}
@@ -131,8 +128,7 @@ func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 		}
 		fallthrough
 	case self.filter >= 0: // Filtering before the last line, last line is unfiltered.
-		err = self.wrapFilter(filterNode.(*node), filterbuff, line) // resets self.filter to -1
-		filterbuff = nil
+		err = self.wrapFilter(filterNode.(*node), &filterbuff, line) // resets self.filter to -1
 		if err != nil {
 			return
 		}
