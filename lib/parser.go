@@ -10,21 +10,22 @@ import (
 )
 
 type hamlParser struct {
-	filter int // the indent level at which to filter.
+	filter     int // the indent level at which to filter.
+	filterNode *node
+	filterbuff []string
 	FilterMap
 }
 
-func newHamlParser() *hamlParser { return &hamlParser{-1, defaultFilterMap} }
+func newHamlParser() *hamlParser { return &hamlParser{-1, nil, nil, defaultFilterMap} }
 
-func (self *hamlParser) appendFiltered(indent int, content string, filterbuff *[]string) {
+func (self *hamlParser) appendFiltered(indent int, content string) {
 	// If an inline value was supplied, indent it and append to the filterbuff.
-	*filterbuff = append(*filterbuff,
+	self.filterbuff = append(self.filterbuff,
 		fmt.Sprintf("%s%s",
 			strings.Repeat("\t", indent),
 			strings.TrimLeftFunc(content, unicode.IsSpace)))
 }
-
-func (self *hamlParser) wrapFilter(filterNode *node, filterbuff *[]string, line int) os.Error {
+func (self *hamlParser) wrapFilter(filterNode *node, line int) os.Error {
 	// Search for the named filter.
 	name := filterNode._name[1:]
 	fn, found := self.FilterMap[name]
@@ -34,8 +35,8 @@ func (self *hamlParser) wrapFilter(filterNode *node, filterbuff *[]string, line 
 	}
 
 	// Compute filter input
-	input := strings.Join(*filterbuff, "")
-	*filterbuff = nil
+	input := strings.Join(self.filterbuff, "")
+	self.filterbuff = nil
 	if input == "" || input[len(input)-1] != '\n' {
 		input += "\n"
 	}
@@ -51,14 +52,94 @@ func (self *hamlParser) wrapFilter(filterNode *node, filterbuff *[]string, line 
 	filterNode._remainder.value = fn.Filter(input[:len(input)-1], indent)
 	return nil
 }
+func (self *hamlParser) filterInput(n inode, input string, filtering bool, line int) (in inode, err os.Error) {
+	in = n
+	var nod *node
+	switch n.(type) {
+	case nil:
+	case *node:
+		nod = n.(*node)
+	default:
+		return
+	}
+	if nod != nil && self.filter >= 0 && len(nod._name) > 0 { // A filter terminated with a new filter.
+		if err = self.wrapFilter(self.filterNode, line); err != nil {
+			return
+		}
+	}
+	switch {
+	case filtering && self.filter < 0:
+		// The parser just hit a :filter (the node should not be nil)
+		self.filterNode, self.filter = nod, nod.indentLevel()
+		if n := nod; len(n._remainder.value) > 0 {
+			self.appendFiltered(n.indentLevel()+1, n._remainder.value)
+		}
+	case filtering:
+		// Indent the last line and append it to the filter (with a newline byte)
+		switch indent := self.filter; {
+		case nod != nil:
+			indent = nod.indentLevel()
+			in = nil
+			fallthrough
+		default:
+			self.appendFiltered(indent, input)
+		}
+	case self.filter >= 0: // We were filtering, but now out of filter scope.
+		var old *node
+		old, self.filterNode = self.filterNode, nil
+		if err = self.wrapFilter(old, line); err != nil {
+			return
+		}
+	}
+	return
+}
+func (self *hamlParser) filterLast(n inode, input string, filtering bool, line int) (in inode, err os.Error) {
+	in = n
+	var nod *node
+	switch n.(type) {
+	case nil:
+	case *node:
+		nod = n.(*node)
+	default:
+		return
+	}
+	if nod != nil && self.filter >= 0 && len(nod._name) > 0 { // A filter terminated with a new filter.
+		if err = self.wrapFilter(self.filterNode, line); err != nil {
+			return
+		}
+	}
+	// Prepare filterNode and call wrapFilter.
+	switch {
+	case filtering && self.filter >= 0: // Parse was filtering before the last line, and the last line was a filter.
+		if nod != nil {
+			self.appendFiltered(nod.indentLevel(), input)
+		}
+		fallthrough
+	case filtering:
+		// Check self.filter in case of fallthough.
+		if self.filter < 0 { // The last line contains a :filter (and the node is not nil). 
+			self.filterNode = nod
+			if n := nod; len(n._remainder.value) > 0 {
+				self.appendFiltered(n.indentLevel()+1, n._remainder.value)
+			}
+		}
+		fallthrough
+	case self.filter >= 0:
+		// In all cases, wrap the new filter because there is no more input.
+		var old *node
+		old, self.filterNode = self.filterNode, nil
+		if err = self.wrapFilter(old, line); err != nil {
+			return
+		}
+	}
+	return
+}
 
 func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 	output = newTree()
 	var currentNode inode
 	var nod inode
-	var filterNode inode
 	var filtering bool
-	var filterbuff []string
 	lastSpaceChar := -1
 	line := 1
 	j := 0
@@ -69,27 +150,9 @@ func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 			if err != nil {
 				return
 			}
-			if self.filter >= 0 && len(nod.(*node)._name) > 0 { // A filter terminated with a new filter.
-				if err = self.wrapFilter(filterNode.(*node), &filterbuff, line); err != nil {
-					return
-				}
-			}
-			switch {
-			case filtering && self.filter < 0:
-				// The parser just hit a :filter
-				filterNode = nod
-				if n := nod.(*node); len(n._remainder.value) > 0 {
-					self.appendFiltered(n.indentLevel()+1, n._remainder.value, &filterbuff)
-				}
-				self.filter = nod.indentLevel() // Set the filter level.
-			case filtering:
-				// Indent the last line and append it to the filter (with a newline byte)
-				self.appendFiltered(nod.indentLevel(), input[j:i+1], &filterbuff)
-				nod = nil // Don't place the node.
-			case self.filter >= 0: // We were filtering, but now out of filter scope.
-				if err = self.wrapFilter(filterNode.(*node), &filterbuff, line); err != nil {
-					return
-				}
+			nod, err = self.filterInput(nod, input[j:i+1], filtering, line)
+			if err != nil {
+				return
 			}
 			if nod != nil && !nod.nil() {
 				putNodeInPlace(currentNode, nod, output)
@@ -102,33 +165,9 @@ func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 	if err != nil {
 		return
 	}
-	if self.filter >= 0 && nod != nil && len(nod.(*node)._name) > 0 { // A filter terminated with new filter.
-		if err = self.wrapFilter(filterNode.(*node), &filterbuff, line); err != nil {
-			return
-		}
-	}
-	// Prepare filterNode and call wrapFilter.
-	switch {
-	case filtering && self.filter >= 0: // Parse was filtering before the last line, and the last line was a filter.
-		if nod != nil {
-			self.appendFiltered(nod.indentLevel(), input[j:], &filterbuff)
-		}
-		fallthrough
-	case filtering:
-		// Check self.filter in case of fallthough.
-		if self.filter < 0 {
-			// The last line contains a :filter.
-			filterNode = nod
-			if n := nod.(*node); len(n._remainder.value) > 0 {
-				self.appendFiltered(n.indentLevel()+1, n._remainder.value, &filterbuff)
-			}
-		}
-		fallthrough
-	case self.filter >= 0:
-		// In all cases, wrap the new filter because there is no more input.
-		if err = self.wrapFilter(filterNode.(*node), &filterbuff, line); err != nil {
-			return
-		}
+	nod, err = self.filterLast(nod, input[j:], filtering, line)
+	if err != nil {
+		return
 	}
 	if nod != nil && !nod.nil() {
 		putNodeInPlace(currentNode, nod, output)
