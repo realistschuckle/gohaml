@@ -78,15 +78,14 @@ func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 			case filtering && self.filter < 0:
 				// The parser just hit a :filter
 				filterNode = nod
-				if filterNode.(*node)._remainder.value != "" {
-					self.appendFiltered(nod.indentLevel()+1, filterNode.(*node)._remainder.value, &filterbuff)
+				if n := nod.(*node); len(n._remainder.value) > 0 {
+					self.appendFiltered(n.indentLevel()+1, n._remainder.value, &filterbuff)
 				}
 				self.filter = nod.indentLevel() // Set the filter level.
 			case filtering:
 				// Indent the last line and append it to the filter (with a newline byte)
 				self.appendFiltered(nod.indentLevel(), input[j:i+1], &filterbuff)
-				j = i + 1
-				continue // Do not place the node
+				nod = nil // Don't place the node.
 			case self.filter >= 0: // We were filtering, but now out of filter scope.
 				if err = self.wrapFilter(filterNode.(*node), &filterbuff, line); err != nil {
 					return
@@ -120,9 +119,8 @@ func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 		if self.filter < 0 {
 			// The last line contains a :filter.
 			filterNode = nod
-			// If an inline value was supplied, indent it and append to the filterbuff.
-			if len(nod.(*node)._remainder.value) > 0 {
-				self.appendFiltered(nod.indentLevel()+1, filterNode.(*node)._remainder.value, &filterbuff)
+			if n := nod.(*node); len(n._remainder.value) > 0 {
+				self.appendFiltered(n.indentLevel()+1, n._remainder.value, &filterbuff)
 			}
 		}
 		fallthrough
