@@ -253,6 +253,9 @@ func parseLeadingSpace(input string, lastSpaceChar int, line int, filter int) (o
 			break
 		}
 	}
+	if output == nil {
+		inFilter = filter >= 0
+	}
 	spaceChar = lastSpaceChar
 	return
 }

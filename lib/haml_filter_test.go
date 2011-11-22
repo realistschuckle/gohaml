@@ -5,6 +5,7 @@ import "testing"
 var filterOutputTests = []io {
 	io{":cdata blah\n", "<![CDATA[\n\tblah\n]]>", ""},
 	io{":cdata blah\n\tbleh\n", "<![CDATA[\n\tblah\n\tbleh\n]]>", ""},
+	io{":cdata blah\n\n\tbleh\n", "<![CDATA[\n\tblah\n\tbleh\n]]>", ""},
 	io{":cdata %blah\n", "<![CDATA[\n\t%blah\n]]>", ""},
 	io{":cdata %blah\n\t#bleh\n", "<![CDATA[\n\t%blah\n\t#bleh\n]]>", ""},
 	io{":cdata\n\tblah\n", "<![CDATA[\n\tblah\n]]>", ""},
