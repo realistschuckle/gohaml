@@ -62,8 +62,7 @@ func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 				return
 			}
 			if self.filter >= 0 && len(nod.(*node)._name) > 0 { // A filter terminated with a new filter.
-				err = self.wrapFilter(filterNode.(*node), &filterbuff, line)
-				if err != nil {
+				if err = self.wrapFilter(filterNode.(*node), &filterbuff, line); err != nil {
 					return
 				}
 			}
@@ -85,8 +84,7 @@ func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 				j = i + 1
 				continue // Do not place the node
 			case self.filter >= 0: // We were filtering, but now out of filter scope.
-				err = self.wrapFilter(filterNode.(*node), &filterbuff, line)
-				if err != nil {
+				if err = self.wrapFilter(filterNode.(*node), &filterbuff, line); err != nil {
 					return
 				}
 			}
@@ -102,11 +100,11 @@ func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 		return
 	}
 	if self.filter >= 0 && nod != nil && len(nod.(*node)._name) > 0 { // A filter terminated with new filter.
-		err = self.wrapFilter(filterNode.(*node), &filterbuff, line)
-		if err != nil {
+		if err = self.wrapFilter(filterNode.(*node), &filterbuff, line); err != nil {
 			return
 		}
 	}
+	// Prepare filterNode and call wrapFilter.
 	switch {
 	case filtering && self.filter >= 0: // Parse was filtering before the last line, and the last line was a filter.
 		if nod != nil {
@@ -127,9 +125,9 @@ func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 			}
 		}
 		fallthrough
-	case self.filter >= 0: // Filtering before the last line, last line is unfiltered.
-		err = self.wrapFilter(filterNode.(*node), &filterbuff, line) // resets self.filter to -1
-		if err != nil {
+	case self.filter >= 0:
+		// In all cases, wrap the new filter because there is no more input.
+		if err = self.wrapFilter(filterNode.(*node), &filterbuff, line); err != nil {
 			return
 		}
 	}
