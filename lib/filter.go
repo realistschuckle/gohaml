@@ -45,8 +45,14 @@ func cdataHelper(pre, post, content, indent string) string {
 }
 func cdata(content, indent string) string { return cdataHelper("", "", content, indent) }
 func css(content, indent string) string {
-	return fmt.Sprintf("%s<style type=\"text/javascript\">\n%s\n%s</style>", indent, cdataHelper("/*", "*/", "\t" + strings.Replace(content, "\n\t", "\n\t\t", -1), indent+"\t"), indent)
+	if content == "" {
+		return fmt.Sprintf("%s<style type=\"text/css\">\n%s\n%s</style>",indent, cdataHelper("/*", "*/", content, indent+"\t"),indent)
+	}
+	return fmt.Sprintf("%s<style type=\"text/css\">\n%s\n%s</style>", indent, cdataHelper("/*", "*/", "\t" + strings.Replace(content, "\n\t", "\n\t\t", -1), indent+"\t"), indent)
 }
 func javascript(content, indent string) string {
+	if content == "" {
+		return fmt.Sprintf("%s<script type=\"text/javascript\">\n%s\n%s</script>",indent, cdataHelper("//", "", content, indent+"\t"),indent)
+	}
 	return fmt.Sprintf("%s<script type=\"text/javascript\">\n%s\n%s</script>", indent, cdataHelper("//", "", "\t" + strings.Replace(content, "\n\t", "\n\t\t", -1), indent+"\t"), indent)
 }

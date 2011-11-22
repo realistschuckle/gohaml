@@ -16,11 +16,11 @@ var filterOutputTests = []io {
 	io{":javascript\n\tblah\n", "<script type=\"text/javascript\">\n\t//<![CDATA[\n\t\tblah\n\t//]]>\n</script>", ""},
 	io{":javascript\n\tblah\n\tbleh\n", "<script type=\"text/javascript\">\n\t//<![CDATA[\n\t\tblah\n\t\tbleh\n\t//]]>\n</script>", ""},
 	io{":javascript\n\tblah\nbleh\n", "<script type=\"text/javascript\">\n\t//<![CDATA[\n\t\tblah\n\t//]]>\n</script>\nbleh", ""},
-	io{":css blah\n", "<style type=\"text/javascript\">\n\t/*<![CDATA[*/\n\t\tblah\n\t/*]]>*/\n</style>", ""},
-	io{":css blah\n\tbleh\n", "<style type=\"text/javascript\">\n\t/*<![CDATA[*/\n\t\tblah\n\t\tbleh\n\t/*]]>*/\n</style>", ""},
-	io{":css\n\tblah\n", "<style type=\"text/javascript\">\n\t/*<![CDATA[*/\n\t\tblah\n\t/*]]>*/\n</style>", ""},
-	io{":css\n\tblah\n\tbleh\n", "<style type=\"text/javascript\">\n\t/*<![CDATA[*/\n\t\tblah\n\t\tbleh\n\t/*]]>*/\n</style>", ""},
-	io{":css\n\tblah\nbleh\n", "<style type=\"text/javascript\">\n\t/*<![CDATA[*/\n\t\tblah\n\t/*]]>*/\n</style>\nbleh", ""},
+	io{":css blah\n", "<style type=\"text/css\">\n\t/*<![CDATA[*/\n\t\tblah\n\t/*]]>*/\n</style>", ""},
+	io{":css blah\n\tbleh\n", "<style type=\"text/css\">\n\t/*<![CDATA[*/\n\t\tblah\n\t\tbleh\n\t/*]]>*/\n</style>", ""},
+	io{":css\n\tblah\n", "<style type=\"text/css\">\n\t/*<![CDATA[*/\n\t\tblah\n\t/*]]>*/\n</style>", ""},
+	io{":css\n\tblah\n\tbleh\n", "<style type=\"text/css\">\n\t/*<![CDATA[*/\n\t\tblah\n\t\tbleh\n\t/*]]>*/\n</style>", ""},
+	io{":css\n\tblah\nbleh\n", "<style type=\"text/css\">\n\t/*<![CDATA[*/\n\t\tblah\n\t/*]]>*/\n</style>\nbleh", ""},
 	// Same tests with no trailing '\n' to make sure both cases work
 	io{":cdata blah", "<![CDATA[\n\tblah\n]]>", ""},
 	io{":cdata blah\n\tbleh", "<![CDATA[\n\tblah\n\tbleh\n]]>", ""},
@@ -35,11 +35,14 @@ var filterOutputTests = []io {
 	io{":javascript\n\tblah", "<script type=\"text/javascript\">\n\t//<![CDATA[\n\t\tblah\n\t//]]>\n</script>", ""},
 	io{":javascript\n\tblah\n\tbleh", "<script type=\"text/javascript\">\n\t//<![CDATA[\n\t\tblah\n\t\tbleh\n\t//]]>\n</script>", ""},
 	io{":javascript\n\tblah\nbleh", "<script type=\"text/javascript\">\n\t//<![CDATA[\n\t\tblah\n\t//]]>\n</script>\nbleh", ""},
-	io{":css blah", "<style type=\"text/javascript\">\n\t/*<![CDATA[*/\n\t\tblah\n\t/*]]>*/\n</style>", ""},
-	io{":css blah\n\tbleh", "<style type=\"text/javascript\">\n\t/*<![CDATA[*/\n\t\tblah\n\t\tbleh\n\t/*]]>*/\n</style>", ""},
-	io{":css\n\tblah", "<style type=\"text/javascript\">\n\t/*<![CDATA[*/\n\t\tblah\n\t/*]]>*/\n</style>", ""},
-	io{":css\n\tblah\n\tbleh", "<style type=\"text/javascript\">\n\t/*<![CDATA[*/\n\t\tblah\n\t\tbleh\n\t/*]]>*/\n</style>", ""},
-	io{":css\n\tblah\nbleh", "<style type=\"text/javascript\">\n\t/*<![CDATA[*/\n\t\tblah\n\t/*]]>*/\n</style>\nbleh", ""},
+	io{":css blah", "<style type=\"text/css\">\n\t/*<![CDATA[*/\n\t\tblah\n\t/*]]>*/\n</style>", ""},
+	io{":css blah\n\tbleh", "<style type=\"text/css\">\n\t/*<![CDATA[*/\n\t\tblah\n\t\tbleh\n\t/*]]>*/\n</style>", ""},
+	io{":css\n\tblah", "<style type=\"text/css\">\n\t/*<![CDATA[*/\n\t\tblah\n\t/*]]>*/\n</style>", ""},
+	io{":css\n\tblah\n\tbleh", "<style type=\"text/css\">\n\t/*<![CDATA[*/\n\t\tblah\n\t\tbleh\n\t/*]]>*/\n</style>", ""},
+	io{":css\n\tblah\nbleh", "<style type=\"text/css\">\n\t/*<![CDATA[*/\n\t\tblah\n\t/*]]>*/\n</style>\nbleh", ""},
+	// Test sequences of filters
+	io{":cdata blah\n\tbleh\n:javascript\n:cdata\n\tblah\n:css",
+		"<![CDATA[\n\tblah\n\tbleh\n]]>\n<script type=\"text/javascript\">\n\t//<![CDATA[\n\t//]]>\n</script>\n<![CDATA[\n\tblah\n]]>\n<style type=\"text/css\">\n\t/*<![CDATA[*/\n\t/*]]>*/\n</style>", ""},
 }
 
 func TestFilterOutput(t *testing.T) {

@@ -16,6 +16,30 @@ type hamlParser struct {
 
 func newHamlParser() *hamlParser { return &hamlParser{-1, defaultFilterMap} }
 
+func (self *hamlParser) wrapFilter(filterNode *node, filterbuff []string, line int) os.Error {
+	// Compute input and indentation, then reset the filter level.
+	input := strings.Join(filterbuff, "")
+	if input == "" || input[len(input)-1] != '\n' {
+		input += "\n"
+	}
+	filterbuff = nil
+	var indent string
+	if self.filter > 0 {
+		indent = strings.Repeat("\t", self.filter)
+	}
+	self.filter = -1
+	// Search for the named filter.
+	name := filterNode._name[1:]
+	fn, found := self.FilterMap[name]
+	if !found {
+		return fmt.Errorf("Line %d: Filter not found %s", line, name)
+	}
+	// Compute filtered output and reset the name of filterNode.
+	filterNode._remainder.value = fn.Filter(input[:len(input)-1], indent)
+	filterNode._name = ""
+	return nil
+}
+
 func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 	output = newTree()
 	var currentNode inode
@@ -32,6 +56,13 @@ func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 			nod, err, lastSpaceChar, filtering = parseLeadingSpace(input[j:i], lastSpaceChar, line, self.filter)
 			if err != nil {
 				return
+			}
+			if self.filter >= 0 && len(nod.(*node)._name) > 0 { // filter terminates with new filter.
+				err = self.wrapFilter(filterNode.(*node), filterbuff, line) // resets self.filter to -1
+				filterbuff = nil
+				if err != nil {
+					return
+				}
 			}
 			switch {
 			case filtering && self.filter < 0:
@@ -51,27 +82,11 @@ func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 				j = i + 1
 				continue // Do not place the node
 			case self.filter >= 0: // We were filtering, but now out of filter scope.
-				// Compute input and indentation, then reset the filter level.
-				input := strings.Join(filterbuff, "")
-				if input == "" {
-					input = "\n"
-				}
+				err = self.wrapFilter(filterNode.(*node), filterbuff, line)
 				filterbuff = nil
-				var indent string
-				if self.filter > 0 {
-					indent = strings.Repeat("\t", self.filter)
-				}
-				self.filter = -1
-				// Search for the named filter.
-				name := filterNode.(*node)._name[1:]
-				fn, found := self.FilterMap[name]
-				if !found {
-					err = fmt.Errorf("Line %d: Filter not found %s", line, name)
+				if err != nil {
 					return
 				}
-				// Compute filtered output and reset the name of filterNode.
-				filterNode.(*node)._remainder.value = fn.Filter(input[:len(input)-1], indent)
-				filterNode.(*node)._name = ""
 			}
 			if nod != nil && !nod.nil() {
 				putNodeInPlace(currentNode, nod, output)
@@ -84,6 +99,13 @@ func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 	if err != nil {
 		return
 	}
+	if self.filter >= 0 && nod != nil && len(nod.(*node)._name) > 0 { // filter terminates with new filter.
+		err = self.wrapFilter(filterNode.(*node), filterbuff, line) // resets self.filter to -1
+		filterbuff = nil
+		if err != nil {
+			return
+		}
+	}
 	switch {
 	case filtering && self.filter >= 0: // Parse was filtering before the last line, and the last line was a filter.
 		if nod != nil {
@@ -95,31 +117,20 @@ func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 			// The last line contains a :filter.
 			filterNode = nod
 			// If an inline value was supplied, indent it and append to the filterbuff.
-			toFilter := fmt.Sprintf("%s%s",
-				strings.Repeat("\t", nod.indentLevel()+1),
-				strings.TrimLeftFunc(filterNode.(*node)._remainder.value, unicode.IsSpace))
-			filterbuff = append(filterbuff, toFilter)
+			if len(nod.(*node)._remainder.value) > 0 {
+				toFilter := fmt.Sprintf("%s%s",
+					strings.Repeat("\t", nod.indentLevel()+1),
+					strings.TrimLeftFunc(filterNode.(*node)._remainder.value, unicode.IsSpace))
+				filterbuff = append(filterbuff, toFilter)
+			}
 		}
 		fallthrough
 	case self.filter >= 0: // Filtering before the last line, last line is unfiltered.
-		input := strings.Join(filterbuff, "")
+		err = self.wrapFilter(filterNode.(*node), filterbuff, line) // resets self.filter to -1
 		filterbuff = nil
-		var indent string
-		if self.filter > 0 {
-			indent = strings.Repeat("\t", self.filter)
-		}
-		name := filterNode.(*node)._name[1:]
-		self.filter = -1
-		fn, found := self.FilterMap[name]
-		if !found {
-			err = fmt.Errorf("Line %d: Filter not found %s", line, name)
+		if err != nil {
 			return
 		}
-		if m := len(input) - 1; m >= 0 && input[m] == '\n' {
-			input = input[:m]
-		}
-		filterNode.(*node)._remainder.value = fn.Filter(input, indent)
-		filterNode.(*node)._name = ""
 	}
 	if nod != nil && !nod.nil() {
 		putNodeInPlace(currentNode, nod, output)

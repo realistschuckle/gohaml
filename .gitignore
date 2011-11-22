@@ -3,5 +3,7 @@
 _obj
 bin
 _testmain.go
+_test
+gb.cfg
 mylib
 exe/gohaml
