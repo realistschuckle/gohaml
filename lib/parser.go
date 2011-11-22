@@ -160,6 +160,7 @@ func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 			if err != nil {
 				return
 			}
+			// Filter the input if necessary, and possibly skip added nod to the tree.
 			nod, err = self.filterInput(nod, input[j:i+1], filtering, line)
 			if err != nil {
 				return
@@ -175,6 +176,7 @@ func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 	if err != nil {
 		return
 	}
+	// Filter the input if necessary.
 	nod, err = self.filterLast(nod, input[j:], filtering, line)
 	if err != nil {
 		return
