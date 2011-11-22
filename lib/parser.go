@@ -213,11 +213,13 @@ func parseLeadingSpace(input string, lastSpaceChar int, line int, filter int) (o
 	for i, r := range input {
 		switch {
 		case filter >= 0 && i > filter && !unicode.IsSpace(r):
+			// Now inside the filter's scope. 
 			output = parseRemainderCDATA(input[i:], nod, line)
 			inFilter = true
 		case r == ':':
+			// Found a filter instantiation.
 			output, err = parseFilter(input[i:], nod, line) // filter name has ':'
-			inFilter = true                                 //output.(*node)._remainder.value == ""
+			inFilter = true
 		case r == '-':
 			output = parseCode(input[i+1:], nod, line)
 		case r == '%':
@@ -254,12 +256,17 @@ func parseLeadingSpace(input string, lastSpaceChar int, line int, filter int) (o
 		}
 	}
 	if output == nil {
+		// Keep the inFilter value accurate on blank lines.
 		inFilter = filter >= 0
 	}
 	spaceChar = lastSpaceChar
 	return
 }
 
+// Parse a filter instantiation ":filter [content]".
+// The filter is stored as a regular *node. The _name is the name of the filter.
+// The _remainder.value is any content appearing on the same line as the filter.
+// Filtered content is always kept as plain text, and never parsed as haml.
 func parseFilter(input string, n *node, line int) (output inode, err os.Error) {
 	for i, r := range input {
 		if unicode.IsSpace(r) {
