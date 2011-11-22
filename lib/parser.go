@@ -17,26 +17,30 @@ type hamlParser struct {
 func newHamlParser() *hamlParser { return &hamlParser{-1, defaultFilterMap} }
 
 func (self *hamlParser) wrapFilter(filterNode *node, filterbuff []string, line int) os.Error {
-	// Compute input and indentation, then reset the filter level.
+	// Search for the named filter.
+	name := filterNode._name[1:]
+	fn, found := self.FilterMap[name]
+	filterNode._name = ""
+	if !found {
+		return fmt.Errorf("Line %d: Filter not found %s", line, name)
+	}
+
+	// Compute filter input
 	input := strings.Join(filterbuff, "")
+	filterbuff = nil
 	if input == "" || input[len(input)-1] != '\n' {
 		input += "\n"
 	}
-	filterbuff = nil
+
+	// Compute filter indentation amount and reset self.filter
 	var indent string
 	if self.filter > 0 {
 		indent = strings.Repeat("\t", self.filter)
 	}
 	self.filter = -1
-	// Search for the named filter.
-	name := filterNode._name[1:]
-	fn, found := self.FilterMap[name]
-	if !found {
-		return fmt.Errorf("Line %d: Filter not found %s", line, name)
-	}
-	// Compute filtered output and reset the name of filterNode.
+
+	// Compute filtered output.
 	filterNode._remainder.value = fn.Filter(input[:len(input)-1], indent)
-	filterNode._name = ""
 	return nil
 }
 
@@ -57,8 +61,8 @@ func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 			if err != nil {
 				return
 			}
-			if self.filter >= 0 && len(nod.(*node)._name) > 0 { // filter terminates with new filter.
-				err = self.wrapFilter(filterNode.(*node), filterbuff, line) // resets self.filter to -1
+			if self.filter >= 0 && len(nod.(*node)._name) > 0 { // A filter terminated with a new filter.
+				err = self.wrapFilter(filterNode.(*node), filterbuff, line)
 				filterbuff = nil
 				if err != nil {
 					return
@@ -99,8 +103,8 @@ func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 	if err != nil {
 		return
 	}
-	if self.filter >= 0 && nod != nil && len(nod.(*node)._name) > 0 { // filter terminates with new filter.
-		err = self.wrapFilter(filterNode.(*node), filterbuff, line) // resets self.filter to -1
+	if self.filter >= 0 && nod != nil && len(nod.(*node)._name) > 0 { // A filter terminated with new filter.
+		err = self.wrapFilter(filterNode.(*node), filterbuff, line)
 		filterbuff = nil
 		if err != nil {
 			return
@@ -113,6 +117,7 @@ func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 		}
 		fallthrough
 	case filtering:
+		// Check self.filter in case of fallthough.
 		if self.filter < 0 {
 			// The last line contains a :filter.
 			filterNode = nod
