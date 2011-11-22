@@ -10,47 +10,104 @@ import (
 )
 
 type hamlParser struct {
+	filter int // the indent level at which to filter.
+	FilterMap
 }
+
+func newHamlParser() *hamlParser { return &hamlParser{-1, defaultFilterMap} }
 
 func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 	output = newTree()
 	var currentNode inode
-	var node inode
+	var nod inode
+	var filterNode inode
+	var filtering bool
+	var filterbuff []string
 	lastSpaceChar := -1
 	line := 1
 	j := 0
 	for i, r := range input {
 		if r == '\n' {
 			line += 1
-			node, err, lastSpaceChar = parseLeadingSpace(input[j:i], lastSpaceChar, line)
+			nod, err, lastSpaceChar, filtering = parseLeadingSpace(input[j:i], lastSpaceChar, line, self.filter)
 			if err != nil {
 				return
 			}
-			if node != nil && !node.nil() {
-				putNodeInPlace(currentNode, node, output)
-				currentNode = node
+			switch {
+			case filtering && self.filter < 0:
+				filterNode = nod
+				if filterNode.(*node)._remainder.value != "" {
+					filterbuff = append(filterbuff, strings.Repeat("\t", self.filter+1)+strings.TrimLeftFunc(filterNode.(*node)._remainder.value, unicode.IsSpace))
+				}
+				self.filter = nod.indentLevel()
+			case filtering:
+				filterbuff = append(filterbuff, strings.Repeat("\t", self.filter+1)+input[j+nod.indentLevel():i+1])
+				j = i + 1
+				continue
+			case self.filter >= 0:
+				input := strings.Join(filterbuff, "")
+				indent := strings.Repeat("\t", self.filter)
+				self.filter = -1
+				name := filterNode.(*node)._name[1:]
+				fn, found := self.FilterMap[name]
+				if !found {
+					err = fmt.Errorf("Line %d: Filter not found %s", line, name)
+					return
+				}
+				filterNode.(*node)._remainder.value = fn.Filter(input[:len(input)-1], indent)
+				filterNode.(*node)._name = ""
+			}
+			if nod != nil && !nod.nil() {
+				putNodeInPlace(currentNode, nod, output)
+				currentNode = nod
 			}
 			j = i + 1
 		}
 	}
-	node, err, lastSpaceChar = parseLeadingSpace(input[j:], lastSpaceChar, line)
+	nod, err, lastSpaceChar, filtering = parseLeadingSpace(input[j:], lastSpaceChar, line, self.filter)
 	if err != nil {
 		return
 	}
-	if node != nil && !node.nil() {
-		putNodeInPlace(currentNode, node, output)
+	switch {
+	case filtering && self.filter >= 0:
+		filterbuff = append(filterbuff, strings.Repeat("\t", self.filter)+input[j+nod.indentLevel():])
+		filterNode.(*node)._remainder.value = strings.Join(filterbuff, "")
+		fallthrough
+	case filtering:
+		if self.filter < 0 {
+			filterNode = nod
+		}
+		fallthrough
+	case self.filter >= 0:
+		input := strings.Join(filterbuff, "")
+		indent := strings.Repeat("\t", self.filter)
+		name := filterNode.(*node)._name[1:]
+		self.filter = -1
+		fn, found := self.FilterMap[name]
+		if !found {
+			err = fmt.Errorf("Line %d: Filter not found %s", line, name)
+			return
+		}
+		filterNode.(*node)._remainder.value = fn.Filter(input[:len(input)-1], indent)
+		filterNode.(*node)._name = ""
+	}
+	if nod != nil && !nod.nil() {
+		putNodeInPlace(currentNode, nod, output)
 	}
 	return
 }
 
 func putNodeInPlace(cn inode, node inode, t *tree) {
-	if node == nil || node.nil() {return}
+	if node == nil || node.nil() {
+		return
+	}
 	if cn == nil || cn.nil() {
 		t.nodes.Push(node)
 	} else if node.indentLevel() < cn.indentLevel() {
-		for cn = cn.parent(); cn != nil && node.indentLevel() < cn.indentLevel(); cn = cn.parent() {}
+		for cn = cn.parent(); cn != nil && node.indentLevel() < cn.indentLevel(); cn = cn.parent() {
+		}
 		putNodeInPlace(cn, node, t)
-	} else if node.indentLevel() == cn.indentLevel() && cn.parent() != nil{
+	} else if node.indentLevel() == cn.indentLevel() && cn.parent() != nil {
 		cn.parent().addChild(node)
 	} else if node.indentLevel() == cn.indentLevel() {
 		t.nodes.Push(node)
@@ -59,26 +116,32 @@ func putNodeInPlace(cn inode, node inode, t *tree) {
 	}
 }
 
-var parser hamlParser
+var parser = newHamlParser()
 
-func parseLeadingSpace(input string, lastSpaceChar int, line int) (output inode, err os.Error, spaceChar int) {
-	node := new(node)
+func parseLeadingSpace(input string, lastSpaceChar int, line int, filter int) (output inode, err os.Error, spaceChar int, inFilter bool) {
+	nod := new(node)
 	for i, r := range input {
 		switch {
+		case filter >= 0 && i > filter && !unicode.IsSpace(r):
+			output = parseRemainderCDATA(input[i:], nod, line)
+			inFilter = true
+		case r == ':':
+			output, err = parseFilter(input[i:], nod, line) // filter name has ':'
+			inFilter = true                                 //output.(*node)._remainder.value == ""
 		case r == '-':
-			output = parseCode(input[i + 1:], node, line)
+			output = parseCode(input[i+1:], nod, line)
 		case r == '%':
-			output, err = parseTag(input[i + 1:], node, true, line)
+			output, err = parseTag(input[i+1:], nod, true, line)
 		case r == '#':
-			output, err = parseId(input[i + 1:], node, line)
+			output, err = parseId(input[i+1:], nod, line)
 		case r == '.':
-			output, err = parseClass(input[i + 1:], node, line)
+			output, err = parseClass(input[i+1:], nod, line)
 		case r == '=':
-			output = parseKey(tl(input[i + 1:]), node, line)
+			output = parseKey(tl(input[i+1:]), nod, line)
 		case r == '\\':
-			output = parseRemainder(input[i + 1:], node, line)
+			output = parseRemainder(input[i+1:], nod, line)
 		case !unicode.IsSpace(r):
-			output = parseRemainder(input[i:], node, line)
+			output = parseRemainder(input[i:], nod, line)
 		case unicode.IsSpace(r):
 			if lastSpaceChar > 0 && r != lastSpaceChar {
 				from, to := "space", "tab"
@@ -104,10 +167,28 @@ func parseLeadingSpace(input string, lastSpaceChar int, line int) (output inode,
 	return
 }
 
+func parseFilter(input string, n *node, line int) (output inode, err os.Error) {
+	for i, r := range input {
+		if unicode.IsSpace(r) {
+			n._name = input[:i]
+			if len(n._name) == 1 {
+				err = os.NewError(fmt.Sprintf("Syntax error on line %d: Invalid tag: %s.\n", line, input))
+				return
+			}
+			n.setRemainder(input[i:]+"\n", false)
+			output = n
+			return
+		}
+	}
+	n._name = input
+	output = n
+	return
+}
+
 func parseKey(input string, n *node, line int) (output inode) {
-	if input[len(input) - 1] == '<' {
+	if input[len(input)-1] == '<' {
 		n = parseNoNewline("", n, line)
-		n.setRemainder(input[0:len(input) - 1], true)
+		n.setRemainder(input[0:len(input)-1], true)
 	} else {
 		n.setRemainder(input, true)
 		output = n
@@ -124,19 +205,19 @@ func parseTag(input string, node *node, newTag bool, line int) (output inode, er
 	for i, r := range input {
 		switch {
 		case r == '.':
-			output, err = parseClass(input[i + 1:], node, line)
+			output, err = parseClass(input[i+1:], node, line)
 		case r == '#':
-			output, err = parseId(input[i + 1:], node, line)
+			output, err = parseId(input[i+1:], node, line)
 		case r == '{':
-			output, err = parseAttributes(tl(input[i + 1:]), node, line)
+			output, err = parseAttributes(tl(input[i+1:]), node, line)
 		case r == '<':
-			output = parseNoNewline(input[i + 1:], node, line)
+			output = parseNoNewline(input[i+1:], node, line)
 		case r == '=':
-			output = parseKey(tl(input[i + 1:]), node, line)
+			output = parseKey(tl(input[i+1:]), node, line)
 		case r == '/':
 			output = parseAutoclose("", node, line)
 		case unicode.IsSpace(r):
-			output = parseRemainder(input[i + 1:], node, line)
+			output = parseRemainder(input[i+1:], node, line)
 		}
 		if nil != err {
 			break
@@ -148,7 +229,7 @@ func parseTag(input string, node *node, newTag bool, line int) (output inode, er
 	}
 	if nil == output {
 		node._name = input
-		output = node;
+		output = node
 	}
 	return
 }
@@ -173,7 +254,7 @@ func parseAttributes(input string, node *node, line int) (output inode, err os.E
 			attrStart = i
 		} else if r == ',' {
 			node.addAttr(t(input[0:keyEnd]), t(input[attrStart:i]))
-			output, err = parseAttributes(tl(input[i + 1:]), node, line)
+			output, err = parseAttributes(tl(input[i+1:]), node, line)
 			break
 		} else if r == '}' {
 			if attrStart == 0 {
@@ -181,14 +262,14 @@ func parseAttributes(input string, node *node, line int) (output inode, err os.E
 				err = os.NewError(msg)
 				return
 			}
-			if(inKey) {
+			if inKey {
 				msg := fmt.Sprintf("Syntax error on line %d: Attribute requires a rocket and value.\n", line)
 				err = os.NewError(msg)
 				return
 			}
 			attrValue := t(input[attrStart:i])
 			node.addAttr(input[0:keyEnd], attrValue)
-			output, _ = parseTag(input[i + 1:], node, false, line)
+			output, _ = parseTag(input[i+1:], node, false, line)
 			break
 		}
 	}
@@ -214,19 +295,21 @@ func parseId(input string, node *node, line int) (output inode, err os.Error) {
 			if i == 0 {
 				return
 			}
-			node.addAttrNoLookup("id", input[0:i])			
+			node.addAttrNoLookup("id", input[0:i])
 		}
-		switch{
+		switch {
 		case r == '.':
-			output, _ = parseClass(input[i + 1:], node, line)
+			output, _ = parseClass(input[i+1:], node, line)
 		case r == '=':
-			output = parseKey(tl(input[i + 1:]), node, line)
+			output = parseKey(tl(input[i+1:]), node, line)
 		case r == '{':
-			output, err = parseAttributes(tl(input[i + 1:]), node, line)
+			output, err = parseAttributes(tl(input[i+1:]), node, line)
 		case unicode.IsSpace(r):
-			output = parseRemainder(input[i + 1:], node, line)
+			output = parseRemainder(input[i+1:], node, line)
 		}
-		if nil != output {break}
+		if nil != output {
+			break
+		}
 	}
 	if nil == output {
 		output = node
@@ -254,15 +337,17 @@ func parseClass(input string, node *node, line int) (output inode, err os.Error)
 		}
 		switch {
 		case r == '{':
-			output, err = parseAttributes(tl(input[i + 1:]), node, line)
+			output, err = parseAttributes(tl(input[i+1:]), node, line)
 		case r == '.':
-			output, err = parseClass(input[i + 1:], node, line)
+			output, err = parseClass(input[i+1:], node, line)
 		case r == '=':
-			output = parseKey(tl(input[i + 1:]), node, line)
+			output = parseKey(tl(input[i+1:]), node, line)
 		case unicode.IsSpace(r):
-			output = parseRemainder(input[i + 1:], node, line)
+			output = parseRemainder(input[i+1:], node, line)
 		}
-		if nil != output {break}
+		if nil != output {
+			break
+		}
 	}
 	if nil == output {
 		node.addAttrNoLookup("class", input)
@@ -271,10 +356,18 @@ func parseClass(input string, node *node, line int) (output inode, err os.Error)
 	return
 }
 
+// Just chunk up the rest of the line. -bmatsuo
+func parseRemainderCDATA(input string, node *node, line int) (output inode) {
+	node._remainder.value = input
+	node._remainder.needsResolution = false
+	output = node
+	return
+}
+
 func parseRemainder(input string, node *node, line int) (output inode) {
-	if input[len(input) - 1] == '<' {
+	if input[len(input)-1] == '<' {
 		node = parseNoNewline("", node, line)
-		node._remainder.value = input[0:len(input) - 1]
+		node._remainder.value = input[0 : len(input)-1]
 		node._remainder.needsResolution = false
 	} else {
 		node._remainder.value = input
@@ -296,7 +389,7 @@ func t(input string) (output string) {
 }
 
 func tl(input string) (output string) {
- 	output = strings.TrimLeft(input, " 	")
+	output = strings.TrimLeft(input, " 	")
 	return
 }
 
@@ -330,7 +423,7 @@ func scan(v *yystype) (output int) {
 	case scanner.String, scanner.RawString:
 		output = atom
 		text := s.TokenText()
-		v.i = text[1:len(text) - 1]
+		v.i = text[1 : len(text)-1]
 	case scanner.Int:
 		output = atom
 		v.i, _ = strconv.Atoi(s.TokenText())
@@ -344,4 +437,3 @@ func scan(v *yystype) (output int) {
 	}
 	return
 }
-

@@ -1,2 +1,7 @@
-*.8
+*.[568oa]
+[568].out
+_obj
+bin
+_testmain.go
+mylib
 exe/gohaml
