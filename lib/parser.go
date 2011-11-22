@@ -10,14 +10,16 @@ import (
 )
 
 type hamlParser struct {
-	filter     int // the indent level at which to filter.
-	filterNode *node
-	filterbuff []string
-	FilterMap
+	filter     int      // the indent level at which to filter.
+	filterNode *node    // the node filtered content belongs to.
+	filterbuff []string // a buffer for lines of filtered content.
+	FilterMap           // a dictionary of filters.
 }
 
 func newHamlParser() *hamlParser { return &hamlParser{-1, nil, nil, defaultFilterMap} }
 
+// Append a line of filter content to self.filterbuff with a specified
+// indentation depth (number of tabs).
 func (self *hamlParser) appendFiltered(indent int, content string) {
 	// If an inline value was supplied, indent it and append to the filterbuff.
 	self.filterbuff = append(self.filterbuff,
@@ -25,6 +27,8 @@ func (self *hamlParser) appendFiltered(indent int, content string) {
 			strings.Repeat("\t", indent),
 			strings.TrimLeftFunc(content, unicode.IsSpace)))
 }
+// Pass the contents of filterNode (not the struct field) to the filter named
+// in the node. Any error due to a missing/badly-named filter will be returned.
 func (self *hamlParser) wrapFilter(filterNode *node, line int) os.Error {
 	// Search for the named filter.
 	name := filterNode._name[1:]
@@ -52,6 +56,9 @@ func (self *hamlParser) wrapFilter(filterNode *node, line int) os.Error {
 	filterNode._remainder.value = fn.Filter(input[:len(input)-1], indent)
 	return nil
 }
+// Check if filtering was/is being performed. Compute filtered output for
+// completed filted blocks. Append new filtered content to the filter buffer.
+// Keep the content of the filtered blocks out of the tree.
 func (self *hamlParser) filterInput(n inode, input string, filtering bool, line int) (in inode, err os.Error) {
 	in = n
 	var nod *node
@@ -93,6 +100,9 @@ func (self *hamlParser) filterInput(n inode, input string, filtering bool, line 
 	}
 	return
 }
+// Preform the same function as filterInput, but at the end of the input string.
+// Behaves differently from filterInput because the filtered output is always
+// computed at the end.
 func (self *hamlParser) filterLast(n inode, input string, filtering bool, line int) (in inode, err os.Error) {
 	in = n
 	var nod *node
