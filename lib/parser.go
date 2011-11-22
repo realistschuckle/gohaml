@@ -35,25 +35,41 @@ func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 			}
 			switch {
 			case filtering && self.filter < 0:
+				// The parser just hit a :filter
 				filterNode = nod
 				if filterNode.(*node)._remainder.value != "" {
-					filterbuff = append(filterbuff, strings.Repeat("\t", self.filter+1)+strings.TrimLeftFunc(filterNode.(*node)._remainder.value, unicode.IsSpace))
+					// If an inline value was supplied, indent it and append to the filterbuff.
+					toFilter := fmt.Sprintf("%s%s",
+						strings.Repeat("\t", nod.indentLevel()+1),
+						strings.TrimLeftFunc(filterNode.(*node)._remainder.value, unicode.IsSpace))
+					filterbuff = append(filterbuff, toFilter)
 				}
-				self.filter = nod.indentLevel()
+				self.filter = nod.indentLevel() // Set the filter level.
 			case filtering:
-				filterbuff = append(filterbuff, strings.Repeat("\t", self.filter+1)+input[j+nod.indentLevel():i+1])
+				// Indent the last line and append it to the filter (with a newline byte)
+				filterbuff = append(filterbuff, strings.Repeat("\t", nod.indentLevel())+input[j+nod.indentLevel():i+1])
 				j = i + 1
-				continue
-			case self.filter >= 0:
+				continue // Do not place the node
+			case self.filter >= 0: // We were filtering, but now out of filter scope.
+				// Compute input and indentation, then reset the filter level.
 				input := strings.Join(filterbuff, "")
-				indent := strings.Repeat("\t", self.filter)
+				if input == "" {
+					input = "\n"
+				}
+				filterbuff = nil
+				var indent string
+				if self.filter > 0 {
+					indent = strings.Repeat("\t", self.filter)
+				}
 				self.filter = -1
+				// Search for the named filter.
 				name := filterNode.(*node)._name[1:]
 				fn, found := self.FilterMap[name]
 				if !found {
 					err = fmt.Errorf("Line %d: Filter not found %s", line, name)
 					return
 				}
+				// Compute filtered output and reset the name of filterNode.
 				filterNode.(*node)._remainder.value = fn.Filter(input[:len(input)-1], indent)
 				filterNode.(*node)._name = ""
 			}
@@ -69,18 +85,29 @@ func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 		return
 	}
 	switch {
-	case filtering && self.filter >= 0:
-		filterbuff = append(filterbuff, strings.Repeat("\t", self.filter)+input[j+nod.indentLevel():])
-		filterNode.(*node)._remainder.value = strings.Join(filterbuff, "")
+	case filtering && self.filter >= 0: // Parse was filtering before the last line, and the last line was a filter.
+		if nod != nil {
+			filterbuff = append(filterbuff, strings.Repeat("\t", nod.indentLevel())+input[j+nod.indentLevel():])
+		}
 		fallthrough
 	case filtering:
 		if self.filter < 0 {
+			// The last line contains a :filter.
 			filterNode = nod
+			// If an inline value was supplied, indent it and append to the filterbuff.
+			toFilter := fmt.Sprintf("%s%s",
+				strings.Repeat("\t", nod.indentLevel()+1),
+				strings.TrimLeftFunc(filterNode.(*node)._remainder.value, unicode.IsSpace))
+			filterbuff = append(filterbuff, toFilter)
 		}
 		fallthrough
-	case self.filter >= 0:
+	case self.filter >= 0: // Filtering before the last line, last line is unfiltered.
 		input := strings.Join(filterbuff, "")
-		indent := strings.Repeat("\t", self.filter)
+		filterbuff = nil
+		var indent string
+		if self.filter > 0 {
+			indent = strings.Repeat("\t", self.filter)
+		}
 		name := filterNode.(*node)._name[1:]
 		self.filter = -1
 		fn, found := self.FilterMap[name]
@@ -88,7 +115,10 @@ func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 			err = fmt.Errorf("Line %d: Filter not found %s", line, name)
 			return
 		}
-		filterNode.(*node)._remainder.value = fn.Filter(input[:len(input)-1], indent)
+		if m := len(input) - 1; m >= 0 && input[m] == '\n' {
+			input = input[:m]
+		}
+		filterNode.(*node)._remainder.value = fn.Filter(input, indent)
 		filterNode.(*node)._name = ""
 	}
 	if nod != nil && !nod.nil() {
