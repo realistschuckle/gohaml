@@ -16,6 +16,14 @@ type hamlParser struct {
 
 func newHamlParser() *hamlParser { return &hamlParser{-1, defaultFilterMap} }
 
+func (self *hamlParser) appendFiltered(indent int, content string, filterbuff *[]string) {
+	// If an inline value was supplied, indent it and append to the filterbuff.
+	*filterbuff = append(*filterbuff,
+		fmt.Sprintf("%s%s",
+			strings.Repeat("\t", indent),
+			strings.TrimLeftFunc(content, unicode.IsSpace)))
+}
+
 func (self *hamlParser) wrapFilter(filterNode *node, filterbuff *[]string, line int) os.Error {
 	// Search for the named filter.
 	name := filterNode._name[1:]
@@ -71,16 +79,12 @@ func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 				// The parser just hit a :filter
 				filterNode = nod
 				if filterNode.(*node)._remainder.value != "" {
-					// If an inline value was supplied, indent it and append to the filterbuff.
-					toFilter := fmt.Sprintf("%s%s",
-						strings.Repeat("\t", nod.indentLevel()+1),
-						strings.TrimLeftFunc(filterNode.(*node)._remainder.value, unicode.IsSpace))
-					filterbuff = append(filterbuff, toFilter)
+					self.appendFiltered(nod.indentLevel()+1, filterNode.(*node)._remainder.value, &filterbuff)
 				}
 				self.filter = nod.indentLevel() // Set the filter level.
 			case filtering:
 				// Indent the last line and append it to the filter (with a newline byte)
-				filterbuff = append(filterbuff, strings.Repeat("\t", nod.indentLevel())+input[j+nod.indentLevel():i+1])
+				self.appendFiltered(nod.indentLevel(), input[j:i+1], &filterbuff)
 				j = i + 1
 				continue // Do not place the node
 			case self.filter >= 0: // We were filtering, but now out of filter scope.
@@ -108,7 +112,7 @@ func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 	switch {
 	case filtering && self.filter >= 0: // Parse was filtering before the last line, and the last line was a filter.
 		if nod != nil {
-			filterbuff = append(filterbuff, strings.Repeat("\t", nod.indentLevel())+input[j+nod.indentLevel():])
+			self.appendFiltered(nod.indentLevel(), input[j:], &filterbuff)
 		}
 		fallthrough
 	case filtering:
@@ -118,10 +122,7 @@ func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 			filterNode = nod
 			// If an inline value was supplied, indent it and append to the filterbuff.
 			if len(nod.(*node)._remainder.value) > 0 {
-				toFilter := fmt.Sprintf("%s%s",
-					strings.Repeat("\t", nod.indentLevel()+1),
-					strings.TrimLeftFunc(filterNode.(*node)._remainder.value, unicode.IsSpace))
-				filterbuff = append(filterbuff, toFilter)
+				self.appendFiltered(nod.indentLevel()+1, filterNode.(*node)._remainder.value, &filterbuff)
 			}
 		}
 		fallthrough
