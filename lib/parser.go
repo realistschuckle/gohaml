@@ -300,48 +300,60 @@ func tl(input string) (output string) {
 	return
 }
 
-const eof int = yyUSER + 1
-
 func parseCode(input string, node inode, line int) (output inode) {
-	s.Init(strings.NewReader(input))
-	success, result := yyparse(eof, scan)
-	if !success {
+	l.init(strings.NewReader(input))
+
+	success := yyParse(l)
+	if success != 0 {
 		fmt.Fprintf(os.Stderr, "Did not recognize %s", input)
 	}
-	output = result
-	return
+	output = Output
+	return 
 }
 
-var s scanner.Scanner
+// var s scanner.Scanner
 
-func scan(v *yystype) (output int) {
-	i := s.Scan()
+type Lexer struct {
+	s *scanner.Scanner
+}
+
+var l = &Lexer{new(scanner.Scanner)}
+
+func (l *Lexer) init(reader *strings.Reader) {
+	l.s.Init(reader)
+}
+
+func (l *Lexer) Lex(v *yySymType) (output int) {
+	i := l.s.Scan()
 	switch i {
 	case scanner.Ident:
-		switch s.TokenText() {
+		switch l.s.TokenText() {
 		case "for":
-			output = tfor
+			output = FOR
 		case "range":
-			output = trange
+			output = RANGE
 		default:
-			output = ident
+			output = IDENT
 		}
-		v.s = s.TokenText()
+		v.s = l.s.TokenText()
 	case scanner.String, scanner.RawString:
-		output = atom
-		text := s.TokenText()
+		output = ATOM
+		text := l.s.TokenText()
 		v.i = text[1:len(text) - 1]
 	case scanner.Int:
-		output = atom
-		v.i, _ = strconv.Atoi(s.TokenText())
+		output = ATOM
+		v.i, _ = strconv.Atoi(l.s.TokenText())
 	case scanner.Float:
-		output = atom
-		v.i, _ = strconv.Atof64(s.TokenText())
+		output = ATOM
+		v.i, _ = strconv.Atof64(l.s.TokenText())
 	case scanner.EOF:
-		output = eof
+		output = 0
 	default:
 		output = i
 	}
 	return
 }
 
+func (l *Lexer) Error(e string) {
+	fmt.Fprintf(os.Stderr, "ERROR: %s\n", e)
+}

@@ -13,7 +13,10 @@ GOFILES=\
 	tree.go\
 	lang.go\
 
+CLEANFILES += lang.go\
+							y.output\
+
 include $(GOROOT)/src/Make.pkg
 
 lang.go: lang.y
-	$(QUOTED_GOBIN)/goll1e lang.y lang.go
+	$(QUOTED_GOBIN)/goyacc -o lang.go lang.y

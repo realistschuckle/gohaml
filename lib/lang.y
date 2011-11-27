@@ -1,47 +1,66 @@
-%package gohaml
+%{
+package gohaml
 
-%import fmt
+import "fmt"
+
+var Output inode
+%}
 
 %union {
-	n inode
-	s string
-	i interface{}
-	c icodenode
+  n inode
+  s string
+  i interface{}
+  c icodenode
 }
 
-%type<n> Statement
-%type<c> RightHandSide
-%type<s> ident ComplexIdent
-%type<i> atom
+%type<n> statement
+%type<c> rhs
+%type<s> complex_ident
+%token<s> IDENT
+%token<i> ATOM FOR RANGE
 
 %%
 
-Statement : tfor ident ',' ident ':' '=' trange ident	{
-															rn := new(rangenode)
-															rn._lhs1 = $2
-															rn._lhs2 = $4
-															rn._rhs = res{$8, true}
-															$$ = rn
-														}
-		  | ident ':' '=' RightHandSide					{
-															$4.setLHS($1)
-															$$ = $4
-														}
+statement :  FOR IDENT ',' IDENT ':' '=' RANGE IDENT
+            {
+              rn := new(rangenode)
+              rn._lhs1 = $2
+              rn._lhs2 = $4
+              rn._rhs = res{$8, true}
+              $$ = rn
+              Output = $$
+            }
+          | IDENT ':' '=' rhs
+            {
+              $4.setLHS($1)
+              $$ = $4
+              Output = $$
+            }
           ;
 
-RightHandSide : atom									{
-															dan := new(declassnode)
-															dan._rhs = $1
-															$$ = dan
-														}
-			  | ident ComplexIdent						{
-															dan := new(vdeclassnode)
-															dan._rhs.value = $1 + $2
-															dan._rhs.needsResolution = true
-															$$ = dan			
-														}
-			  ;
+rhs : ATOM
+      {
+        dan := new(declassnode)
+        dan._rhs = $1
+        $$ = dan
+      }
+    | IDENT complex_ident
+      {
+        dan := new(vdeclassnode)
+        dan._rhs.value = $1 + $2
+        dan._rhs.needsResolution = true
+        $$ = dan      
+      }
+    ;
 
-ComplexIdent : '.' ident ComplexIdent					{ $$ = fmt.Sprintf(".%s%s", $2, $3)}
-			 |											{ $$ = "" }
-			 ;
+complex_ident : '.' IDENT complex_ident
+                {
+                  $$ = fmt.Sprintf(".%s%s", $2, $3)
+                }
+              |
+                {
+                  $$ = ""
+                }
+              ;
+
+%%
