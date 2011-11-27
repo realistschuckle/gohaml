@@ -40,7 +40,6 @@ pre. goinstall "github.com/realistschuckle/gohaml/lib"
 
 h1. How can I build this?
 
-Install "goll1e":https://github.com/realistschuckle/goll1e
 Get the source.
 Run @gomake@ at <projectroot>/lib.
 
