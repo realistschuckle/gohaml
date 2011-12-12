@@ -14,7 +14,7 @@ import (
 type Filter interface {
 	// Content is indented and ends with "\n".
 	// Output should be indented and end with "\n".
-	Filter(content, indent string) string
+	Filter(content, indent, oneIndent string) string
 }
 
 type FilterMap map[string]Filter
@@ -33,11 +33,11 @@ var defaultFilterMap = FilterMap{
 	"javascript": FilterFunc(javascript),
 }
 
-type FilterFunc func(content, indent string) string
+type FilterFunc func(content, indent, oneIndent string) string
 
-func (fn FilterFunc) Filter(content, indent string) string { return fn(content, indent) }
+func (fn FilterFunc) Filter(content, indent, oneIndent string) string { return fn(content, indent, oneIndent) }
 
-func cdataHelper(pre, post, content, indent string) string {
+func cdataHelper(pre, post, content, indent, oneIndent string) string {
 	var tail string
 	if len(content) > 0 {
 		tail = "\n"
@@ -45,21 +45,21 @@ func cdataHelper(pre, post, content, indent string) string {
 	return fmt.Sprintf("%s<![CDATA[%s\n%s%s%s%s]]>%s", pre, post, content, tail, indent, pre, post)
 }
 
-func deepenIndent(str string) string {
+func deepenIndent(str, indentation string) string {
 	if len(str) == 0 {
 		return ""
 	}
-	return "\t" + strings.Replace(str, "\n\t", "\n\t\t", -1)
+	return indentation + strings.Replace(str, fmt.Sprintf("\n%s", indentation), fmt.Sprintf("\n%s",strings.Repeat(indentation,2)), -1)
 }
 
-func cdata(content, indent string) string { return cdataHelper("", "", content, indent) }
-func css(content, indent string) string {
+func cdata(content, indent, oneIndent string) string { return cdataHelper("", "", content, indent, oneIndent) }
+func css(content, indent, oneIndent string) string {
 	nextindent := indent + "\t"
 	return fmt.Sprintf("<style type=\"text/css\">\n%s%s\n%s</style>",
-		nextindent, cdataHelper("/*", "*/", deepenIndent(content), nextindent), indent)
+		nextindent, cdataHelper("/*", "*/", deepenIndent(content, oneIndent), nextindent, oneIndent), indent)
 }
-func javascript(content, indent string) string {
+func javascript(content, indent, oneIndent string) string {
 	nextindent := indent + "\t"
 	return fmt.Sprintf("<script type=\"text/javascript\">\n%s%s\n%s</script>",
-		nextindent, cdataHelper("//", "", deepenIndent(content), nextindent), indent)
+		nextindent, cdataHelper("//", "", deepenIndent(content, oneIndent), nextindent, oneIndent), indent)
 }

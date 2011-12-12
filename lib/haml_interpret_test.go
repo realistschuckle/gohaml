@@ -24,7 +24,7 @@ func TestForSliceRangeConstruct(t *testing.T) {
 				"	<span>4</span><span>1</span>\n" +
 				"</p>"
 	input := "%p\n  - for i, v := range looper\n    %span= i<\n    %span= v"
-	engine, _ := NewEngine(input)
+	engine, _ := NewEngine(input, "\t")
 	output := engine.Render(scope)
 	
 	if output != expected {
@@ -44,7 +44,7 @@ func TestForArrayRangeConstruct(t *testing.T) {
 				"	<span>4</span><span>1</span>\n" +
 				"</p>"
 	input := "%p\n  - for i, v := range looper\n    %span= i<\n    %span= v"
-	engine, _ := NewEngine(input)
+	engine, _ := NewEngine(input, "\t")
 	output := engine.Render(scope)
 	
 	if output != expected {
@@ -64,7 +64,7 @@ func TestForMapRangeConstruct(t *testing.T) {
 	scope["looper"] = intmap
 
 	input := "%p\n  - for i, v := range looper\n    %span= i<\n    %span= v"
-	engine, _ := NewEngine(input)
+	engine, _ := NewEngine(input, "\t")
 	output := engine.Render(scope)
 
 	for k, v := range intmap {
@@ -94,7 +94,7 @@ func TestAssignments(t *testing.T) {
 		scope["akey"] = &subkey{"subkeyvalue"}
 
 		for _, input := range generateAssignments(assignment) {
-			engine, _ := NewEngine(input)
+			engine, _ := NewEngine(input, "\t")
 			output := engine.Render(scope)
 
 			if _, ok := scope[assignment.name]; !ok {

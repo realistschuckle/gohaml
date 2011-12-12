@@ -10,13 +10,16 @@ import (
 )
 
 type hamlParser struct {
-	filter     int      // the indent level at which to filter.
-	filterNode *node    // the node filtered content belongs to.
-	filterbuff []string // a buffer for lines of filtered content.
-	FilterMap           // a dictionary of filters.
+	indentation string   // one indentation level
+	filter      int      // the indent level at which to filter.
+	filterNode  *node    // the node filtered content belongs to.
+	filterbuff  []string // a buffer for lines of filtered content.
+	FilterMap            // a dictionary of filters.
 }
 
-func newHamlParser() *hamlParser { return &hamlParser{-1, nil, nil, defaultFilterMap} }
+func newHamlParser(indentation string) *hamlParser {
+	return &hamlParser{indentation, -1, nil, nil, defaultFilterMap}
+}
 
 // Append a line of filter content to self.filterbuff with a specified
 // indentation depth (number of tabs).
@@ -24,7 +27,7 @@ func (self *hamlParser) appendFiltered(indent int, content string) {
 	// If an inline value was supplied, indent it and append to the filterbuff.
 	self.filterbuff = append(self.filterbuff,
 		fmt.Sprintf("%s%s",
-			strings.Repeat("\t", indent),
+			strings.Repeat(self.indentation, indent),
 			strings.TrimLeftFunc(content, unicode.IsSpace)))
 }
 // Pass the contents of filterNode (not the struct field) to the filter named
@@ -48,12 +51,12 @@ func (self *hamlParser) wrapFilter(filterNode *node, line int) os.Error {
 	// Compute filter indentation amount and reset self.filter
 	var indent string
 	if self.filter > 0 {
-		indent = strings.Repeat("\t", self.filter)
+		indent = strings.Repeat(self.indentation, self.filter)
 	}
 	self.filter = -1
 
 	// Compute filtered output.
-	filterNode._remainder.value = fn.Filter(input[:len(input)-1], indent)
+	filterNode._remainder.value = fn.Filter(input[:len(input)-1], indent, self.indentation)
 	return nil
 }
 // Check if filtering was/is being performed. Compute filtered output for
@@ -206,7 +209,7 @@ func putNodeInPlace(cn inode, node inode, t *tree) {
 	}
 }
 
-var parser = newHamlParser()
+var parser = newHamlParser("\t")
 
 func parseLeadingSpace(input string, lastSpaceChar int, line int, filter int) (output inode, err os.Error, spaceChar int, inFilter bool) {
 	nod := new(node)
@@ -268,11 +271,19 @@ func parseLeadingSpace(input string, lastSpaceChar int, line int, filter int) (o
 // The _remainder.value is any content appearing on the same line as the filter.
 // Filtered content is always kept as plain text, and never parsed as haml.
 func parseFilter(input string, n *node, line int) (output inode, err os.Error) {
+	if len(input) == 0 {
+		err = os.NewError(fmt.Sprintf("Parse error on line %d: Empty input\n", line))
+		return
+	}
+	if len(input) == 1 {
+		err = os.NewError(fmt.Sprintf("Syntax error on line %d: Missing filter name\n", line))
+		return
+	}
 	for i, r := range input {
 		if unicode.IsSpace(r) {
 			n._name = input[:i]
-			if len(n._name) == 1 {
-				err = os.NewError(fmt.Sprintf("Syntax error on line %d: Invalid tag: %s.\n", line, input))
+			if len(n._name) <= 1 {
+				err = os.NewError(fmt.Sprintf("Syntax error on line %d: Missing filter name\n", line))
 				return
 			}
 			n.setRemainder(input[i:]+"\n", false)

@@ -4,6 +4,8 @@
 package gohaml
 
 import (
+	"strings"
+	"unicode"
 	"os"
 )
 
@@ -28,12 +30,16 @@ type Engine struct {
 	ast *tree
 }
 
-// NewEngine returns a new Engine with the given input.
-func NewEngine(input string) (engine *Engine, err os.Error) {
+// NewEngine returns a new Engine with the given input and output indentation.
+func NewEngine(input, indent string) (engine *Engine, err os.Error) {
+	if strings.IndexFunc(indent, func(r int) bool {return !unicode.IsSpace(r)}) >= 0 {
+		err = os.NewError("indent contains non-space rune")
+		return
+	}
 	var output *tree
-	output, err = parser.parse(input)
+	output, err = newHamlParser(indent).parse(input)
 	if err == nil {
-		engine = &Engine{true, "\t", nil, output}
+		engine = &Engine{true, indent, nil, output}
 	}
 	return
 }

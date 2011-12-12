@@ -56,7 +56,7 @@ func TestFilterOutput(t *testing.T) {
 	for i, io := range filterOutputTests {
 		scope := make(map[string]interface{})
 
-		engine, _ := NewEngine(io.input)
+		engine, _ := NewEngine(io.input, "\t")
 		engine.Autoclose = false
 		output := engine.Render(scope)
 		if output != io.expected {
