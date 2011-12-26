@@ -90,7 +90,7 @@ func parseLeadingSpace(input string, lastSpaceChar int, line int, filter int) (o
 		switch {
 		case filter >= 0 && i > filter && !unicode.IsSpace(r):
 			// Now inside the filter's scope. 
-			output = parseRemainderCDATA(input[i:], nod, line)
+			output = parseRemainderFiltered(input[i:], nod, line)
 			inFilter = true
 		case r == ':':
 			// Found a filter instantiation.
@@ -311,7 +311,7 @@ func parseClass(input string, node *node, line int) (output inode, err os.Error)
 }
 
 // Just chunk up the rest of the line. -bmatsuo
-func parseRemainderCDATA(input string, node *node, line int) (output inode) {
+func parseRemainderFiltered(input string, node *node, line int) (output inode) {
 	node._remainder.value = input
 	node._remainder.needsResolution = false
 	output = node
