@@ -33,7 +33,7 @@ func main() {
 	
 	bytes, _ := ioutil.ReadAll(in)
 	
-	engine, err := gohaml.NewEngine(string(bytes))
+	engine, err := gohaml.NewEngine(string(bytes), "\t")
 	if err != nil {
 		os.Stderr.WriteString(err.String())
 		os.Exit(1)
