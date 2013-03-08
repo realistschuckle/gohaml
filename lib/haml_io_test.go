@@ -36,7 +36,7 @@ var autoCloseTests = []io{
 	io{"\\=key1", "=key1", ""},
 	io{"%tag#tagId", "<tag id=\"tagId\" />", ""},
 	io{"#tagId", "<div id=\"tagId\" />", ""},
-	io{"%tag#tagId.tagClass= key1", "<tag id=\"tagId\" class=\"tagClass\">value1</tag>", ""},
+	io{"%tag#tagId.tagClass= key1", "<tag id=\"tagId\" class=\"tagClass\">value1</tag>", "<tag class=\"tagClass\" id=\"tagId\">value1</tag>"},
 	io{"#tagId tag content", "<div id=\"tagId\">tag content</div>", ""},
 	io{"%tag#tagId= key1", "<tag id=\"tagId\">value1</tag>", ""},
 	io{"%tag1#tagId1= key1\n%tag2#tagId2= key2", "<tag1 id=\"tagId1\">value1</tag1>\n<tag2 id=\"tagId2\">value2</tag2>", ""},
@@ -45,7 +45,7 @@ var autoCloseTests = []io{
 	io{"%a{:href => \"/another/page\"}<\n  %span.button Press me!", "<a href=\"/another/page\"><span class=\"button\">Press me!</span></a>", ""},
 	io{"%a{:href => \"/another/page\"}<\n  %span.button Press me!\n  %span Me, too!", "<a href=\"/another/page\"><span class=\"button\">Press me!</span>\n<span>Me, too!</span></a>", ""},
 	io{"%p\n  %a<\n    %span Press me!\n    %span\n      %span Me, too\n    %span And, me!", "<p>\n\t<a><span>Press me!</span>\n\t<span>\n\t\t<span>Me, too</span>\n\t</span>\n\t<span>And, me!</span></a>\n</p>", ""},
-	io{".tagClass{:attribute => key2}", "<div attribute=\"value2\" class=\"tagClass\" />", ""},
+	io{".tagClass{:attribute => key2}", "<div attribute=\"value2\" class=\"tagClass\" />", "<div class=\"tagClass\" attribute=\"value2\" />"},
 	io{".tagClass{key1 => key2}", "<div class=\"tagClass\" value1=\"value2\" />", "<div value1=\"value2\" class=\"tagClass\" />"},
 	io{"#tagId= complexKey.SubKey1", "<div id=\"tagId\">Fortune presents gifts not according to the book.</div>", ""},
 	io{"#tagId= complexKey.SubKey2.SubKey1", "<div id=\"tagId\">That's what I said.</div>", ""},
@@ -58,9 +58,9 @@ var autoCloseTests = []io{
 	io{"=complexKey.SubKey2.SubKey3", "0.1", ""},
 	io{"=complexKey.SubKey3.key", "I got map!", ""},
 	io{"%p= key1", "<p>value1</p>", ""},
-	io{"%tag{:attribute1 => \"value1\", :attribute2 => \"value2\"}", "<tag attribute2=\"value2\" attribute1=\"value1\" />", ""},
-	io{"%tag{:attribute1 => \"value1\", :attribute2 => \"value2\"} tag content", "<tag attribute2=\"value2\" attribute1=\"value1\">tag content</tag>", ""},
-	io{"%tag#tagId.tagClass{:id => \"tagId\", :class => \"tagClass\"} tag content", "<tag id=\"tagId tagId\" class=\"tagClass tagClass\">tag content</tag>", ""},
+	io{"%tag{:attribute1 => \"value1\", :attribute2 => \"value2\"}", "<tag attribute2=\"value2\" attribute1=\"value1\" />", "<tag attribute1=\"value1\" attribute2=\"value2\" />"},
+	io{"%tag{:attribute1 => \"value1\", :attribute2 => \"value2\"} tag content", "<tag attribute2=\"value2\" attribute1=\"value1\">tag content</tag>", "<tag attribute1=\"value1\" attribute2=\"value2\">tag content</tag>"},
+	io{"%tag#tagId.tagClass{:id => \"tagId\", :class => \"tagClass\"} tag content", "<tag id=\"tagId tagId\" class=\"tagClass tagClass\">tag content</tag>", "<tag class=\"tagClass tagClass\" id=\"tagId tagId\">tag content</tag>"},
 	io{"%tag#tagId{:attribute => \"value\"} tag content", "<tag attribute=\"value\" id=\"tagId\">tag content</tag>", "<tag id=\"tagId\" attribute=\"value\">tag content</tag>"},
 	io{"%input{:type => \"checkbox\", :checked => true}", "<input checked=\"checked\" type=\"checkbox\" />", "<input type=\"checkbox\" checked=\"checked\" />"},
 	io{"%input{:type => \"checkbox\", :checked => false}", "<input type=\"checkbox\" />", ""},
@@ -71,7 +71,7 @@ var autoCloseTests = []io{
 } 
 
 func TestAutoCloseIO(t *testing.T) {
-	for _, io := range autoCloseTests {
+	for i, io := range autoCloseTests {
 		scope := make(map[string]interface{})
 		subMap := map[string]interface{} {"key": "I got map!"}
 		complexLookup :=  complexLookup{"Fortune presents gifts not according to the book.",
@@ -90,7 +90,7 @@ func TestAutoCloseIO(t *testing.T) {
 		engine, _ := NewEngine(io.input)
 		output := engine.Render(scope)
 		if output != io.expected && output != io.orexpected{
-			t.Errorf("Input    %q\nexpected %q\ngot      %q", io.input, io.expected, output)
+			t.Errorf("(%d) Input    %q\nexpected %q\nor       %q\ngot      %q", i, io.input, io.expected, io.orexpected, output)
 			return
 		}
 	}
@@ -104,11 +104,11 @@ var noAutoCloseTests = []io {
 	io{".tagClass", "<div class=\"tagClass\">", ""},
 	io{"%tag#tagId", "<tag id=\"tagId\">", ""},
 	io{"#tagId", "<div id=\"tagId\">", ""},
-	io{"%tag{:attribute1 => \"value1\", :attribute2 => \"value2\"}", "<tag attribute2=\"value2\" attribute1=\"value1\">", ""},
+	io{"%tag{:attribute1 => \"value1\", :attribute2 => \"value2\"}", "<tag attribute2=\"value2\" attribute1=\"value1\">", "<tag attribute1=\"value1\" attribute2=\"value2\">"},
 }
 
 func TestNoAutoCloseIO(t *testing.T) {
-	for _, io := range noAutoCloseTests {
+	for i, io := range noAutoCloseTests {
 		scope := make(map[string]interface{})
 		scope["key1"] = "value1"
 		scope["key2"] = "value2"
@@ -116,8 +116,8 @@ func TestNoAutoCloseIO(t *testing.T) {
 		engine, _ := NewEngine(io.input)
 		engine.Autoclose = false
 		output := engine.Render(scope)
-		if output != io.expected {
-			t.Errorf("Input    %q\nexpected %q\ngot      %q", io.input, io.expected, output)
+		if output != io.expected && output != io.orexpected {
+			t.Errorf("(%d)Input    %q\nexpected %q\nor %q\ngot      %q", i, io.input, io.expected, io.orexpected, output)
 			return
 		}
 	}
