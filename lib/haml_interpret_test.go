@@ -1,32 +1,32 @@
 package gohaml
 
 import (
-	"testing"
-	"strings"
 	"fmt"
+	"strings"
+	"testing"
 )
 
 type assignment struct {
-	name string
-	rhs string
+	name  string
+	rhs   string
 	value interface{}
 }
 
 func TestForSliceRangeConstruct(t *testing.T) {
 	scope := make(map[string]interface{})
 	scope["looper"] = []int{4, -128, 38, 99, 1}
-	
+
 	expected := "<p>\n" +
-				"	<span>0</span><span>4</span>\n" +
-				"	<span>1</span><span>-128</span>\n" +
-				"	<span>2</span><span>38</span>\n" +
-				"	<span>3</span><span>99</span>\n" +
-				"	<span>4</span><span>1</span>\n" +
-				"</p>"
+		"	<span>0</span><span>4</span>\n" +
+		"	<span>1</span><span>-128</span>\n" +
+		"	<span>2</span><span>38</span>\n" +
+		"	<span>3</span><span>99</span>\n" +
+		"	<span>4</span><span>1</span>\n" +
+		"</p>"
 	input := "%p\n  - for i, v := range looper\n    %span= i<\n    %span= v"
 	engine, _ := NewEngine(input)
 	output := engine.Render(scope)
-	
+
 	if output != expected {
 		t.Errorf("Expected\n%s\nbut got\n%s\n", expected, output)
 	}
@@ -35,18 +35,18 @@ func TestForSliceRangeConstruct(t *testing.T) {
 func TestForArrayRangeConstruct(t *testing.T) {
 	scope := make(map[string]interface{})
 	scope["looper"] = [5]int{4, -128, 38, 99, 1}
-	
+
 	expected := "<p>\n" +
-				"	<span>0</span><span>4</span>\n" +
-				"	<span>1</span><span>-128</span>\n" +
-				"	<span>2</span><span>38</span>\n" +
-				"	<span>3</span><span>99</span>\n" +
-				"	<span>4</span><span>1</span>\n" +
-				"</p>"
+		"	<span>0</span><span>4</span>\n" +
+		"	<span>1</span><span>-128</span>\n" +
+		"	<span>2</span><span>38</span>\n" +
+		"	<span>3</span><span>99</span>\n" +
+		"	<span>4</span><span>1</span>\n" +
+		"</p>"
 	input := "%p\n  - for i, v := range looper\n    %span= i<\n    %span= v"
 	engine, _ := NewEngine(input)
 	output := engine.Render(scope)
-	
+
 	if output != expected {
 		t.Errorf("Expected\n%s\nbut got\n%s\n", expected, output)
 	}
@@ -54,12 +54,12 @@ func TestForArrayRangeConstruct(t *testing.T) {
 
 func TestForMapRangeConstruct(t *testing.T) {
 	scope := make(map[string]interface{})
-	intmap := map[int]int {
-		0:4,
-		1:-128,
-		2:38,
-		3:99,
-		4:1,
+	intmap := map[int]int{
+		0: 4,
+		1: -128,
+		2: 38,
+		3: 99,
+		4: 1,
 	}
 	scope["looper"] = intmap
 
@@ -75,7 +75,7 @@ func TestForMapRangeConstruct(t *testing.T) {
 	}
 }
 
-var assignmentInputs = []assignment {
+var assignmentInputs = []assignment{
 	assignment{"localString", "\"string\"", "string"},
 	assignment{"localInt", "3", 3},
 	assignment{"localFloat", "3.14", 3.14},
@@ -108,7 +108,7 @@ func TestAssignments(t *testing.T) {
 				t.Errorf("Input %q\nMap   %s", input, s)
 				return
 			}
-			
+
 			if len(output) > 0 {
 				t.Errorf("Expected no output, but got %q", output)
 				return
@@ -118,7 +118,7 @@ func TestAssignments(t *testing.T) {
 }
 
 func generateAssignments(assignment assignment) (assignments []string) {
-	return []string {
+	return []string{
 		fmt.Sprintf("- %s := %s", assignment.name, assignment.rhs),
 		fmt.Sprintf("-%s := %s", assignment.name, assignment.rhs),
 		fmt.Sprintf("- %s:= %s", assignment.name, assignment.rhs),

@@ -3,9 +3,9 @@ package gohaml
 import (
 	"bytes"
 	//"container/vector"
-	"strings"
-	"reflect"
 	"fmt"
+	"reflect"
+	"strings"
 )
 
 type res struct {
@@ -49,11 +49,11 @@ type node struct {
 	_noNewline   bool
 	_autoclose   bool
 	_indentLevel int
-	_children    []inode 
+	_children    []inode
 }
 
 type tree struct {
-	nodes []inode 
+	nodes []inode
 }
 
 func newTree() (output *tree) {
@@ -139,7 +139,7 @@ func (self node) resolve(scope map[string]interface{}, buf *bytes.Buffer, curInd
 		buf.WriteString("</")
 		buf.WriteString(self._name)
 		buf.WriteString(">")
-	//} else if self._attrs.Len() > 0 {
+		//} else if self._attrs.Len() > 0 {
 	} else if len(self._attrs) > 0 {
 		if len(self._name) == 0 {
 			self._name = "div"
@@ -202,7 +202,7 @@ func (self node) outputChildren(scope map[string]interface{}, buf *bytes.Buffer,
 func (self node) resolveAttrs(scope map[string]interface{}, buf *bytes.Buffer) {
 	attrMap := make(map[string]string)
 	// for i := 0; i < self._attrs.Len(); i++ {
-  for _, resPair := range self._attrs {
+	for _, resPair := range self._attrs {
 		//resPair := self._attrs.At(i).(*resPair)
 		key, value := resPair.key.resolve(scope), resPair.value.resolve(scope)
 		if _, ok := attrMap[key]; ok {
@@ -230,7 +230,7 @@ func (self node) resolveAttrs(scope map[string]interface{}, buf *bytes.Buffer) {
 func (self *node) addChild(n inode) {
 	n.setParent(self)
 	//self._children.Push(n)
-  self._children = append(self._children, n)
+	self._children = append(self._children, n)
 }
 
 func (self *node) addAttr(key string, value string) {
@@ -247,12 +247,12 @@ func (self *node) addAttr(key string, value string) {
 		value = value[1 : len(value)-1]
 	}
 	//self._attrs.Push(&resPair{res{key, keyLookup}, res{value, valueLookup}})
-  self._attrs = append(self._attrs, &resPair{res{key, keyLookup}, res{value, valueLookup}})
+	self._attrs = append(self._attrs, &resPair{res{key, keyLookup}, res{value, valueLookup}})
 }
 
 func (self *node) addAttrNoLookup(key string, value string) {
 	//self._attrs.Push(&resPair{res{key, false}, res{value, false}})
-  self._attrs = append(self._attrs, &resPair{res{key, false}, res{value, false}})
+	self._attrs = append(self._attrs, &resPair{res{key, false}, res{value, false}})
 }
 
 func (self *node) parent() inode {
@@ -291,7 +291,7 @@ type rangenode struct {
 	_parent      inode
 	_indentLevel int
 	//_children    vector.Vector
-	_children    []inode
+	_children []inode
 
 	_lhs1, _lhs2 string
 	_rhs         res
@@ -312,7 +312,7 @@ func (self *rangenode) setIndentLevel(i int) {
 func (self *rangenode) addChild(n inode) {
 	n.setParent(self)
 	//self._children.Push(n)
-  self._children = append(self._children,n)
+	self._children = append(self._children, n)
 }
 
 func (self *rangenode) noNewline() bool {
@@ -436,7 +436,7 @@ type declassnode struct {
 	_parent      inode
 	_indentLevel int
 	//_children    vector.Vector
-	_children    []inode
+	_children []inode
 
 	_lhs string
 	_rhs interface{}
@@ -457,7 +457,7 @@ func (self *declassnode) setIndentLevel(i int) {
 func (self *declassnode) addChild(n inode) {
 	n.setParent(self)
 	//self._children.Push(n)
-  self._children = append(self._children, n)
+	self._children = append(self._children, n)
 }
 
 func (self *declassnode) noNewline() bool {
@@ -484,7 +484,7 @@ type vdeclassnode struct {
 	_parent      inode
 	_indentLevel int
 	//_children    vector.Vector
-	_children    []inode
+	_children []inode
 
 	_lhs string
 	_rhs res

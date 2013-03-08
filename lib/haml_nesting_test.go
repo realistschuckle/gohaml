@@ -20,11 +20,11 @@ func TestNesting(t *testing.T) {
 		scope := make(map[string]interface{})
 		scope["key1"] = "value1"
 		scope["key2"] = "value2"
-	
+
 		engine, _ := NewEngine(io.input)
 		output := engine.Render(scope)
 		if output != io.expected && output != io.orexpected {
-			t.Errorf("(%d)Input    %q\nexpected %q\nor       %q\ngot      %q", i, io.input, io.expected,io.orexpected, output)
+			t.Errorf("(%d)Input    %q\nexpected %q\nor       %q\ngot      %q", i, io.input, io.expected, io.orexpected, output)
 			return
 		}
 	}

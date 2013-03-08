@@ -16,8 +16,8 @@ type complexLookup struct {
 }
 
 type io struct {
-	input string
-	expected string
+	input      string
+	expected   string
 	orexpected string
 }
 
@@ -68,16 +68,16 @@ var autoCloseTests = []io{
 	io{"%input{:type => \"checkbox\", cd => outputTrue}", "<input checked=\"checked\" type=\"checkbox\" />", "<input type=\"checkbox\" checked=\"checked\" />"},
 	io{"%one\n  %two\n   %three\n", "<one>\n\t<two>\n\t\t<three />\n\t</two>\n</one>", ""},
 	io{"%one\n  %two\n   %three\n      ", "<one>\n\t<two>\n\t\t<three />\n\t</two>\n</one>", ""},
-} 
+}
 
 func TestAutoCloseIO(t *testing.T) {
 	for i, io := range autoCloseTests {
 		scope := make(map[string]interface{})
-		subMap := map[string]interface{} {"key": "I got map!"}
-		complexLookup :=  complexLookup{"Fortune presents gifts not according to the book.",
-										simpleLookup{"That's what I said.", 5, .1,
-										    		 &simpleLookup{"Down deep.", 3, .2, nil}},
-										nil}
+		subMap := map[string]interface{}{"key": "I got map!"}
+		complexLookup := complexLookup{"Fortune presents gifts not according to the book.",
+			simpleLookup{"That's what I said.", 5, .1,
+				&simpleLookup{"Down deep.", 3, .2, nil}},
+			nil}
 		complexLookup.SubKey3 = subMap
 		scope["complexKey"] = complexLookup
 		scope["key1"] = "value1"
@@ -86,17 +86,17 @@ func TestAutoCloseIO(t *testing.T) {
 		scope["outputFalse"] = "false"
 		scope["outputTrue"] = "true"
 		scope["cd"] = "checked"
-				
+
 		engine, _ := NewEngine(io.input)
 		output := engine.Render(scope)
-		if output != io.expected && output != io.orexpected{
+		if output != io.expected && output != io.orexpected {
 			t.Errorf("(%d) Input    %q\nexpected %q\nor       %q\ngot      %q", i, io.input, io.expected, io.orexpected, output)
 			return
 		}
 	}
 }
 
-var noAutoCloseTests = []io {
+var noAutoCloseTests = []io{
 	io{"%tag", "<tag>", ""},
 	io{"%tag/", "<tag />", ""},
 	io{"%tag.tagClass", "<tag class=\"tagClass\">", ""},
@@ -112,7 +112,7 @@ func TestNoAutoCloseIO(t *testing.T) {
 		scope := make(map[string]interface{})
 		scope["key1"] = "value1"
 		scope["key2"] = "value2"
-	
+
 		engine, _ := NewEngine(io.input)
 		engine.Autoclose = false
 		output := engine.Render(scope)
