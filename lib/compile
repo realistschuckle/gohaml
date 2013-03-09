@@ -1,0 +1,6 @@
+# GO 1 seems to have moved around the Make includes ...
+# source this file to compile everything
+
+go tool yacc lang.y
+go build
+go test

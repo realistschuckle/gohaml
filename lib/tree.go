@@ -199,8 +199,18 @@ func (self node) outputChildren(scope map[string]interface{}, buf *bytes.Buffer,
 	}
 }
 
+func contains(value string, slice []string) bool {
+	for _, str := range slice {
+		if str == value {
+			return true
+		}
+	}
+	return false
+}
+
 func (self node) resolveAttrs(scope map[string]interface{}, buf *bytes.Buffer) {
 	attrMap := make(map[string]string)
+
 	// for i := 0; i < self._attrs.Len(); i++ {
 	for _, resPair := range self._attrs {
 		//resPair := self._attrs.At(i).(*resPair)
@@ -211,7 +221,18 @@ func (self node) resolveAttrs(scope map[string]interface{}, buf *bytes.Buffer) {
 			attrMap[key] = value
 		}
 	}
-	for key, value := range attrMap {
+	// don't iterate over map in order to preserve the order in which
+	// the attributes were collected.
+	//	for key, value := range attrMap {
+	var seenKeys []string
+	for _, resPair := range self._attrs {
+		key := resPair.key.resolve(scope)
+		if contains(key, seenKeys) {
+			continue
+		}
+		seenKeys = append(seenKeys, key)
+
+		value := attrMap[key]
 		if value == "false" {
 			continue
 		}
