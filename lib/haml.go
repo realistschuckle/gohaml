@@ -3,10 +3,6 @@
 //You can find the specifics about this implementation at http://github.com/realistschuckle/gohaml.
 package gohaml
 
-import (
-	"os"
-)
-
 /*
 Engine provides the template interpretation functionality to convert a HAML template into its
 corresponding tag-based representation.
@@ -22,14 +18,14 @@ The IncludeCallback field contains the callback invoked by the gohaml engine to 
 included through the %include extension.
 */
 type Engine struct {
-	Autoclose bool
-	Indentation string
+	Autoclose       bool
+	Indentation     string
 	IncludeCallback func(string, map[string]interface{}) string
-	ast *tree
+	ast             *tree
 }
 
 // NewEngine returns a new Engine with the given input.
-func NewEngine(input string) (engine *Engine, err os.Error) {
+func NewEngine(input string) (engine *Engine, err error) {
 	var output *tree
 	output, err = parser.parse(input)
 	if err == nil {

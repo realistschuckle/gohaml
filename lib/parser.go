@@ -1,22 +1,23 @@
 package gohaml
 
 import (
-	"unicode"
-	"strings"
-	"scanner"
+	"errors"
 	"fmt"
-	"strconv"
 	"os"
+	"strconv"
+	"strings"
+	"text/scanner"
+	"unicode"
 )
 
 type hamlParser struct {
 }
 
-func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
+func (self *hamlParser) parse(input string) (output *tree, err error) {
 	output = newTree()
 	var currentNode inode
 	var node inode
-	lastSpaceChar := -1
+	lastSpaceChar := '\000'
 	line := 1
 	j := 0
 	for i, r := range input {
@@ -44,16 +45,21 @@ func (self *hamlParser) parse(input string) (output *tree, err os.Error) {
 }
 
 func putNodeInPlace(cn inode, node inode, t *tree) {
-	if node == nil || node.nil() {return}
+	if node == nil || node.nil() {
+		return
+	}
 	if cn == nil || cn.nil() {
-		t.nodes.Push(node)
+		//t.nodes.Push(node)
+		t.nodes = append(t.nodes, node)
 	} else if node.indentLevel() < cn.indentLevel() {
-		for cn = cn.parent(); cn != nil && node.indentLevel() < cn.indentLevel(); cn = cn.parent() {}
+		for cn = cn.parent(); cn != nil && node.indentLevel() < cn.indentLevel(); cn = cn.parent() {
+		}
 		putNodeInPlace(cn, node, t)
-	} else if node.indentLevel() == cn.indentLevel() && cn.parent() != nil{
+	} else if node.indentLevel() == cn.indentLevel() && cn.parent() != nil {
 		cn.parent().addChild(node)
 	} else if node.indentLevel() == cn.indentLevel() {
-		t.nodes.Push(node)
+		//t.nodes.Push(node)
+		t.nodes = append(t.nodes, node)
 	} else if node.indentLevel() > cn.indentLevel() {
 		cn.addChild(node)
 	}
@@ -61,22 +67,22 @@ func putNodeInPlace(cn inode, node inode, t *tree) {
 
 var parser hamlParser
 
-func parseLeadingSpace(input string, lastSpaceChar int, line int) (output inode, err os.Error, spaceChar int) {
+func parseLeadingSpace(input string, lastSpaceChar rune, line int) (output inode, err error, spaceChar rune) {
 	node := new(node)
 	for i, r := range input {
 		switch {
 		case r == '-':
-			output = parseCode(input[i + 1:], node, line)
+			output = parseCode(input[i+1:], node, line)
 		case r == '%':
-			output, err = parseTag(input[i + 1:], node, true, line)
+			output, err = parseTag(input[i+1:], node, true, line)
 		case r == '#':
-			output, err = parseId(input[i + 1:], node, line)
+			output, err = parseId(input[i+1:], node, line)
 		case r == '.':
-			output, err = parseClass(input[i + 1:], node, line)
+			output, err = parseClass(input[i+1:], node, line)
 		case r == '=':
-			output = parseKey(tl(input[i + 1:]), node, line)
+			output = parseKey(tl(input[i+1:]), node, line)
 		case r == '\\':
-			output = parseRemainder(input[i + 1:], node, line)
+			output = parseRemainder(input[i+1:], node, line)
 		case !unicode.IsSpace(r):
 			output = parseRemainder(input[i:], node, line)
 		case unicode.IsSpace(r):
@@ -87,7 +93,8 @@ func parseLeadingSpace(input string, lastSpaceChar int, line int) (output inode,
 					to = "space"
 				}
 				msg := fmt.Sprintf("Syntax error on line %d: Inconsistent spacing in document changed from %s to %s characters.\n", line, from, to)
-				err = os.NewError(msg)
+				//err = os.NewError(msg)
+				err = errors.New(msg)
 			} else {
 				lastSpaceChar = r
 			}
@@ -105,9 +112,9 @@ func parseLeadingSpace(input string, lastSpaceChar int, line int) (output inode,
 }
 
 func parseKey(input string, n *node, line int) (output inode) {
-	if input[len(input) - 1] == '<' {
+	if input[len(input)-1] == '<' {
 		n = parseNoNewline("", n, line)
-		n.setRemainder(input[0:len(input) - 1], true)
+		n.setRemainder(input[0:len(input)-1], true)
 	} else {
 		n.setRemainder(input, true)
 		output = n
@@ -116,27 +123,28 @@ func parseKey(input string, n *node, line int) (output inode) {
 	return
 }
 
-func parseTag(input string, node *node, newTag bool, line int) (output inode, err os.Error) {
+func parseTag(input string, node *node, newTag bool, line int) (output inode, err error) {
 	if 0 == len(input) && newTag {
-		err = os.NewError(fmt.Sprintf("Syntax error on line %d: Invalid tag: %s.\n", line, input))
+		//err = os.NewError(fmt.Sprintf("Syntax error on line %d: Invalid tag: %s.\n", line, input))
+		err = errors.New(fmt.Sprintf("Syntax error on line %d: Invalid tag: %s.\n", line, input))
 		return
 	}
 	for i, r := range input {
 		switch {
 		case r == '.':
-			output, err = parseClass(input[i + 1:], node, line)
+			output, err = parseClass(input[i+1:], node, line)
 		case r == '#':
-			output, err = parseId(input[i + 1:], node, line)
+			output, err = parseId(input[i+1:], node, line)
 		case r == '{':
-			output, err = parseAttributes(tl(input[i + 1:]), node, line)
+			output, err = parseAttributes(tl(input[i+1:]), node, line)
 		case r == '<':
-			output = parseNoNewline(input[i + 1:], node, line)
+			output = parseNoNewline(input[i+1:], node, line)
 		case r == '=':
-			output = parseKey(tl(input[i + 1:]), node, line)
+			output = parseKey(tl(input[i+1:]), node, line)
 		case r == '/':
 			output = parseAutoclose("", node, line)
 		case unicode.IsSpace(r):
-			output = parseRemainder(input[i + 1:], node, line)
+			output = parseRemainder(input[i+1:], node, line)
 		}
 		if nil != err {
 			break
@@ -148,7 +156,7 @@ func parseTag(input string, node *node, newTag bool, line int) (output inode, er
 	}
 	if nil == output {
 		node._name = input
-		output = node;
+		output = node
 	}
 	return
 }
@@ -159,7 +167,7 @@ func parseAutoclose(input string, node *node, line int) (output inode) {
 	return
 }
 
-func parseAttributes(input string, node *node, line int) (output inode, err os.Error) {
+func parseAttributes(input string, node *node, line int) (output inode, err error) {
 	inKey := true
 	inRocket := false
 	keyEnd, attrStart := 0, 0
@@ -173,37 +181,38 @@ func parseAttributes(input string, node *node, line int) (output inode, err os.E
 			attrStart = i
 		} else if r == ',' {
 			node.addAttr(t(input[0:keyEnd]), t(input[attrStart:i]))
-			output, err = parseAttributes(tl(input[i + 1:]), node, line)
+			output, err = parseAttributes(tl(input[i+1:]), node, line)
 			break
 		} else if r == '}' {
 			if attrStart == 0 {
 				msg := fmt.Sprintf("Syntax error on line %d: Attribute requires a value.\n", line)
-				err = os.NewError(msg)
+				//err = os.NewError(msg)
+				err = errors.New(msg)
 				return
 			}
-			if(inKey) {
+			if inKey {
 				msg := fmt.Sprintf("Syntax error on line %d: Attribute requires a rocket and value.\n", line)
-				err = os.NewError(msg)
+				err = errors.New(msg)
 				return
 			}
 			attrValue := t(input[attrStart:i])
 			node.addAttr(input[0:keyEnd], attrValue)
-			output, _ = parseTag(input[i + 1:], node, false, line)
+			output, _ = parseTag(input[i+1:], node, false, line)
 			break
 		}
 	}
 	if nil == output {
 		msg := fmt.Sprintf("Syntax error on line %d: Attributes must have closing '}'.\n", line)
-		err = os.NewError(msg)
+		err = errors.New(msg)
 	}
 	return
 }
 
-func parseId(input string, node *node, line int) (output inode, err os.Error) {
+func parseId(input string, node *node, line int) (output inode, err error) {
 	defer func() {
 		if nil == output {
 			msg := fmt.Sprintf("Syntax error on line %d: Illegal element: classes and ids must have values.\n", line)
-			err = os.NewError(msg)
+			err = errors.New(msg)
 		}
 	}()
 	if len(input) == 0 {
@@ -214,19 +223,21 @@ func parseId(input string, node *node, line int) (output inode, err os.Error) {
 			if i == 0 {
 				return
 			}
-			node.addAttrNoLookup("id", input[0:i])			
+			node.addAttrNoLookup("id", input[0:i])
 		}
-		switch{
+		switch {
 		case r == '.':
-			output, _ = parseClass(input[i + 1:], node, line)
+			output, _ = parseClass(input[i+1:], node, line)
 		case r == '=':
-			output = parseKey(tl(input[i + 1:]), node, line)
+			output = parseKey(tl(input[i+1:]), node, line)
 		case r == '{':
-			output, err = parseAttributes(tl(input[i + 1:]), node, line)
+			output, err = parseAttributes(tl(input[i+1:]), node, line)
 		case unicode.IsSpace(r):
-			output = parseRemainder(input[i + 1:], node, line)
+			output = parseRemainder(input[i+1:], node, line)
 		}
-		if nil != output {break}
+		if nil != output {
+			break
+		}
 	}
 	if nil == output {
 		output = node
@@ -235,11 +246,11 @@ func parseId(input string, node *node, line int) (output inode, err os.Error) {
 	return
 }
 
-func parseClass(input string, node *node, line int) (output inode, err os.Error) {
+func parseClass(input string, node *node, line int) (output inode, err error) {
 	defer func() {
 		if nil == output {
 			msg := fmt.Sprintf("Syntax error on line %d: Illegal element: classes and ids must have values.\n", line)
-			err = os.NewError(msg)
+			err = errors.New(msg)
 		}
 	}()
 	if len(input) == 0 {
@@ -254,15 +265,17 @@ func parseClass(input string, node *node, line int) (output inode, err os.Error)
 		}
 		switch {
 		case r == '{':
-			output, err = parseAttributes(tl(input[i + 1:]), node, line)
+			output, err = parseAttributes(tl(input[i+1:]), node, line)
 		case r == '.':
-			output, err = parseClass(input[i + 1:], node, line)
+			output, err = parseClass(input[i+1:], node, line)
 		case r == '=':
-			output = parseKey(tl(input[i + 1:]), node, line)
+			output = parseKey(tl(input[i+1:]), node, line)
 		case unicode.IsSpace(r):
-			output = parseRemainder(input[i + 1:], node, line)
+			output = parseRemainder(input[i+1:], node, line)
 		}
-		if nil != output {break}
+		if nil != output {
+			break
+		}
 	}
 	if nil == output {
 		node.addAttrNoLookup("class", input)
@@ -272,9 +285,9 @@ func parseClass(input string, node *node, line int) (output inode, err os.Error)
 }
 
 func parseRemainder(input string, node *node, line int) (output inode) {
-	if input[len(input) - 1] == '<' {
+	if input[len(input)-1] == '<' {
 		node = parseNoNewline("", node, line)
-		node._remainder.value = input[0:len(input) - 1]
+		node._remainder.value = input[0 : len(input)-1]
 		node._remainder.needsResolution = false
 	} else {
 		node._remainder.value = input
@@ -296,7 +309,7 @@ func t(input string) (output string) {
 }
 
 func tl(input string) (output string) {
- 	output = strings.TrimLeft(input, " 	")
+	output = strings.TrimLeft(input, " 	")
 	return
 }
 
@@ -308,7 +321,7 @@ func parseCode(input string, node inode, line int) (output inode) {
 		fmt.Fprintf(os.Stderr, "Did not recognize %s", input)
 	}
 	output = Output
-	return 
+	return
 }
 
 // var s scanner.Scanner
@@ -339,17 +352,17 @@ func (l *Lexer) Lex(v *yySymType) (output int) {
 	case scanner.String, scanner.RawString:
 		output = ATOM
 		text := l.s.TokenText()
-		v.i = text[1:len(text) - 1]
+		v.i = text[1 : len(text)-1]
 	case scanner.Int:
 		output = ATOM
 		v.i, _ = strconv.Atoi(l.s.TokenText())
 	case scanner.Float:
 		output = ATOM
-		v.i, _ = strconv.Atof64(l.s.TokenText())
+		v.i, _ = strconv.ParseFloat(l.s.TokenText(), 64)
 	case scanner.EOF:
 		output = 0
 	default:
-		output = i
+		output = int(i)
 	}
 	return
 }

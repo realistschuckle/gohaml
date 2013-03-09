@@ -2,10 +2,10 @@ package gohaml
 
 import (
 	"bytes"
-	"container/vector"
-	"strings"
-	"reflect"
+	//"container/vector"
 	"fmt"
+	"reflect"
+	"strings"
 )
 
 type res struct {
@@ -45,15 +45,15 @@ type node struct {
 	_parent      inode
 	_remainder   res
 	_name        string
-	_attrs       vector.Vector
+	_attrs       []*resPair
 	_noNewline   bool
 	_autoclose   bool
 	_indentLevel int
-	_children    vector.Vector
+	_children    []inode
 }
 
 type tree struct {
-	nodes vector.Vector
+	nodes []inode
 }
 
 func newTree() (output *tree) {
@@ -110,10 +110,11 @@ func (self res) resolveValue(scope map[string]interface{}) (value reflect.Value)
 }
 
 func (self tree) resolve(scope map[string]interface{}, indent string, autoclose bool) (output string) {
-	treeLen := self.nodes.Len()
+	//treeLen := self.nodes.Len()
+	treeLen := len(self.nodes)
 	buf := bytes.NewBuffer(make([]byte, 0))
 	for i, n := range self.nodes {
-		node := n.(inode)
+		node := n
 		node.resolve(scope, buf, "", indent, autoclose)
 		if i != treeLen-1 && !node.noNewline() {
 			buf.WriteString("\n")
@@ -125,7 +126,8 @@ func (self tree) resolve(scope map[string]interface{}, indent string, autoclose 
 
 func (self node) resolve(scope map[string]interface{}, buf *bytes.Buffer, curIndent string, indent string, autoclose bool) {
 	remainder := self._remainder.resolve(scope)
-	if self._attrs.Len() > 0 && len(remainder) > 0 {
+	//if self._attrs.Len() > 0 && len(remainder) > 0 {
+	if len(self._attrs) > 0 && len(remainder) > 0 {
 		if len(self._name) == 0 {
 			self._name = "div"
 		}
@@ -137,7 +139,8 @@ func (self node) resolve(scope map[string]interface{}, buf *bytes.Buffer, curInd
 		buf.WriteString("</")
 		buf.WriteString(self._name)
 		buf.WriteString(">")
-	} else if self._attrs.Len() > 0 {
+		//} else if self._attrs.Len() > 0 {
+	} else if len(self._attrs) > 0 {
 		if len(self._name) == 0 {
 			self._name = "div"
 		}
@@ -167,11 +170,13 @@ func (self node) outputChildren(scope map[string]interface{}, buf *bytes.Buffer,
 	if self._noNewline {
 		ind = curIndent
 	}
-	childLen := self._children.Len()
+	//childLen := self._children.Len()
+	childLen := len(self._children)
 	if childLen > 0 {
 		buf.WriteString(">")
 		for i, n := range self._children {
-			node := n.(inode)
+			//node := n.(inode)
+			node := n
 			if i != 0 || !self._noNewline {
 				buf.WriteString("\n")
 				buf.WriteString(ind)
@@ -194,10 +199,21 @@ func (self node) outputChildren(scope map[string]interface{}, buf *bytes.Buffer,
 	}
 }
 
+func contains(value string, slice []string) bool {
+	for _, str := range slice {
+		if str == value {
+			return true
+		}
+	}
+	return false
+}
+
 func (self node) resolveAttrs(scope map[string]interface{}, buf *bytes.Buffer) {
 	attrMap := make(map[string]string)
-	for i := 0; i < self._attrs.Len(); i++ {
-		resPair := self._attrs.At(i).(*resPair)
+
+	// for i := 0; i < self._attrs.Len(); i++ {
+	for _, resPair := range self._attrs {
+		//resPair := self._attrs.At(i).(*resPair)
 		key, value := resPair.key.resolve(scope), resPair.value.resolve(scope)
 		if _, ok := attrMap[key]; ok {
 			attrMap[key] += " " + value
@@ -205,7 +221,18 @@ func (self node) resolveAttrs(scope map[string]interface{}, buf *bytes.Buffer) {
 			attrMap[key] = value
 		}
 	}
-	for key, value := range attrMap {
+	// don't iterate over map in order to preserve the order in which
+	// the attributes were collected.
+	//	for key, value := range attrMap {
+	var seenKeys []string
+	for _, resPair := range self._attrs {
+		key := resPair.key.resolve(scope)
+		if contains(key, seenKeys) {
+			continue
+		}
+		seenKeys = append(seenKeys, key)
+
+		value := attrMap[key]
 		if value == "false" {
 			continue
 		}
@@ -223,7 +250,8 @@ func (self node) resolveAttrs(scope map[string]interface{}, buf *bytes.Buffer) {
 
 func (self *node) addChild(n inode) {
 	n.setParent(self)
-	self._children.Push(n)
+	//self._children.Push(n)
+	self._children = append(self._children, n)
 }
 
 func (self *node) addAttr(key string, value string) {
@@ -239,11 +267,13 @@ func (self *node) addAttr(key string, value string) {
 		valueLookup = false
 		value = value[1 : len(value)-1]
 	}
-	self._attrs.Push(&resPair{res{key, keyLookup}, res{value, valueLookup}})
+	//self._attrs.Push(&resPair{res{key, keyLookup}, res{value, valueLookup}})
+	self._attrs = append(self._attrs, &resPair{res{key, keyLookup}, res{value, valueLookup}})
 }
 
 func (self *node) addAttrNoLookup(key string, value string) {
-	self._attrs.Push(&resPair{res{key, false}, res{value, false}})
+	//self._attrs.Push(&resPair{res{key, false}, res{value, false}})
+	self._attrs = append(self._attrs, &resPair{res{key, false}, res{value, false}})
 }
 
 func (self *node) parent() inode {
@@ -281,7 +311,8 @@ func (self *node) nil() bool {
 type rangenode struct {
 	_parent      inode
 	_indentLevel int
-	_children    vector.Vector
+	//_children    vector.Vector
+	_children []inode
 
 	_lhs1, _lhs2 string
 	_rhs         res
@@ -301,7 +332,8 @@ func (self *rangenode) setIndentLevel(i int) {
 
 func (self *rangenode) addChild(n inode) {
 	n.setParent(self)
-	self._children.Push(n)
+	//self._children.Push(n)
+	self._children = append(self._children, n)
 }
 
 func (self *rangenode) noNewline() bool {
@@ -309,8 +341,11 @@ func (self *rangenode) noNewline() bool {
 }
 
 func (self *rangenode) resolve(scope map[string]interface{}, buf *bytes.Buffer, curIndent string, indent string, autoclose bool) {
-	oldlhs1, oklhs1 := scope[self._lhs1]
-	oldlhs2, oklhs2 := scope[self._lhs2]
+	//oldlhs1, oklhs1 := scope[self._lhs1]
+	//oldlhs2, oklhs2 := scope[self._lhs2]
+
+	__lhs1 := scope[self._lhs1]
+	__lhs2 := scope[self._lhs2]
 
 	value := self._rhs.resolveValue(scope)
 
@@ -333,7 +368,7 @@ func (self *rangenode) resolve(scope map[string]interface{}, buf *bytes.Buffer, 
 			scope[self._lhs2] = iv
 
 			for _, n := range self._children {
-				node := n.(inode)
+				node := n
 				node.resolve(scope, buf, curIndent, indent, autoclose)
 				if i != t.Len()-1 && !node.noNewline() {
 					buf.WriteString("\n")
@@ -359,7 +394,7 @@ func (self *rangenode) resolve(scope map[string]interface{}, buf *bytes.Buffer, 
 			scope[self._lhs2] = iv
 
 			for _, n := range self._children {
-				node := n.(inode)
+				node := n
 				node.resolve(scope, buf, curIndent, indent, autoclose)
 				if i != t.Len()-1 && !node.noNewline() {
 					buf.WriteString("\n")
@@ -396,7 +431,7 @@ func (self *rangenode) resolve(scope map[string]interface{}, buf *bytes.Buffer, 
 			scope[self._lhs2] = iv
 
 			for _, n := range self._children {
-				node := n.(inode)
+				node := n
 				node.resolve(scope, buf, curIndent, indent, autoclose)
 				if i != t.Len()-1 && !node.noNewline() {
 					buf.WriteString("\n")
@@ -406,8 +441,8 @@ func (self *rangenode) resolve(scope map[string]interface{}, buf *bytes.Buffer, 
 		}
 	}
 
-	scope[self._lhs1] = oldlhs1, oklhs1
-	scope[self._lhs2] = oldlhs2, oklhs2
+	scope[self._lhs1] = __lhs1 // {oldlhs1, oklhs1}
+	scope[self._lhs2] = __lhs2 // {oldlhs2, oklhs2}
 }
 
 func (self *rangenode) setParent(n inode) {
@@ -421,7 +456,8 @@ func (self *rangenode) nil() bool {
 type declassnode struct {
 	_parent      inode
 	_indentLevel int
-	_children    vector.Vector
+	//_children    vector.Vector
+	_children []inode
 
 	_lhs string
 	_rhs interface{}
@@ -441,7 +477,8 @@ func (self *declassnode) setIndentLevel(i int) {
 
 func (self *declassnode) addChild(n inode) {
 	n.setParent(self)
-	self._children.Push(n)
+	//self._children.Push(n)
+	self._children = append(self._children, n)
 }
 
 func (self *declassnode) noNewline() bool {
@@ -467,7 +504,8 @@ func (self *declassnode) setLHS(s string) {
 type vdeclassnode struct {
 	_parent      inode
 	_indentLevel int
-	_children    vector.Vector
+	//_children    vector.Vector
+	_children []inode
 
 	_lhs string
 	_rhs res
@@ -487,7 +525,8 @@ func (self *vdeclassnode) setIndentLevel(i int) {
 
 func (self *vdeclassnode) addChild(n inode) {
 	n.setParent(self)
-	self._children.Push(n)
+	//self._children.Push(n)
+	self._children = append(self._children, n)
 }
 
 func (self *vdeclassnode) noNewline() bool {
