@@ -11,8 +11,15 @@ type Loader interface {
 	Load(id interface{}) (hamlEngine *Engine, err error)
 }
 
+
+type entry struct {
+	ts * time.Time
+	engine * Engine
+}
+
 type fileSystemLoader struct {
-	baseDir string
+	baseDir string,
+	cache   map[interface{}]entry
 }
 
 func NewFileSystemLoader(dir string) (loader Loader, err error) {
@@ -49,11 +56,24 @@ func (l  * fileSystemLoader) Load(id_string interface{}) (eng *Engine, err error
 	}
 	defer file.Close()
 
+	var e = l.cache[id_string]
+
+	if e != nil {
+		var fi os.FileInfo
+		if fi, err := file.Stat(); err != nil {
+			return
+		}
+		if fi.ModTime().Before(e.ts) {
+			return e.engine, nil
+		}
+	}
+
 	var bb bytes.Buffer
 	if _, err = io.Copy(&bb, file); err!= nil {
 		return
 	}
 
-	return NewEngine(bb.String())
+	eng = NewEngine(bb.String())
+	l.cache[id_string] = entry{time.Now(), NewEngine(bb.String)}
 }
 
