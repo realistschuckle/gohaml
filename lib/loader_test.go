@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestLoadFile (t *testing.T) {
+func TestLoadFile(t *testing.T) {
 	var fsl Loader
 	var err error
 
@@ -17,9 +17,8 @@ func TestLoadFile (t *testing.T) {
 	}
 
 	if _, err = fsl.Load("test"); err != nil {
-		t.Errorf("couldn't load: test.haml: %s", err);
-	} 
-
+		t.Errorf("couldn't load: test.haml: %s", err)
+	}
 
 	if fsl, err = NewFileSystemLoader("blsadfasdf"); err == nil {
 		t.Errorf("rats! expected error for non existing dir ...  ")
