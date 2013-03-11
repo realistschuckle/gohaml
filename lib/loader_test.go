@@ -2,7 +2,6 @@ package gohaml
 
 import (
 	"testing"
-	"fmt"
 )
 
 func TestLoadFile (t *testing.T) {
@@ -17,7 +16,7 @@ func TestLoadFile (t *testing.T) {
 		t.Errorf("rats! expected error")
 	}
 
-	if _, err = fsl.Load("test.haml"); err != nil {
+	if _, err = fsl.Load("test"); err != nil {
 		t.Errorf("couldn't load: test.haml: %s", err);
 	} 
 
