@@ -36,7 +36,7 @@ h1. How can I install this?
 
 To install the library for use in your project, you can use goinstall.
 
-pre. go get "github.com/realistschuckle/gohaml/lib"
+pre. go get "github.com/realistschuckle/gohaml"
 
 h1. How can I install this from source?
 
