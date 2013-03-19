@@ -21,7 +21,6 @@ type Loader interface {
 type Entry struct {
 	Engine *Engine
 	ts     time.Time
-	fsTs   time.Time
 }
 
 type fileSystemLoader struct {
@@ -94,15 +93,15 @@ func (l *fileSystemLoader) Load(id_string interface{}) (entry *Entry, err error)
 		return
 	}
 
-	var file *os.File
 
 	if entry, ok = l.cache[id]; ok {
 		// if less than 2 seconds have passed, don't check fs for newer version.
-		if time.Since(entry.fsTs) < l.checkFSAfter {
+		if time.Since(entry.ts) < l.checkFSAfter {
 			return
 		}
 	}
 
+	var file *os.File
 	// check fs
 	var path = l.adjustSuffix(id)
 	if file, err = os.Open(path); err != nil {
@@ -119,7 +118,7 @@ func (l *fileSystemLoader) Load(id_string interface{}) (entry *Entry, err error)
 
 		if fi.ModTime().Before(entry.ts) {
 			// fmt.Printf("cache hit: %s %s\n", id, entry.fsTs)
-			entry.fsTs = time.Now()
+			entry.ts = time.Now()
 			// fmt.Printf("cache new ts: %s\n", entry.fsTs)
 			return
 		}
@@ -136,7 +135,7 @@ func (l *fileSystemLoader) Load(id_string interface{}) (entry *Entry, err error)
 	if engine, err = NewEngine(bb.String()); err != nil {
 		return
 	}
-	entry = &Entry{engine, time.Now(), time.Now()}
+	entry = &Entry{engine, time.Now()}
 	l.cache[id] = entry
 
 	return
