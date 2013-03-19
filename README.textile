@@ -66,11 +66,3 @@ func main() {
 	output := engine.Render(scope)
 	fmt.Println(output) // Prints "I love HAML!"
 }
-
-h1. Can I use it some other way, too?
-
-Nope. Not right now. :)
-
-h1. Can I type to gohaml on stdin?
-
-You can if you write an executable that uses @gohaml@.
