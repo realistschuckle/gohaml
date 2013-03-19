@@ -38,10 +38,14 @@ To install the library for use in your project, you can use goinstall.
 
 pre. go get "github.com/realistschuckle/gohaml/lib"
 
-h1. How can I build this?
+h1. How can I install this from source?
 
-Get the source.
-Run @go build@
+In a "Go workspace":http://golang.org/doc/code.html#tmp_2, create a directory for @gohaml@.
+```mkdir -p src/github.com/realistschuckle/gohaml```
+Clone the @gohaml@ repository into that newly created directory.
+```git clone git://github.com/realistschuckle/gohaml.git src/github.com/realistschuckle/gohaml```
+Now build and install it.
+```go install github.com/realistschuckle/gohaml```
 
 h1. How can I use it?
 
