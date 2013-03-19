@@ -5,7 +5,7 @@ You can find out more about GO at "golang.org":http://golang.org
 
 I've tried to remain diligent about reproducing the output from the canonical Ruby-based parser, so if you feel familiar with the one, then you should feel familiar with the other.
 
-This branch compiles with 6g/8g version release.r60 9481.
+This branch compiles with 6g/8g "go version go1.0.3."
 
 h1. Is it done?
 
@@ -36,18 +36,12 @@ h1. How can I install this?
 
 To install the library for use in your project, you can use goinstall.
 
-pre. goinstall "github.com/realistschuckle/gohaml/lib"
+pre. go get "github.com/realistschuckle/gohaml/lib"
 
 h1. How can I build this?
 
 Get the source.
-Run @gomake@ at <projectroot>/lib.
-
-h1. HEY! This doesn't build! What's wrong with you?
-
-Ok, the release and master branches contain code that compiles against the latest documented release of Go. Sometimes, those
-awesome and crazy Go guys change the cr4p out of the API and that breaks gohaml. Try switching over to the @preview@ branch
-and compiling that one. I try to keep it up to date with breaking changes to Go.
+Run @go build@
 
 h1. How can I use it?
 
@@ -56,7 +50,7 @@ How about something like this? Save it, compile it, link it, and run it!
 bc.. package main
 
 import (
-	"gohaml"
+	"github.com/realistschuckle/gohaml"
 	"fmt"
 )
 
@@ -64,19 +58,15 @@ func main() {
 	var scope = make(map[string]interface{})
 	scope["lang"] = "HAML"
 	content := "I love <\n=lang<\n!"
-	engine := gohaml.NewEngine(content)
+	engine, _ := gohaml.NewEngine(content)
 	output := engine.Render(scope)
 	fmt.Println(output) // Prints "I love HAML!"
 }
 
 h1. Can I use it some other way, too?
 
-Yes, you sure can! The exe directory has a project to run a command-line version of gohaml.
-
-After you install the @gohaml@ package, download the code and type @make install@. Then, command-line it yourself.
-
-pre. gohaml input.haml output.html
+Nope. Not right now. :)
 
 h1. Can I type to gohaml on stdin?
 
-Yep. And, it'll print to standard out, too. Just type @gohaml@ at the command prompt after installation and you can type all you want with a CTRL+D to signal EOF.
+You can if you write an executable that uses @gohaml@.
