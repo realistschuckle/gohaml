@@ -1,3 +1,3 @@
 *.8
 exe/gohaml
-lib/y.go
+*.output
