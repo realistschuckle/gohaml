@@ -1,4 +1,3 @@
-
 //line lang.y:2
 package gohaml
 
@@ -9,10 +8,10 @@ var Output inode
 //line lang.y:9
 type yySymType struct {
 	yys int
-  n inode
-  s string
-  i interface{}
-  c icodenode
+	n   inode
+	s   string
+	i   interface{}
+	c   icodenode
 }
 
 const IDENT = 57346
@@ -33,7 +32,6 @@ const yyErrCode = 2
 const yyMaxDepth = 200
 
 //line lang.y:66
-
 
 //line yacctab:1
 var yyExca = []int{
@@ -327,45 +325,45 @@ yydefault:
 	case 1:
 		//line lang.y:25
 		{
-	              rn := new(rangenode)
-	              rn._lhs1 = yyS[yypt-6].s
-	              rn._lhs2 = yyS[yypt-4].s
-	              rn._rhs = res{yyS[yypt-0].s, true}
-	              yyVAL.n = rn
-	              Output = yyVAL.n
-	            }
+			rn := new(rangenode)
+			rn._lhs1 = yyS[yypt-6].s
+			rn._lhs2 = yyS[yypt-4].s
+			rn._rhs = res{yyS[yypt-0].s, true}
+			yyVAL.n = rn
+			Output = yyVAL.n
+		}
 	case 2:
 		//line lang.y:34
 		{
-	              yyS[yypt-0].c.setLHS(yyS[yypt-3].s)
-	              yyVAL.n = yyS[yypt-0].c
-	              Output = yyVAL.n
-	            }
+			yyS[yypt-0].c.setLHS(yyS[yypt-3].s)
+			yyVAL.n = yyS[yypt-0].c
+			Output = yyVAL.n
+		}
 	case 3:
 		//line lang.y:42
 		{
-	        dan := new(declassnode)
-	        dan._rhs = yyS[yypt-0].i
-	        yyVAL.c = dan
-	      }
+			dan := new(declassnode)
+			dan._rhs = yyS[yypt-0].i
+			yyVAL.c = dan
+		}
 	case 4:
 		//line lang.y:48
 		{
-	        dan := new(vdeclassnode)
-	        dan._rhs.value = yyS[yypt-1].s + yyS[yypt-0].s
-	        dan._rhs.needsResolution = true
-	        yyVAL.c = dan      
-	      }
+			dan := new(vdeclassnode)
+			dan._rhs.value = yyS[yypt-1].s + yyS[yypt-0].s
+			dan._rhs.needsResolution = true
+			yyVAL.c = dan
+		}
 	case 5:
 		//line lang.y:57
 		{
-	                  yyVAL.s = fmt.Sprintf(".%s%s", yyS[yypt-1].s, yyS[yypt-0].s)
-	                }
+			yyVAL.s = fmt.Sprintf(".%s%s", yyS[yypt-1].s, yyS[yypt-0].s)
+		}
 	case 6:
 		//line lang.y:61
 		{
-	                  yyVAL.s = ""
-	                }
+			yyVAL.s = ""
+		}
 	}
 	goto yystack /* stack new state and value */
 }
