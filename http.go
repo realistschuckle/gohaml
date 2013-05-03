@@ -34,6 +34,27 @@ type httpHamlHandler struct {
 
 var defaultScope map[string]interface{}
 
+func adjustSuffix(path string) (string) {
+	const htmlExt = ".html"
+	const htmExt  = ".htm"
+
+	if !strings.HasPrefix(path, "/") {
+		path = "/" + path
+	}
+
+	// swap .html extension ...
+	if strings.HasSuffix(path, htmlExt) || strings.HasSuffix(path, htmExt) {
+		path = path[:strings.LastIndex(path, ".")]
+    return path + ".haml"
+	}
+
+	if strings.HasSuffix(path, "/") {
+		return path + "index.haml"
+	}
+
+  return path + "/index.haml"
+}
+
 func (h *httpHamlHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	const indexPage = "/index.html"
 	path := r.URL.Path
@@ -52,20 +73,9 @@ func (h *httpHamlHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if entry, err := h.loader.Load(path); err != nil {
+	if engine, err := h.loader.Load(path); err != nil {
 		http.NotFound(w, r)
 	} else {
-		var hentry htmlEntry
-		var ok bool
-		if hentry, ok = h.cache[path]; ok {
-			if entry.ts.After(hentry.ts) {
-				hentry.html = bytes.NewBufferString(entry.Engine.Render(defaultScope))
-				hentry.ts = time.Now()
-			}
-		} else {
-			hentry = htmlEntry{time.Now(), bytes.NewBufferString(entry.Engine.Render(defaultScope))}
-			h.cache[path] = hentry
-		}
-		w.Write(hentry.html.Bytes())
+    w.Write(([]byte)(engine.Render(defaultScope)))
 	}
 }
