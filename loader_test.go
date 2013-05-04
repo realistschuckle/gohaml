@@ -16,7 +16,7 @@ func TestLoadFile(t *testing.T) {
 	var fsl Loader
 	var err error
 
-	if fsl, err = NewFileSystemLoader(test_dir+"/"); err != nil {
+	if fsl, err = NewFileSystemLoader(test_dir + "/"); err != nil {
 		t.Errorf("couldn't create fileSystemLoader: %s", err)
 	}
 
@@ -67,7 +67,7 @@ func TestHttp(t *testing.T) {
 		writer := &TestResponseWriter{bytes.NewBufferString(""), nil, 0}
 		request := http.Request{}
 		request.URL, _ = url.Parse("http://localhost/simple.html")
-		if expected, err2 := readFile(t, test_dir + "/" +simple_html); err2 != nil {
+		if expected, err2 := readFile(t, test_dir+"/"+simple_html); err2 != nil {
 			t.Errorf("couldn't load result: %s", err2)
 		} else {
 			httpHandler.ServeHTTP(writer, &request)
