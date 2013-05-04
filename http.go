@@ -1,10 +1,8 @@
 package gohaml
 
 import (
-	"bytes"
 	"net/http"
 	"strings"
-	"time"
 )
 
 // create an http.Handler that loads haml files from locations relative
@@ -19,24 +17,18 @@ func NewHamlHandler(base string) (hndl http.Handler, err error) {
 	if l, err = NewFileSystemLoader(base); err != nil {
 		return
 	}
-	return &httpHamlHandler{l, make(map[string]htmlEntry), base}, nil
+	return &httpHamlHandler{l}, nil
 }
 
-type htmlEntry struct {
-	ts   time.Time
-	html *bytes.Buffer
-}
 type httpHamlHandler struct {
-	loader  Loader
-	cache   map[string]htmlEntry
-	baseDir string
+	loader Loader
 }
 
 var defaultScope map[string]interface{}
 
-func adjustSuffix(path string) (string) {
+func adjustSuffix(path string) string {
 	const htmlExt = ".html"
-	const htmExt  = ".htm"
+	const htmExt = ".htm"
 
 	if !strings.HasPrefix(path, "/") {
 		path = "/" + path
@@ -45,20 +37,19 @@ func adjustSuffix(path string) (string) {
 	// swap .html extension ...
 	if strings.HasSuffix(path, htmlExt) || strings.HasSuffix(path, htmExt) {
 		path = path[:strings.LastIndex(path, ".")]
-    return path + ".haml"
+		return path + ".haml"
 	}
 
 	if strings.HasSuffix(path, "/") {
 		return path + "index.haml"
 	}
 
-  return path + "/index.haml"
+	return path + "/index.haml"
 }
 
 func (h *httpHamlHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	const indexPage = "/index.html"
 	path := r.URL.Path
-
 	// borrowed from net/http/fs.go
 	// redirect .../index.html to .../
 	// can't use Redirect() because that would make the path absolute,
@@ -72,10 +63,10 @@ func (h *httpHamlHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusMovedPermanently)
 		return
 	}
-
+	path = adjustSuffix(path)
 	if engine, err := h.loader.Load(path); err != nil {
 		http.NotFound(w, r)
 	} else {
-    w.Write(([]byte)(engine.Render(defaultScope)))
+		w.Write(([]byte)(engine.Render(defaultScope)))
 	}
 }

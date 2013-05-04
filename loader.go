@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-  "strings"
+	"strings"
 )
 
 // Loader, Entry are not particularly nice and custom tailored to the http handlers
@@ -17,9 +17,8 @@ type Loader interface {
 	Load(id interface{}) (entry *Engine, err error)
 }
 
-
 type fileSystemLoader struct {
-	baseDir      string
+	baseDir string
 }
 
 func NewFileSystemLoader(dir string) (loader Loader, err error) {
@@ -39,13 +38,12 @@ func NewFileSystemLoader(dir string) (loader Loader, err error) {
 		return nil, fmt.Errorf("%s: not a directory", fi.Name())
 	}
 
-  if !strings.HasSuffix(dir, "/") {
-    dir += "/"
-  }
+	if !strings.HasSuffix(dir, "/") {
+		dir += "/"
+	}
 
 	return &fileSystemLoader{dir}, nil
 }
-
 
 func (l *fileSystemLoader) Load(id_string interface{}) (engine *Engine, err error) {
 	// check
@@ -57,7 +55,7 @@ func (l *fileSystemLoader) Load(id_string interface{}) (engine *Engine, err erro
 
 	var file *os.File
 	// check fs
-	var path = l.baseDir + id;
+	var path = l.baseDir + id
 	if file, err = os.Open(path); err != nil {
 		return
 	}
