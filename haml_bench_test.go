@@ -51,8 +51,7 @@ func BenchmarkRender(b *testing.B) {
 	}
 	scope := make(map[string]interface{})
 
-  num_b := len(engine.Render(scope))
-  b.SetBytes((int64)(num_b))
+  b.SetBytes((int64)(len(template)))
 
   b.StartTimer()
 	for i := 0; i != b.N; i++ {
