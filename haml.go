@@ -29,7 +29,7 @@ func NewEngine(input string) (engine *Engine, err error) {
 	var output *tree
 	output, err = parser.parse(input)
 	if err == nil {
-		engine = &Engine{true, "\t", nil, output}
+		engine = &Engine{true, "  ", nil, output}
 	}
 	return
 }
