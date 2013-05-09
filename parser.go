@@ -72,7 +72,7 @@ func parseLeadingSpace(input string, lastSpaceChar rune, line int) (output inode
 	for i, r := range input {
 		switch {
 		case r == '-':
-			output = parseCode(input[i+1:], node, line)
+			output, err = parseCode(input[i+1:], node, line)
 		case r == '%':
 			output, err = parseTag(input[i+1:], node, true, line)
 		case r == '#':
@@ -136,6 +136,8 @@ func parseTag(input string, node *node, newTag bool, line int) (output inode, er
 		case r == '#':
 			output, err = parseId(input[i+1:], node, line)
 		case r == '{':
+			output, err = parseRubyAttributes(tl(input[i+1:]), node, line)
+		case r == '(':
 			output, err = parseAttributes(tl(input[i+1:]), node, line)
 		case r == '<':
 			output = parseNoNewline(input[i+1:], node, line)
@@ -167,7 +169,56 @@ func parseAutoclose(input string, node *node, line int) (output inode) {
 	return
 }
 
+const (
+  st_key  = iota
+  st_quot = iota
+  st_val  = iota
+  st_cls_or_key = iota
+)
 func parseAttributes(input string, node *node, line int) (output inode, err error) {
+  key   := []rune{}
+  value := []rune{}
+  state := st_key 
+  for idx, ch := range(input) {
+    switch(state) {
+      case(st_key):
+        if ch=='=' || unicode.IsSpace(ch) {
+          state = st_quot
+        } else {
+          key = append(key,ch)
+        }
+      case (st_quot):
+        if ch == '\'' {
+          state = st_val
+        } else if !unicode.IsSpace(ch) {
+          err = errors.New("Sytanx Error on line %d: unexpected value after =")
+          return
+        }
+      case (st_val):
+        if ch == '\'' {
+          node.addAttr(string(key), string(value))
+          key   = []rune{}
+          value = []rune{}
+          state=st_cls_or_key
+        } else {
+          value = append(value,ch)
+        }
+      case (st_cls_or_key):
+        if unicode.IsSpace(ch) {
+          continue
+        } else if ch == ')' {
+          return parseTag(input[idx+1:], node, false, line) 
+        } else {
+          key = append(key, ch)
+          state = st_key
+        }
+    } // switch
+
+  }
+  err = errors.New("Syntax error on line %d: no closing )")
+	return
+}
+func parseRubyAttributes(input string, node *node, line int) (output inode, err error) {
 	inKey := true
 	inRocket := false
 	keyEnd, attrStart := 0, 0
@@ -181,7 +232,7 @@ func parseAttributes(input string, node *node, line int) (output inode, err erro
 			attrStart = i
 		} else if r == ',' {
 			node.addAttr(t(input[0:keyEnd]), t(input[attrStart:i]))
-			output, err = parseAttributes(tl(input[i+1:]), node, line)
+			output, err = parseRubyAttributes(tl(input[i+1:]), node, line)
 			break
 		} else if r == '}' {
 			if attrStart == 0 {
@@ -231,6 +282,8 @@ func parseId(input string, node *node, line int) (output inode, err error) {
 		case r == '=':
 			output = parseKey(tl(input[i+1:]), node, line)
 		case r == '{':
+			output, err = parseRubyAttributes(tl(input[i+1:]), node, line)
+		case r == '(':
 			output, err = parseAttributes(tl(input[i+1:]), node, line)
 		case unicode.IsSpace(r):
 			output = parseRemainder(input[i+1:], node, line)
@@ -265,6 +318,8 @@ func parseClass(input string, node *node, line int) (output inode, err error) {
 		}
 		switch {
 		case r == '{':
+			output, err = parseRubyAttributes(tl(input[i+1:]), node, line)
+		case r == '(':
 			output, err = parseAttributes(tl(input[i+1:]), node, line)
 		case r == '.':
 			output, err = parseClass(input[i+1:], node, line)
@@ -313,12 +368,12 @@ func tl(input string) (output string) {
 	return
 }
 
-func parseCode(input string, node inode, line int) (output inode) {
+func parseCode(input string, node inode, line int) (output inode, err error) {
 	l.init(strings.NewReader(input))
 
 	success := yyParse(l)
 	if success != 0 {
-		fmt.Fprintf(os.Stderr, "Did not recognize %s", input)
+		err = fmt.Errorf("Did not recognize %s", input)
 	}
 	output = Output
 	return
