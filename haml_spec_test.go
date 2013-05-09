@@ -2,14 +2,13 @@ package gohaml
 
 import (
 	"encoding/json"
-	"github.com/realistschuckle/gohaml"
 	"os"
 	"testing"
 )
 
 const spec_fn = "test/tests.json"
 
-var scope map[string]interface{}
+var scope = make(map[string]interface{})
 
 type haml_test struct {
 	Haml   string
@@ -42,11 +41,11 @@ func TestSpecs(t *testing.T) {
 		t.Log("Category: " + category_name)
 		category := tests[category_name]
 		for test_name := range category {
-			t.Log("Test :" + test_name)
 			num_tests += 1
 			test := category[test_name]
-			engine, herr := gohaml.NewEngine(test.Haml)
+			engine, herr := NewEngine(test.Haml)
 			if herr != nil {
+			  t.Log("Test :" + test_name)
 				t.Error(herr.Error())
 				num_failed += 1
 			} else {
@@ -57,6 +56,8 @@ func TestSpecs(t *testing.T) {
           html = engine.Render(scope)
         }
 				if html != test.Html {
+			    t.Log("Test :" + test_name)
+          t.Errorf("input   : ->%s\n", test.Haml)
 					t.Errorf("expected: ->%s\n", test.Html)
 					t.Errorf("got     : ->%s\n", html)
 					num_failed += 1
