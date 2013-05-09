@@ -187,16 +187,12 @@ func (self node) outputChildren(scope map[string]interface{}, buf *bytes.Buffer,
 			buf.WriteString("\n")
 			buf.WriteString(curIndent)
 		}
+	} else {
+		buf.WriteString(">")
+	}
 		buf.WriteString("</")
 		buf.WriteString(self._name)
 		buf.WriteString(">")
-	} else {
-		if autoclose || self._autoclose {
-			buf.WriteString(" />")
-		} else {
-			buf.WriteString(">")
-		}
-	}
 }
 
 func contains(value string, slice []string) bool {
@@ -238,13 +234,13 @@ func (self node) resolveAttrs(scope map[string]interface{}, buf *bytes.Buffer) {
 		}
 		buf.WriteString(" ")
 		buf.WriteString(key)
-		buf.WriteString("=\"")
+		buf.WriteString("='")
 		if value == "true" {
 			buf.WriteString(key)
 		} else {
 			buf.WriteString(value)
 		}
-		buf.WriteString("\"")
+		buf.WriteString("'")
 	}
 }
 
