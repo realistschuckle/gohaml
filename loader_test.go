@@ -9,8 +9,8 @@ import (
 )
 
 const test_dir = "./test"
-const simple_haml = "simple.haml"
-const simple_html = "simple.html"
+const simple_haml_fn = "simple.haml"
+const simple_html_fn = "simple.html"
 
 func TestLoadFile(t *testing.T) {
 	var fsl Loader
@@ -24,7 +24,7 @@ func TestLoadFile(t *testing.T) {
 		t.Errorf("rats! expected error")
 	}
 
-	if _, err = fsl.Load(simple_haml); err != nil {
+	if _, err = fsl.Load(simple_haml_fn); err != nil {
 		t.Errorf("couldn't load: test.haml: %s", err)
 	}
 
@@ -36,7 +36,7 @@ func TestLoadFile(t *testing.T) {
 		t.Errorf("rats! expected error")
 	}
 
-	if _, err = fsl.Load(simple_haml); err != nil {
+	if _, err = fsl.Load(simple_haml_fn); err != nil {
 		t.Errorf("couldn't load: test.haml: %s", err)
 	}
 	if fsl, err = NewFileSystemLoader("blsadfasdf"); err == nil {
@@ -67,7 +67,7 @@ func TestHttp(t *testing.T) {
 		writer := &TestResponseWriter{bytes.NewBufferString(""), nil, 0}
 		request := http.Request{}
 		request.URL, _ = url.Parse("http://localhost/simple.html")
-		if expected, err2 := readFile(t, test_dir+"/"+simple_html); err2 != nil {
+		if expected, err2 := readFile(t, test_dir+"/"+simple_html_fn); err2 != nil {
 			t.Errorf("couldn't load result: %s", err2)
 		} else {
 			httpHandler.ServeHTTP(writer, &request)
