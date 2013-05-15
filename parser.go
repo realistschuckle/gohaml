@@ -196,7 +196,7 @@ func parseAttributes(input string, node *node, line int) (output inode, err erro
         }
       case (st_val):
         if ch == '\'' {
-          node.addAttr(string(key), string(value))
+          node.addAttrNoLookup(string(key), string(value))
           key   = []rune{}
           value = []rune{}
           state=st_cls_or_key
