@@ -270,7 +270,7 @@ func parseId(input string, node *node, line int) (output inode, err error) {
 		return
 	}
 	for i, r := range input {
-		if r == '.' || r == '=' || r == '{' || unicode.IsSpace(r) {
+		if r == '.' || r == '=' || r == '{' || r == '(' || unicode.IsSpace(r) {
 			if i == 0 {
 				return
 			}
@@ -310,7 +310,7 @@ func parseClass(input string, node *node, line int) (output inode, err error) {
 		return
 	}
 	for i, r := range input {
-		if r == '{' || r == '.' || r == '=' || unicode.IsSpace(r) {
+		if r == '{' || r == '(' || r == '.' || r == '=' || unicode.IsSpace(r) {
 			if i == 0 {
 				return
 			}
