@@ -113,7 +113,7 @@ func parseLeadingSpace(input string, lastSpaceChar rune, line int) (output inode
 
 func parseKey(input string, n *node, line int) (output inode) {
 	if input[len(input)-1] == '<' {
-		n = parseNoNewline("", n, line)
+		n = parseNoNewline( n, line)
 		n.setRemainder(input[0:len(input)-1], true)
 	} else {
 		n.setRemainder(input, true)
@@ -140,7 +140,7 @@ func parseTag(input string, node *node, newTag bool, line int) (output inode, er
 		case r == '(':
 			output, err = parseAttributes(tl(input[i+1:]), node, line)
 		case r == '<':
-			output = parseNoNewline(input[i+1:], node, line)
+			output = parseNoNewline(node, line)
 		case r == '=':
 			output = parseKey(tl(input[i+1:]), node, line)
 		case r == '/':
@@ -341,7 +341,7 @@ func parseClass(input string, node *node, line int) (output inode, err error) {
 
 func parseRemainder(input string, node *node, line int) (output inode) {
 	if input[len(input)-1] == '<' {
-		node = parseNoNewline("", node, line)
+		node = parseNoNewline(node, line)
 		node._remainder.value = input[0 : len(input)-1]
 		node._remainder.needsResolution = false
 	} else {
@@ -352,7 +352,7 @@ func parseRemainder(input string, node *node, line int) (output inode) {
 	return
 }
 
-func parseNoNewline(input string, node *node, line int) (output *node) {
+func parseNoNewline(node *node, line int) (output *node) {
 	node.setNoNewline(true)
 	output = node
 	return
