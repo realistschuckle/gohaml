@@ -259,7 +259,7 @@ func (self *node) addAttr(key string, value string) {
 	if value == "true" || value == "false" {
 		valueLookup = false
 	}
-	if value[0] == '"' {
+	if value[0] == '"' || value[0] == '\'' {
 		valueLookup = false
 		value = value[1 : len(value)-1]
 	}
