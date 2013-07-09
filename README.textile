@@ -1,4 +1,4 @@
-!https://travis-ci.org/realistschuckle/gohaml.png?branch=master!:https://travis-ci.org/realistschuckle/gohaml
+!https://travis-ci.org/realistschuckle/gohaml.png?branch=rework!:https://travis-ci.org/realistschuckle/gohaml
 
 h1. What is it?
 
@@ -7,64 +7,21 @@ You can find out more about GO at "golang.org":http://golang.org
 
 I've tried to remain diligent about reproducing the output from the canonical Ruby-based parser, so if you feel familiar with the one, then you should feel familiar with the other.
 
-This branch compiles with 6g/8g "go version go1.0.3."
+This branch compiles with 6g/8g "go version go1.1.1."
 
 h1. Is it done?
 
-I think so. It has...
-
-* Tags with
-** empty content;
-** attributes of the form @{:attr => "value"}@;
-** id moniker using "#" (@#divId@); and,
-** class moniker using "." (@.divClass@).
-* Tag nesting
-* Scope lookup
-** Arbitrary number of keys as specified by struct (@someKeyInScope.Subkey1.Subkey2@)
-** Valid as tag content (@%p= someKeyInScope@)
-** Valid as tag attribute value (@%p{:attr => someKeyInScope}@)
-** Valid as tag attribute name (@%p{someKeyInScope => "value"}@)
-* Engine-level autoclose option (@&lt;br /&gt;@ vs. @&lt;br&gt;@)
-* Tag-specific close option (@%br/@ becomes @&lt;br /&gt;@ regardless of autoclose setting)
-* Whitespace removal with the @<@ operator
-* Simple scripting
-** Declaration and assignment of strings, floats, and ints (- varname := "value")
-** Range looping construct (- for i, v := range scopeVar)
-* Error messages for badly-formed templates
-
-If you would like another feature added, just log an issue and I'll review it forthright.
+No. It was yucky to look at. So, now I'm making it maintainable. By more than
+just me.
 
 h1. How can I install this?
 
-To install the library for use in your project, you can use goinstall.
-
-pre. go get "github.com/realistschuckle/gohaml"
+You really can't, just yet. Wait unti I work that out...
 
 h1. How can I install this from source?
 
-In a "Go workspace":http://golang.org/doc/code.html#tmp_2, create a directory for @gohaml@.
-```mkdir -p src/github.com/realistschuckle/gohaml```
-Clone the @gohaml@ repository into that newly created directory.
-```git clone git://github.com/realistschuckle/gohaml.git src/github.com/realistschuckle/gohaml```
-Now build and install it.
-```go install github.com/realistschuckle/gohaml```
+You really can't, just yet. Wait unti I work that out...
 
 h1. How can I use it?
 
-How about something like this? Save it, compile it, link it, and run it!
-
-bc.. package main
-
-import (
-	"github.com/realistschuckle/gohaml"
-	"fmt"
-)
-
-func main() {
-	var scope = make(map[string]interface{})
-	scope["lang"] = "HAML"
-	content := "I love <\n=lang<\n!"
-	engine, _ := gohaml.NewEngine(content)
-	output := engine.Render(scope)
-	fmt.Println(output) // Prints "I love HAML!"
-}
+You really can't, just yet. Wait unti I work that out...
