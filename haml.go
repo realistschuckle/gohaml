@@ -65,6 +65,7 @@ ParsedDocuments into CompiledDocuments.
 type HamlCompiler interface {
 	Compile() (CompiledDocument, error)
 	VisitDocType(*DocTypeNode)
+	VisitTag(*TagNode)
 }
 
 /*

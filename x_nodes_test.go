@@ -14,3 +14,13 @@ func TestDocTypeNodeAcceptCallsVisitDocTypeOnCompiler(t *testing.T) {
 	assert.True(t, c.visitDocTypeCalled)
 	assert.Equal(t, c.docTypeNode, &n)
 }
+
+func TestTagNodeAcceptCallsVisitTagOnCompiler(t *testing.T) {
+	c := fakeCompiler{}
+	n := TagNode{}
+
+	n.Accept(&c)
+
+	assert.True(t, c.visitTagCalled)
+	assert.Equal(t, c.tagNode, &n)
+}

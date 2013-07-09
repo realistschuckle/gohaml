@@ -7,3 +7,11 @@ type DocTypeNode struct {
 func (self *DocTypeNode) Accept(c HamlCompiler) {
 	c.VisitDocType(self)
 }
+
+type TagNode struct {
+	Name string
+}
+
+func (self *TagNode) Accept(c HamlCompiler) {
+	c.VisitTag(self)
+}

@@ -39,6 +39,8 @@ func (self *fakeNodeParser) Next() (n []NodeParser) {
 type fakeCompiler struct {
 	visitDocTypeCalled bool
 	docTypeNode        *DocTypeNode
+	visitTagCalled     bool
+	tagNode            *TagNode
 }
 
 func (self *fakeCompiler) Compile() (c CompiledDocument, e error) {
@@ -48,7 +50,11 @@ func (self *fakeCompiler) Compile() (c CompiledDocument, e error) {
 func (self *fakeCompiler) VisitDocType(n *DocTypeNode) {
 	self.visitDocTypeCalled = true
 	self.docTypeNode = n
-	return
+}
+
+func (self *fakeCompiler) VisitTag(n *TagNode) {
+	self.visitTagCalled = true
+	self.tagNode = n
 }
 
 type fakeParsedDoc struct {
@@ -59,5 +65,4 @@ type fakeParsedDoc struct {
 func (self *fakeParsedDoc) Accept(c HamlCompiler) {
 	self.acceptCalled = true
 	self.compiler = c
-	return
 }

@@ -69,3 +69,7 @@ func (self *compiler) VisitDocType(n *DocTypeNode) {
 
 	self.out.buf.WriteString(f)
 }
+
+func (self *compiler) VisitTag(n *TagNode) {
+
+}
