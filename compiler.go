@@ -1,6 +1,9 @@
 package gohaml
 
-import "bytes"
+import (
+	"bytes"
+	"fmt"
+)
 
 type compiledDoc struct {
 	buf *bytes.Buffer
@@ -71,5 +74,6 @@ func (self *compiler) VisitDocType(n *DocTypeNode) {
 }
 
 func (self *compiler) VisitTag(n *TagNode) {
-
+	s := fmt.Sprintf("<%s></%s>", n.Name, n.Name)
+	self.out.buf.WriteString(s)
 }

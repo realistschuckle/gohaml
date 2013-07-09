@@ -80,3 +80,31 @@ func (self *docTypeParser) Parse(i *strings.Reader) (n Node, e error) {
 func (self *docTypeParser) Next() (n []NodeParser) {
 	return
 }
+
+type tagParser struct{}
+
+func (self *tagParser) Parse(i *strings.Reader) (n Node, e error) {
+	var r rune
+	if r, _, e = i.ReadRune(); e != nil {
+		return
+	}
+
+	if r != '%' {
+		i.UnreadRune()
+		e = errors.New("Not a tag")
+		return
+	}
+
+	b := make([]byte, i.Len())
+	if _, e = i.Read(b); e != nil {
+		return
+	}
+	buf := bytes.NewBuffer(b)
+	n = &TagNode{buf.String()}
+
+	return
+}
+
+func (self *tagParser) Next() (n []NodeParser) {
+	return
+}

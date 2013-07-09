@@ -19,7 +19,6 @@ func TestSimpleEmptyTag(t *testing.T) {
 	cdoc, e1 := c.Compile()
 	output, e2 := cdoc.Render(scope)
 
-	return
 	assert.Nil(t, e1)
 	assert.Nil(t, e2)
 	assert.Equal(t, output, expected)

@@ -76,7 +76,7 @@ If EngineOptions is nil, then the method will configure the returned Engine
 with the result of DefaultEngineOptions.
 */
 func NewEngine(input string, options *EngineOptions) (e *Engine, err error) {
-	startStates := []NodeParser{&docTypeParser{}}
+	startStates := []NodeParser{&docTypeParser{}, &tagParser{}}
 	p := &parser{strings.NewReader(input), startStates}
 
 	var pdoc ParsedDocument
