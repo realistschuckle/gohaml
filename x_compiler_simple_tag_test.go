@@ -25,8 +25,16 @@ func tagTest(t *testing.T, tag string, forceClose bool, format string, expected 
 	assert.Equal(t, output, expected)
 }
 
-func TestSimpleEmptyTag(t *testing.T) {
+func TestSimpleEmptyTagInHtml5(t *testing.T) {
 	tagTest(t, "p", false, "html5", "<p></p>")
+}
+
+func TestSimpleEmptyTagInXhtml(t *testing.T) {
+	tagTest(t, "p", false, "xhtml", "<p></p>")
+}
+
+func TestSimpleEmptyTagInHtml4(t *testing.T) {
+	tagTest(t, "p", false, "html4", "<p></p>")
 }
 
 func TestSimpleEmptySelfClosingTagInXhtml(t *testing.T) {

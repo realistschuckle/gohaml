@@ -82,6 +82,8 @@ func (self *compiler) VisitTag(n *TagNode) {
 		default:
 			if n.ForceClose {
 				s = fmt.Sprintf("<%s />", n.Name)
+			} else {
+				s = fmt.Sprintf("<%s></%s>", n.Name, n.Name)
 			}
 		}
 	}
@@ -101,6 +103,8 @@ func (self *compiler) VisitTag(n *TagNode) {
 		switch n.Name {
 		case "area", "base", "br", "col", "hr", "img", "input", "link", "meta", "param":
 			s = fmt.Sprintf("<%s>", n.Name)
+		default:
+			s = fmt.Sprintf("<%s></%s>", n.Name, n.Name)
 		}
 	}
 	self.out.buf.WriteString(s)
