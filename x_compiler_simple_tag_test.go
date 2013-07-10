@@ -110,3 +110,21 @@ func TestEmptySelfClosingTagWithModifierInXhtml(t *testing.T) {
 	assert.Equal(t, output, expected)
 }
 
+func TestEmptySelfClosingTagWithModifierInHtml5(t *testing.T) {
+	n := TagNode{"zzz", true}
+	l := list.New()
+	l.PushFront(&n)
+	opts := DefaultEngineOptions()
+	opts.Format = "html5"
+	pdoc := parsedDoc{l}
+	scope := make(map[string]interface{})
+	c := compiler{&pdoc, &opts, nil}
+	expected := "<zzz>"
+
+	cdoc, e1 := c.Compile()
+	output, e2 := cdoc.Render(scope)
+
+	assert.Nil(t, e1)
+	assert.Nil(t, e2)
+	assert.Equal(t, output, expected)
+}

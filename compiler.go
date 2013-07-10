@@ -90,7 +90,11 @@ func (self *compiler) VisitTag(n *TagNode) {
 			case "area", "base", "br", "col", "hr", "img", "input", "link", "meta", "param":
 				s = fmt.Sprintf("<%s>", n.Name)
 			default:
-				s = fmt.Sprintf("<%s></%s>", n.Name, n.Name)
+				if n.ForceClose {
+					s = fmt.Sprintf("<%s>", n.Name)
+				} else {
+					s = fmt.Sprintf("<%s></%s>", n.Name, n.Name)
+				}
 		}
 	}
 	if self.options.Format == "html4" {
