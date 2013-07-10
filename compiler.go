@@ -77,31 +77,35 @@ func (self *compiler) VisitTag(n *TagNode) {
 	s := ""
 	if self.options.Format == "xhtml" {
 		switch n.Name {
-			case "area", "base", "br", "col", "hr", "img", "input", "link", "meta", "param":
+		case "area", "base", "br", "col", "hr", "img", "input", "link", "meta", "param":
+			s = fmt.Sprintf("<%s />", n.Name)
+		default:
+			if n.ForceClose {
 				s = fmt.Sprintf("<%s />", n.Name)
-			default:
-				if n.ForceClose {
-					s = fmt.Sprintf("<%s />", n.Name)
-				}
+			}
 		}
 	}
 	if self.options.Format == "html5" {
 		switch n.Name {
-			case "area", "base", "br", "col", "hr", "img", "input", "link", "meta", "param":
+		case "area", "base", "br", "col", "hr", "img", "input", "link", "meta", "param":
+			s = fmt.Sprintf("<%s>", n.Name)
+		default:
+			if n.ForceClose {
 				s = fmt.Sprintf("<%s>", n.Name)
-			default:
-				if n.ForceClose {
-					s = fmt.Sprintf("<%s>", n.Name)
-				} else {
-					s = fmt.Sprintf("<%s></%s>", n.Name, n.Name)
-				}
+			} else {
+				s = fmt.Sprintf("<%s></%s>", n.Name, n.Name)
+			}
 		}
 	}
 	if self.options.Format == "html4" {
 		switch n.Name {
-			case "area", "base", "br", "col", "hr", "img", "input", "link", "meta", "param":
-				s = fmt.Sprintf("<%s>", n.Name)
+		case "area", "base", "br", "col", "hr", "img", "input", "link", "meta", "param":
+			s = fmt.Sprintf("<%s>", n.Name)
 		}
 	}
 	self.out.buf.WriteString(s)
+}
+
+func (self *compiler) VisitClassName(n *ClassNameNode) {
+
 }

@@ -37,10 +37,12 @@ func (self *fakeNodeParser) Next() (n []NodeParser) {
 }
 
 type fakeCompiler struct {
-	visitDocTypeCalled bool
-	docTypeNode        *DocTypeNode
-	visitTagCalled     bool
-	tagNode            *TagNode
+	visitDocTypeCalled   bool
+	docTypeNode          *DocTypeNode
+	visitTagCalled       bool
+	tagNode              *TagNode
+	visitClassNameCalled bool
+	classNameNode        *ClassNameNode
 }
 
 func (self *fakeCompiler) Compile() (c CompiledDocument, e error) {
@@ -55,6 +57,11 @@ func (self *fakeCompiler) VisitDocType(n *DocTypeNode) {
 func (self *fakeCompiler) VisitTag(n *TagNode) {
 	self.visitTagCalled = true
 	self.tagNode = n
+}
+
+func (self *fakeCompiler) VisitClassName(n *ClassNameNode) {
+	self.visitClassNameCalled = true
+	self.classNameNode = n
 }
 
 type fakeParsedDoc struct {

@@ -7,15 +7,15 @@ import (
 	"testing"
 )
 
-func TestSimpleEmptyTag(t *testing.T) {
-	n := TagNode{"p", false}
+func tagTest(t *testing.T, tag string, forceClose bool, format string, expected string) {
+	n := TagNode{tag, forceClose}
 	l := list.New()
 	l.PushFront(&n)
 	opts := DefaultEngineOptions()
+	opts.Format = format
 	pdoc := parsedDoc{l}
 	scope := make(map[string]interface{})
 	c := compiler{&pdoc, &opts, nil}
-	expected := "<p></p>"
 
 	cdoc, e1 := c.Compile()
 	output, e2 := cdoc.Render(scope)
@@ -25,106 +25,38 @@ func TestSimpleEmptyTag(t *testing.T) {
 	assert.Equal(t, output, expected)
 }
 
+func TestSimpleEmptyTag(t *testing.T) {
+	tagTest(t, "p", false, "html5", "<p></p>")
+}
+
 func TestSimpleEmptySelfClosingTagInXhtml(t *testing.T) {
 	tags := []string{"area", "base", "br", "col", "hr", "img", "input", "link", "meta", "param"}
 	for _, tag := range tags {
-		n := TagNode{tag, false}
-		l := list.New()
-		l.PushFront(&n)
-		opts := DefaultEngineOptions()
-		opts.Format = "xhtml"
-		pdoc := parsedDoc{l}
-		scope := make(map[string]interface{})
-		c := compiler{&pdoc, &opts, nil}
 		expected := fmt.Sprintf("<%s />", tag)
-
-		cdoc, e1 := c.Compile()
-		output, e2 := cdoc.Render(scope)
-
-		assert.Nil(t, e1)
-		assert.Nil(t, e2)
-		assert.Equal(t, output, expected)
+		tagTest(t, tag, false, "xhtml", expected)
 	}
 }
 
 func TestSimpleEmptySelfClosingTagInHtml4(t *testing.T) {
 	tags := []string{"area", "base", "br", "col", "hr", "img", "input", "link", "meta", "param"}
 	for _, tag := range tags {
-		n := TagNode{tag, false}
-		l := list.New()
-		l.PushFront(&n)
-		opts := DefaultEngineOptions()
-		opts.Format = "html4"
-		pdoc := parsedDoc{l}
-		scope := make(map[string]interface{})
-		c := compiler{&pdoc, &opts, nil}
 		expected := fmt.Sprintf("<%s>", tag)
-
-		cdoc, e1 := c.Compile()
-		output, e2 := cdoc.Render(scope)
-
-		assert.Nil(t, e1)
-		assert.Nil(t, e2)
-		assert.Equal(t, output, expected)
+		tagTest(t, tag, false, "html4", expected)
 	}
 }
 
 func TestSimpleEmptySelfClosingTagInHtml5(t *testing.T) {
 	tags := []string{"area", "base", "br", "col", "hr", "img", "input", "link", "meta", "param"}
 	for _, tag := range tags {
-		n := TagNode{tag, false}
-		l := list.New()
-		l.PushFront(&n)
-		opts := DefaultEngineOptions()
-		opts.Format = "html5"
-		pdoc := parsedDoc{l}
-		scope := make(map[string]interface{})
-		c := compiler{&pdoc, &opts, nil}
 		expected := fmt.Sprintf("<%s>", tag)
-
-		cdoc, e1 := c.Compile()
-		output, e2 := cdoc.Render(scope)
-
-		assert.Nil(t, e1)
-		assert.Nil(t, e2)
-		assert.Equal(t, output, expected)
+		tagTest(t, tag, false, "html5", expected)
 	}
 }
 
 func TestEmptySelfClosingTagWithModifierInXhtml(t *testing.T) {
-	n := TagNode{"zzz", true}
-	l := list.New()
-	l.PushFront(&n)
-	opts := DefaultEngineOptions()
-	opts.Format = "xhtml"
-	pdoc := parsedDoc{l}
-	scope := make(map[string]interface{})
-	c := compiler{&pdoc, &opts, nil}
-	expected := "<zzz />"
-
-	cdoc, e1 := c.Compile()
-	output, e2 := cdoc.Render(scope)
-
-	assert.Nil(t, e1)
-	assert.Nil(t, e2)
-	assert.Equal(t, output, expected)
+	tagTest(t, "zzz", true, "xhtml", "<zzz />")
 }
 
 func TestEmptySelfClosingTagWithModifierInHtml5(t *testing.T) {
-	n := TagNode{"zzz", true}
-	l := list.New()
-	l.PushFront(&n)
-	opts := DefaultEngineOptions()
-	opts.Format = "html5"
-	pdoc := parsedDoc{l}
-	scope := make(map[string]interface{})
-	c := compiler{&pdoc, &opts, nil}
-	expected := "<zzz>"
-
-	cdoc, e1 := c.Compile()
-	output, e2 := cdoc.Render(scope)
-
-	assert.Nil(t, e1)
-	assert.Nil(t, e2)
-	assert.Equal(t, output, expected)
+	tagTest(t, "zzz", true, "html5", "<zzz>")
 }

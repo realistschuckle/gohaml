@@ -24,3 +24,13 @@ func TestTagNodeAcceptCallsVisitTagOnCompiler(t *testing.T) {
 	assert.True(t, c.visitTagCalled)
 	assert.Equal(t, c.tagNode, &n)
 }
+
+func TestClassNameNodeAcceptCallsVisitTagOnCompiler(t *testing.T) {
+	c := fakeCompiler{}
+	n := ClassNameNode{}
+
+	n.Accept(&c)
+
+	assert.True(t, c.visitClassNameCalled)
+	assert.Equal(t, c.classNameNode, &n)
+}

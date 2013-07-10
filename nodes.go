@@ -9,7 +9,7 @@ func (self *DocTypeNode) Accept(c HamlCompiler) {
 }
 
 type TagNode struct {
-	Name string
+	Name       string
 	ForceClose bool
 }
 
@@ -22,5 +22,5 @@ type ClassNameNode struct {
 }
 
 func (self *ClassNameNode) Accept(c HamlCompiler) {
-	
+	c.VisitClassName(self)
 }

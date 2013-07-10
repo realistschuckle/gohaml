@@ -3,8 +3,8 @@ package gohaml
 import (
 	"bytes"
 	"container/list"
-	"io"
 	"errors"
+	"io"
 	"strings"
 )
 

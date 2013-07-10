@@ -66,6 +66,7 @@ type HamlCompiler interface {
 	Compile() (CompiledDocument, error)
 	VisitDocType(*DocTypeNode)
 	VisitTag(*TagNode)
+	VisitClassName(*ClassNameNode)
 }
 
 /*
