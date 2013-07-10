@@ -16,3 +16,11 @@ type TagNode struct {
 func (self *TagNode) Accept(c HamlCompiler) {
 	c.VisitTag(self)
 }
+
+type ClassNameNode struct {
+	Name string
+}
+
+func (self *ClassNameNode) Accept(c HamlCompiler) {
+	
+}

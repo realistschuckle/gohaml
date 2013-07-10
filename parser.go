@@ -98,7 +98,8 @@ func (self *tagParser) Parse(i *strings.Reader) (n Node, e error) {
 
 	b := bytes.Buffer{}
 	forceClose := false
-	for r, _, e = i.ReadRune(); e == nil; r, _, e = i.ReadRune() {
+	cont := true
+	for r, _, e = i.ReadRune(); e == nil && cont; r, _, e = i.ReadRune() {
 		switch {
 		case r >= 'a' && r <= 'z':
 			b.WriteRune(r)
@@ -110,16 +111,17 @@ func (self *tagParser) Parse(i *strings.Reader) (n Node, e error) {
 			b.WriteRune(r)
 		case r == '/':
 			forceClose = true
-			break
+			cont = false
 		default:
-			break
+			i.UnreadRune()
+			cont = false
 		}
 	}
 
 	if e == nil {
 		i.UnreadRune()
 	}
-	if e == io.EOF {
+	if e == io.EOF || forceClose {
 		e = nil
 	}
 
@@ -129,5 +131,52 @@ func (self *tagParser) Parse(i *strings.Reader) (n Node, e error) {
 }
 
 func (self *tagParser) Next() (n []NodeParser) {
+	n = []NodeParser{&classNameParser{}}
+	return
+}
+
+type classNameParser struct{}
+
+func (self *classNameParser) Parse(i *strings.Reader) (n Node, e error) {
+	var r rune
+	if r, _, e = i.ReadRune(); e != nil {
+		return
+	}
+
+	if r != '.' {
+		i.UnreadRune()
+		e = errors.New("Not a class name")
+		return
+	}
+
+	b := bytes.Buffer{}
+	cont := true
+	for r, _, e = i.ReadRune(); e == nil && cont; r, _, e = i.ReadRune() {
+		switch {
+		case r >= 'a' && r <= 'z':
+			b.WriteRune(r)
+		case r >= 'A' && r <= 'Z':
+			b.WriteRune(r)
+		case r >= '0' && r <= '9':
+			b.WriteRune(r)
+		case r == '_':
+			b.WriteRune(r)
+		default:
+			cont = false
+		}
+	}
+
+	if e == io.EOF {
+		e = nil
+	} else {
+		i.UnreadRune()
+	}
+
+	n = &ClassNameNode{b.String()}
+
+	return
+}
+
+func (self *classNameParser) Next() (n []NodeParser) {
 	return
 }
