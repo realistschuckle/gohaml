@@ -10,6 +10,7 @@ func (self *DocTypeNode) Accept(c HamlCompiler) {
 
 type TagNode struct {
 	Name string
+	ForceClose bool
 }
 
 func (self *TagNode) Accept(c HamlCompiler) {

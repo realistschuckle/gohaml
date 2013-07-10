@@ -3,6 +3,7 @@ package gohaml
 import (
 	"bytes"
 	"container/list"
+	"io"
 	"errors"
 	"strings"
 )
@@ -95,12 +96,34 @@ func (self *tagParser) Parse(i *strings.Reader) (n Node, e error) {
 		return
 	}
 
-	b := make([]byte, i.Len())
-	if _, e = i.Read(b); e != nil {
-		return
+	b := bytes.Buffer{}
+	forceClose := false
+	for r, _, e = i.ReadRune(); e == nil; r, _, e = i.ReadRune() {
+		switch {
+		case r >= 'a' && r <= 'z':
+			b.WriteRune(r)
+		case r >= 'A' && r <= 'Z':
+			b.WriteRune(r)
+		case r >= '0' && r <= '9':
+			b.WriteRune(r)
+		case r == '_' || r == ':':
+			b.WriteRune(r)
+		case r == '/':
+			forceClose = true
+			break
+		default:
+			break
+		}
 	}
-	buf := bytes.NewBuffer(b)
-	n = &TagNode{buf.String()}
+
+	if e == nil {
+		i.UnreadRune()
+	}
+	if e == io.EOF {
+		e = nil
+	}
+
+	n = &TagNode{b.String(), forceClose}
 
 	return
 }

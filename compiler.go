@@ -74,6 +74,30 @@ func (self *compiler) VisitDocType(n *DocTypeNode) {
 }
 
 func (self *compiler) VisitTag(n *TagNode) {
-	s := fmt.Sprintf("<%s></%s>", n.Name, n.Name)
+	s := ""
+	if self.options.Format == "xhtml" {
+		switch n.Name {
+			case "area", "base", "br", "col", "hr", "img", "input", "link", "meta", "param":
+				s = fmt.Sprintf("<%s />", n.Name)
+			default:
+				if n.ForceClose {
+					s = fmt.Sprintf("<%s />", n.Name)
+				}
+		}
+	}
+	if self.options.Format == "html5" {
+		switch n.Name {
+			case "area", "base", "br", "col", "hr", "img", "input", "link", "meta", "param":
+				s = fmt.Sprintf("<%s>", n.Name)
+			default:
+				s = fmt.Sprintf("<%s></%s>", n.Name, n.Name)
+		}
+	}
+	if self.options.Format == "html4" {
+		switch n.Name {
+			case "area", "base", "br", "col", "hr", "img", "input", "link", "meta", "param":
+				s = fmt.Sprintf("<%s>", n.Name)
+		}
+	}
 	self.out.buf.WriteString(s)
 }
