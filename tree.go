@@ -362,6 +362,8 @@ func (self *rangenode) resolve(scope map[string]interface{}, buf *bytes.Buffer, 
 				iv = fmt.Sprint(t.Int())
 			case reflect.Float32, reflect.Float64:
 				iv = fmt.Sprint(t.Float())
+			case reflect.Struct:
+				iv = t.Interface()
 			}
 
 			scope[self._lhs1] = i
@@ -388,6 +390,8 @@ func (self *rangenode) resolve(scope map[string]interface{}, buf *bytes.Buffer, 
 				iv = fmt.Sprint(t.Int())
 			case reflect.Float32, reflect.Float64:
 				iv = fmt.Sprint(t.Float())
+			case reflect.Struct:
+				iv = t.Interface()
 			}
 
 			scope[self._lhs1] = i

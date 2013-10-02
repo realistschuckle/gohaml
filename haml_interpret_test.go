@@ -52,6 +52,60 @@ func TestForArrayRangeConstruct(t *testing.T) {
 	}
 }
 
+type testObject struct{ Val int }
+
+func TestForArrayObjectRangeConstruct(t *testing.T) {
+    scope := make(map[string]interface{})
+    scope["looper"] = [5]testObject{
+        testObject{4},
+        testObject{-128},
+        testObject{38},
+        testObject{99},
+        testObject{1},
+    }
+
+    expected := "<p>\n" +
+        "	<span>0</span><span>4</span>\n" +
+        "	<span>1</span><span>-128</span>\n" +
+        "	<span>2</span><span>38</span>\n" +
+        "	<span>3</span><span>99</span>\n" +
+        "	<span>4</span><span>1</span>\n" +
+        "</p>"
+    input := "%p\n  - for i, v := range looper\n    %span= i<\n    %span= v.Val"
+    engine, _ := NewEngine(input)
+    output := engine.Render(scope)
+
+    if output != expected {
+        t.Errorf("Expected\n%s\nbut got\n%s\n", expected, output)
+    }
+}
+
+func TestForSliceObjectRangeConstruct(t *testing.T) {
+    scope := make(map[string]interface{})
+    scope["looper"] = []testObject{
+        testObject{4},
+        testObject{-128},
+        testObject{38},
+        testObject{99},
+        testObject{1},
+    }
+
+    expected := "<p>\n" +
+        "	<span>0</span><span>4</span>\n" +
+        "	<span>1</span><span>-128</span>\n" +
+        "	<span>2</span><span>38</span>\n" +
+        "	<span>3</span><span>99</span>\n" +
+        "	<span>4</span><span>1</span>\n" +
+        "</p>"
+    input := "%p\n  - for i, v := range looper\n    %span= i<\n    %span= v.Val"
+    engine, _ := NewEngine(input)
+    output := engine.Render(scope)
+
+    if output != expected {
+        t.Errorf("Expected\n%s\nbut got\n%s\n", expected, output)
+    }
+}
+
 func TestForMapRangeConstruct(t *testing.T) {
 	scope := make(map[string]interface{})
 	intmap := map[int]int{
