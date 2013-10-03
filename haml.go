@@ -5,12 +5,27 @@
 // http://github.com/realistschuckle/gohaml.
 package gohaml
 
+type ParsedDocument struct {
+}
+
+type CompiledDocument struct {
+}
+
+type HamlParser interface {
+	Parse(string, *EngineSettings) (ParsedDocument, error)
+}
+
+type HamlCompiler interface {
+	Compile(ParsedDocument, *EngineOptions) (CompiledDocument, error)
+}
+
 /*
 Engine provides the template interpretation functionality to convert a HAML
 template into its corresponding tag-based representation.
 */
 type Engine struct {
-	options *EngineOptions
+	settings *EngineSettings
+	options  *EngineOptions
 }
 
 /*
@@ -21,6 +36,7 @@ If EngineOptions is nil, then the method will configure the returned Engine
 with the result of DefaultEngineOptions.
 */
 func NewEngine(input string, options *EngineOptions) (e *Engine, err error) {
+
 	return
 }
 

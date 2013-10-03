@@ -10,11 +10,11 @@ Has most of the same properties found in HAML::Options. You can read that
 documentation at http://haml.info/docs/yardoc/Haml/Options.html.
 */
 type EngineOptions struct {
-	// Contains the rune that should wrap element attributes.
+	// The rune that should wrap element attributes.
 	AttributeWrapper rune
 
-	// Contains a list of tag names that should be automatically self-closed if
-	// they have no content.
+	// A list of tag names that should be automatically self-closed if they
+	// have no content.
 	Autoclose []string
 
 	// Whether to include CDATA sections around javascript and css blocks when
@@ -73,7 +73,7 @@ The default values are:
 	AttributeWrapper: '\''
 	Autoclose: ["meta", "img", "link", "br", "hr", "input", "area", "param", "col", "base"]
 	Cdata: false
-	Compiler: nil
+	CompilerClass: nil
 	Encoding: "UTF-8"
 	EscapeAttributes: true
 	EscapeHtml: false
@@ -82,7 +82,7 @@ The default values are:
 	HyphenateDataAttributes: true
 	Line: 0
 	MimeType: "text/html"
-	Parser: nil
+	ParserClass: nil
 	RemoveWhitespace: false
 	SuppressEval: false
 	Ugly: true
