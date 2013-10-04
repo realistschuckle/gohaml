@@ -5,18 +5,18 @@
 // http://github.com/realistschuckle/gohaml.
 package gohaml
 
-type ParsedDocument struct {
-}
-
-type CompiledDocument struct {
-}
+import (
+	"errors"
+	"github.com/realistschuckle/gohaml/parser"
+	"github.com/realistschuckle/gohaml/compiler"
+)
 
 type HamlParser interface {
-	Parse(string, *EngineSettings) (ParsedDocument, error)
+	Parse(string, *EngineSettings) (parser.ParsedDocument, error)
 }
 
 type HamlCompiler interface {
-	Compile(ParsedDocument, *EngineOptions) (CompiledDocument, error)
+	Compile(parser.ParsedDocument, *EngineOptions) (compiler.CompiledDocument, error)
 }
 
 /*
@@ -36,7 +36,11 @@ If EngineOptions is nil, then the method will configure the returned Engine
 with the result of DefaultEngineOptions.
 */
 func NewEngine(input string, options *EngineOptions) (e *Engine, err error) {
-
+	if options == nil {
+		o := DefaultEngineOptions();
+		options = &o
+	}
+	e = &Engine{&EngineSettings{}, options}
 	return
 }
 
@@ -46,6 +50,7 @@ Render interprets the HAML supplied to the NewEngine method.
 If scope is nil, then the Engine will render without any local bindings.
 */
 func (self *Engine) Render(scope map[string]interface{}) (s string, e error) {
+	e = errors.New("Not yet implemented.")
 	return
 }
 
