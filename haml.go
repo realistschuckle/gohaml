@@ -7,24 +7,13 @@ package gohaml
 
 import (
 	"errors"
-	"github.com/realistschuckle/gohaml/parser"
-	"github.com/realistschuckle/gohaml/compiler"
 )
-
-type HamlParser interface {
-	Parse(string, *EngineSettings) (parser.ParsedDocument, error)
-}
-
-type HamlCompiler interface {
-	Compile(parser.ParsedDocument, *EngineOptions) (compiler.CompiledDocument, error)
-}
 
 /*
 Engine provides the template interpretation functionality to convert a HAML
 template into its corresponding tag-based representation.
 */
 type Engine struct {
-	settings *EngineSettings
 	options  *EngineOptions
 }
 
@@ -40,7 +29,7 @@ func NewEngine(input string, options *EngineOptions) (e *Engine, err error) {
 		o := DefaultEngineOptions();
 		options = &o
 	}
-	e = &Engine{&EngineSettings{}, options}
+	e = &Engine{options}
 	return
 }
 
