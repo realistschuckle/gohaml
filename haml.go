@@ -14,7 +14,7 @@ Engine provides the template interpretation functionality to convert a HAML
 template into its corresponding tag-based representation.
 */
 type Engine struct {
-	options  *EngineOptions
+	options *EngineOptions
 }
 
 /*
@@ -26,7 +26,7 @@ with the result of DefaultEngineOptions.
 */
 func NewEngine(input string, options *EngineOptions) (e *Engine, err error) {
 	if options == nil {
-		o := DefaultEngineOptions();
+		o := DefaultEngineOptions()
 		options = &o
 	}
 	e = &Engine{options}
