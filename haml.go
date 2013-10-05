@@ -6,6 +6,8 @@
 package gohaml
 
 import (
+	"github.com/realistschuckle/gohaml/parser"
+	"strings"
 )
 
 /*
@@ -28,6 +30,10 @@ func NewEngine(input string, options *EngineOptions) (e *Engine, err error) {
 		o := DefaultEngineOptions()
 		options = &o
 	}
+	reader := strings.NewReader(input)
+	p := new(parser.DefaultParser)
+	p.Parse(reader)
+
 	e = &Engine{options}
 	return
 }
