@@ -45,7 +45,7 @@ func (self *DefaultParser) Parse(input io.RuneReader) (doc ParsedDoc, err error)
 	scanner := scanner{input, [8]rune{}, 0, 0}
 	linebuf := [1000]rune{}
 	line := linebuf[0:0]
-	nodes := make([]Node, 2)
+	nodes := []Node{}
 
 	for r, _, ok := scanner.ReadRune(); ok == nil; r, _, ok = scanner.ReadRune() {
 		line = append(line, r)
@@ -55,6 +55,7 @@ func (self *DefaultParser) Parse(input io.RuneReader) (doc ParsedDoc, err error)
 			nodes = append(nodes, n)
 		}
 	}
+	fmt.Println(nodes)
 
 	doc = ParsedDoc{nodes}
 	return
