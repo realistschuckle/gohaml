@@ -25,7 +25,7 @@ func TestDefaultEngineOptionsHasAppropriateAutocloseTagList(t *testing.T) {
 			}
 		}
 		assert.Fail(t, "Failed to find expected tag", expected)
-		Found:
+	Found:
 	}
 }
 
@@ -87,4 +87,3 @@ func TestDefaultEngineOptionsIsUgly(t *testing.T) {
 	opts := DefaultEngineOptions()
 	assert.True(t, opts.Ugly)
 }
-

@@ -9,7 +9,6 @@ type HamlParser interface {
 }
 
 type DefaultParser struct {
-
 }
 
 func (self *DefaultParser) Parse(string) (d ParsedDocument, e error) {

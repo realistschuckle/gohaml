@@ -12,7 +12,6 @@ type HamlCompiler interface {
 }
 
 type DefaultCompiler struct {
-
 }
 
 func (self *DefaultCompiler) Compile(parser.ParsedDocument, *CompilerOptions) (d CompiledDocument, e error) {

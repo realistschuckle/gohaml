@@ -85,20 +85,20 @@ func DefaultEngineOptions() (opt EngineOptions) {
 	var c compiler.DefaultCompiler
 	compilerClass := reflect.TypeOf(c)
 	closers := []string{"meta", "img", "link", "br", "hr", "input", "area", "param", "col", "base"}
-	opt = EngineOptions {
-		'\'', // AttributeWrapper rune
-		closers,  // Autoclose []string
-		false, // Cdata bool
+	opt = EngineOptions{
+		'\'',          // AttributeWrapper rune
+		closers,       // Autoclose []string
+		false,         // Cdata bool
 		compilerClass, // CompilerClass reflect.Type
-		"UTF-8", // Encoding string
-		true, // EscapeAttributes bool
-		false, // EscapeHtml bool
-		"html5", // Format string
-		true, // HyphenateDataAttributes bool
-		parserClass, // ParserClass reflect.Type
-		false, // RemoveWhitespace bool
-		false, // SuppressEval bool
-		true, // Ugly bool
+		"UTF-8",       // Encoding string
+		true,          // EscapeAttributes bool
+		false,         // EscapeHtml bool
+		"html5",       // Format string
+		true,          // HyphenateDataAttributes bool
+		parserClass,   // ParserClass reflect.Type
+		false,         // RemoveWhitespace bool
+		false,         // SuppressEval bool
+		true,          // Ugly bool
 	}
 
 	return
