@@ -2,8 +2,8 @@ package parser
 
 import (
 	"errors"
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func DefaultParserReadsUntilErrorReturnedFromReadRune(t *testing.T) {
@@ -20,5 +20,5 @@ func DefaultParserReadsUntilErrorReturnedFromReadRune(t *testing.T) {
 	parser.Parse(reader)
 
 	reader.AssertExpectations(t)
-	assert.Equal(t, len(content) + 1, i)
+	assert.Equal(t, len(content)+1, i)
 }

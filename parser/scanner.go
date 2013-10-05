@@ -1,9 +1,9 @@
 package parser
 
 import (
+	"errors"
 	"io"
 	"unicode/utf8"
-	"errors"
 )
 
 type scanner struct {

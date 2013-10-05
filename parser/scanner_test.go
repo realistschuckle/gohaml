@@ -1,11 +1,11 @@
 package parser
 
 import (
-	"github.com/stretchr/testify/assert"
+	"errors"
 	"github.com/realistschuckle/testify/mock"
+	"github.com/stretchr/testify/assert"
 	"io"
 	"testing"
-	"errors"
 )
 
 type mockRuneReader struct {
@@ -93,7 +93,7 @@ func TestCannotUnreadMoreRunesThanRead(t *testing.T) {
 
 func TestWithReaderBeyondEightLimitRecovery(t *testing.T) {
 	content := []rune("Hello, World")
-	unreadable := content[len(content) - 8:]
+	unreadable := content[len(content)-8:]
 	mock := &mockRuneReader{}
 	var w int = 1
 	var r rune
@@ -120,4 +120,3 @@ func TestWithReaderBeyondEightLimitRecovery(t *testing.T) {
 		assert.Equal(t, c, r, "%c != %c", c, r)
 	}
 }
-
