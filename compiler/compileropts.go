@@ -4,7 +4,7 @@ package compiler
 CompilerOptions provides the structure of options available to customize the
 workings of the gohaml Compiler.
 */
-type CompilerOptions struct {
+type CompilerOpts struct {
 	// The rune that should wrap element attributes.
 	AttributeWrapper rune
 

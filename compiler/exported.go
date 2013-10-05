@@ -1,19 +1,20 @@
 package compiler
 
 import (
-	"github.com/realistschuckle/gohaml/parser"
+	p "github.com/realistschuckle/gohaml/parser"
 )
 
-type CompiledDocument struct {
+type CompiledDoc struct {
 }
 
 type HamlCompiler interface {
-	Compile(parser.ParsedDocument, *CompilerOptions) (CompiledDocument, error)
+	Compile(p.ParsedDoc, CompilerOpts) (CompiledDoc, error)
 }
 
 type DefaultCompiler struct {
 }
 
-func (self *DefaultCompiler) Compile(parser.ParsedDocument, *CompilerOptions) (d CompiledDocument, e error) {
+func (self *DefaultCompiler) Compile(input p.ParsedDoc, opts CompilerOpts) (doc CompiledDoc, e error) {
+	doc = CompiledDoc{}
 	return
 }

@@ -71,7 +71,7 @@ The default values are:
 	CompilerClass: nil
 	Encoding: "UTF-8"
 	EscapeAttributes: true
-	EscapeHtml: false
+	EscapeHtml: falsed
 	Format: "html5"
 	HyphenateDataAttributes: true
 	ParserClass: nil
@@ -81,8 +81,8 @@ The default values are:
 */
 func DefaultEngineOptions() (opt EngineOptions) {
 	var p parser.DefaultParser
-	parserClass := reflect.TypeOf(p)
 	var c compiler.DefaultCompiler
+	parserClass := reflect.TypeOf(p)
 	compilerClass := reflect.TypeOf(c)
 	closers := []string{"meta", "img", "link", "br", "hr", "input", "area", "param", "col", "base"}
 	opt = EngineOptions{
@@ -100,6 +100,5 @@ func DefaultEngineOptions() (opt EngineOptions) {
 		false,         // SuppressEval bool
 		true,          // Ugly bool
 	}
-
 	return
 }

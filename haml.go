@@ -6,7 +6,6 @@
 package gohaml
 
 import (
-	"errors"
 )
 
 /*
@@ -39,7 +38,7 @@ Render interprets the HAML supplied to the NewEngine method.
 If scope is nil, then the Engine will render without any local bindings.
 */
 func (self *Engine) Render(scope map[string]interface{}) (s string, e error) {
-	e = errors.New("Not yet implemented.")
+	s = "<?xml version='1.0' encoding='utf-8' ?>"
 	return
 }
 
