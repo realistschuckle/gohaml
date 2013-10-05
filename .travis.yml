@@ -2,4 +2,4 @@ language: go
 
 go: 1.1.2
 
-install: go get github.com/stretchr/testify
+install: go get github.com/realistschuckle/testify
