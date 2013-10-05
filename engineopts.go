@@ -1,6 +1,10 @@
 package gohaml
 
-import "reflect"
+import (
+	"github.com/realistschuckle/gohaml/compiler"
+	"github.com/realistschuckle/gohaml/parser"
+	"reflect"
+)
 
 /*
 EngineOptions provides the structure of options available to customize the
@@ -33,21 +37,12 @@ type EngineOptions struct {
 	// Sets whether or not to escape HTML-sensitive characters in script.
 	EscapeHtml bool
 
-	// The name of the Haml file being parsed.
-	Filename string
-
 	// Determines the output format.
 	Format string
 
 	// If set to true, Haml will convert underscores to hyphens in all Custom
 	// Data Attributes.
 	HyphenateDataAttributes bool
-
-	// The line offset of the Haml template being parsed.
-	Line int
-
-	// The mime type that the rendered document will be served with.
-	MimeType string
 
 	// The parser class to use. Must convert to HamlParser.
 	ParserClass reflect.Type
@@ -77,18 +72,34 @@ The default values are:
 	Encoding: "UTF-8"
 	EscapeAttributes: true
 	EscapeHtml: false
-	FileName: ""
 	Format: "html5"
 	HyphenateDataAttributes: true
-	Line: 0
-	MimeType: "text/html"
 	ParserClass: nil
 	RemoveWhitespace: false
 	SuppressEval: false
 	Ugly: true
 */
 func DefaultEngineOptions() (opt EngineOptions) {
+	var p parser.DefaultParser
+	parserClass := reflect.TypeOf(p)
+	var c compiler.DefaultCompiler
+	compilerClass := reflect.TypeOf(c)
 	closers := []string{"meta", "img", "link", "br", "hr", "input", "area", "param", "col", "base"}
-	opt = EngineOptions{'\'', closers, false, nil, "UTF-8", true, false, "", "html5", true, 0, "text/html", nil, false, false, true}
+	opt = EngineOptions {
+		'\'', // AttributeWrapper rune
+		closers,  // Autoclose []string
+		false, // Cdata bool
+		compilerClass, // CompilerClass reflect.Type
+		"UTF-8", // Encoding string
+		true, // EscapeAttributes bool
+		false, // EscapeHtml bool
+		"html5", // Format string
+		true, // HyphenateDataAttributes bool
+		parserClass, // ParserClass reflect.Type
+		false, // RemoveWhitespace bool
+		false, // SuppressEval bool
+		true, // Ugly bool
+	}
+
 	return
 }
