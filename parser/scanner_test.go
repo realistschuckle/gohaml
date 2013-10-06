@@ -2,20 +2,10 @@ package parser
 
 import (
 	"errors"
-	"github.com/realistschuckle/testify/mock"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"testing"
 )
-
-type mockRuneReader struct {
-	mock.Mock
-}
-
-func (self *mockRuneReader) ReadRune() (rune, int, error) {
-	args := self.Mock.Called()
-	return args.Get(0).(rune), args.Int(1), args.Error(2)
-}
 
 func TestScannerIsARuneScanner(t *testing.T) {
 	scanner := &scanner{}

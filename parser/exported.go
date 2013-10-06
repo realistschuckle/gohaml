@@ -38,6 +38,13 @@ type ParsedDoc struct {
 	Nodes []Node
 }
 
+func (self *ParsedDoc) Accept(visitor NodeVisitor) {
+	for i := 0; i < len(self.Nodes); i += 1 {
+		self.Nodes[i].Accept(visitor)
+	}
+	return
+}
+
 type DefaultParser struct {
 }
 
@@ -80,5 +87,5 @@ type DoctypeNode struct {
 }
 
 func (self *DoctypeNode) Accept(visitor NodeVisitor) {
-
+	visitor.VisitDoctype(self)
 }

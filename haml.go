@@ -6,6 +6,7 @@
 package gohaml
 
 import (
+	"github.com/realistschuckle/gohaml/compiler"
 	"github.com/realistschuckle/gohaml/parser"
 	"strings"
 )
@@ -16,6 +17,7 @@ template into its corresponding tag-based representation.
 */
 type Engine struct {
 	options *EngineOptions
+	doc     compiler.CompiledDoc
 }
 
 /*
@@ -32,9 +34,25 @@ func NewEngine(input string, options *EngineOptions) (e *Engine, err error) {
 	}
 	reader := strings.NewReader(input)
 	p := new(parser.DefaultParser)
-	p.Parse(reader)
+	pdoc, _ := p.Parse(reader)
 
-	e = &Engine{options}
+	opts := compiler.CompilerOpts{
+		options.AttributeWrapper,
+		options.Autoclose,
+		options.Cdata,
+		options.Encoding,
+		options.EscapeAttributes,
+		options.EscapeHtml,
+		options.Format,
+		options.HyphenateDataAttributes,
+		options.RemoveWhitespace,
+		options.SuppressEval,
+		options.Ugly,
+	}
+	c := new(compiler.DefaultCompiler)
+	cdoc, _ := c.Compile(pdoc, opts)
+
+	e = &Engine{options, cdoc}
 	return
 }
 
@@ -44,7 +62,7 @@ Render interprets the HAML supplied to the NewEngine method.
 If scope is nil, then the Engine will render without any local bindings.
 */
 func (self *Engine) Render(scope map[string]interface{}) (s string, e error) {
-	s = "<?xml version='1.0' encoding='utf-8' ?>"
+	s, e = self.doc.Render(scope)
 	return
 }
 

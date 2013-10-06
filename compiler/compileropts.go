@@ -25,9 +25,6 @@ type CompilerOpts struct {
 	// Sets whether or not to escape HTML-sensitive characters in script.
 	EscapeHtml bool
 
-	// The name of the Haml file being parsed.
-	Filename string
-
 	// Determines the output format.
 	Format string
 
