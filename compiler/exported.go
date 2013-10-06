@@ -39,7 +39,14 @@ func (self *DefaultCompiler) Compile(input p.ParsedDoc, opts CompilerOpts) (doc 
 }
 
 func (self *DefaultCompiler) VisitDoctype(node *p.DoctypeNode) {
-	self.doc.Outputs = append(self.doc.Outputs, &StaticOutput{"<?xml version='1.0' encoding='utf-8' ?>"})
+	var decl string
+	switch {
+	case node.Specifier == "XML":
+		decl = "<?xml version='1.0' encoding='utf-8' ?>"
+	case node.Specifier == "":
+		decl = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">"
+	}
+	self.doc.Outputs = append(self.doc.Outputs, &StaticOutput{decl})
 }
 
 type StaticOutput struct {

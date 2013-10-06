@@ -60,9 +60,14 @@ func (self *DefaultParser) Parse(input io.RuneReader) (doc ParsedDoc, err error)
 			parser := DoctypeParser{}
 			n, _ := parser.Parse(line)
 			nodes = append(nodes, n)
+			line = linebuf[0:0]
 		}
 	}
-	fmt.Println(nodes)
+	if len(line) > 0 {
+		parser := DoctypeParser{}
+		n, _ := parser.Parse(line)
+		nodes = append(nodes, n)
+	}
 
 	doc = ParsedDoc{nodes}
 	return
