@@ -30,6 +30,7 @@ func (self *CompiledDoc) Render(scope map[string]interface{}) (output string, er
 type DefaultCompiler struct {
 	doc  CompiledDoc
 	opts CompilerOpts
+	err error
 }
 
 func (self *DefaultCompiler) Compile(input p.ParsedDoc, opts CompilerOpts) (doc CompiledDoc, e error) {
@@ -41,7 +42,7 @@ func (self *DefaultCompiler) Compile(input p.ParsedDoc, opts CompilerOpts) (doc 
 }
 
 func (self *DefaultCompiler) VisitDoctype(node *p.DoctypeNode) {
-	var decl string
+	decl := "unknown"
 	switch self.opts.Format {
 	case "xhtml":
 		switch node.Specifier {
@@ -66,6 +67,13 @@ func (self *DefaultCompiler) VisitDoctype(node *p.DoctypeNode) {
 			decl = ""
 		case "":
 			decl = "<!DOCTYPE html>"
+		}
+	case "html4":
+		switch node.Specifier {
+		case "XML":
+			decl = ""
+		case "":
+			decl = "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">"
 		}
 	}
 	self.doc.Outputs = append(self.doc.Outputs, &StaticOutput{decl})
