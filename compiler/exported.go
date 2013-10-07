@@ -74,6 +74,8 @@ func (self *DefaultCompiler) VisitDoctype(node *p.DoctypeNode) {
 			decl = ""
 		case "frameset":
 			decl = "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Frameset//EN\" \"http://www.w3.org/TR/html4/frameset.dtd\">"
+		case "strict":
+			decl = "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
 		case "":
 			decl = "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">"
 		}
