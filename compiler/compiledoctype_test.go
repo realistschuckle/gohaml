@@ -203,3 +203,21 @@ func TestDoctypeEmptySpecWithHtml4Format(t *testing.T) {
 	output := cdoc.Outputs[0].(*StaticOutput)
 	assert.Equal(t, output.Content, "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">")
 }
+
+func TestDoctypeFramesetSpecWithHtml4Format(t *testing.T) {
+	opts := CompilerOpts{}
+	opts.Format = "html4"
+	nodes := []p.Node{&p.DoctypeNode{"frameset"}}
+	pdoc := p.ParsedDoc{}
+	pdoc.Nodes = nodes
+	compiler := DefaultCompiler{}
+
+	cdoc, e := compiler.Compile(pdoc, opts)
+
+	assert.Nil(t, e)
+	assert.NotNil(t, cdoc)
+	assert.Equal(t, len(cdoc.Outputs), 1)
+
+	output := cdoc.Outputs[0].(*StaticOutput)
+	assert.Equal(t, output.Content, "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Frameset//EN\" \"http://www.w3.org/TR/html4/frameset.dtd\">")
+}
