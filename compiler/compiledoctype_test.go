@@ -113,3 +113,21 @@ func TestDoctypeFramesetSpecWithXhtmlFormat(t *testing.T) {
 	output := cdoc.Outputs[0].(*StaticOutput)
 	assert.Equal(t, output.Content, "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Frameset//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd\">")
 }
+
+func TestDoctype5SpecWithXhtmlFormat(t *testing.T) {
+	opts := CompilerOpts{}
+	opts.Format = "xhtml"
+	nodes := []p.Node{&p.DoctypeNode{"5"}}
+	pdoc := p.ParsedDoc{}
+	pdoc.Nodes = nodes
+	compiler := DefaultCompiler{}
+
+	cdoc, e := compiler.Compile(pdoc, opts)
+
+	assert.Nil(t, e)
+	assert.NotNil(t, cdoc)
+	assert.Equal(t, len(cdoc.Outputs), 1)
+
+	output := cdoc.Outputs[0].(*StaticOutput)
+	assert.Equal(t, output.Content, "<!DOCTYPE html>")
+}
