@@ -77,3 +77,21 @@ func TestDoctypeMobileSpecWithXhtmlFormat(t *testing.T) {
 	output := cdoc.Outputs[0].(*StaticOutput)
 	assert.Equal(t, output.Content, "<!DOCTYPE html PUBLIC \"-//WAPFORUM//DTD XHTML Mobile 1.2//EN\" \"http://www.openmobilealliance.org/tech/DTD/xhtml-mobile12.dtd\">")
 }
+
+func TestDoctypeBasicSpecWithXhtmlFormat(t *testing.T) {
+	opts := CompilerOpts{}
+	opts.Format = "xhtml"
+	nodes := []p.Node{&p.DoctypeNode{"basic"}}
+	pdoc := p.ParsedDoc{}
+	pdoc.Nodes = nodes
+	compiler := DefaultCompiler{}
+
+	cdoc, e := compiler.Compile(pdoc, opts)
+
+	assert.Nil(t, e)
+	assert.NotNil(t, cdoc)
+	assert.Equal(t, len(cdoc.Outputs), 1)
+
+	output := cdoc.Outputs[0].(*StaticOutput)
+	assert.Equal(t, output.Content, "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML Basic 1.1//EN\" \"http://www.w3.org/TR/xhtml-basic/xhtml-basic11.dtd\">")
+}
