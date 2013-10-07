@@ -64,6 +64,8 @@ func (self *DefaultCompiler) VisitDoctype(node *p.DoctypeNode) {
 		switch node.Specifier {
 		case "XML":
 			decl = ""
+		case "":
+			decl = "<!DOCTYPE html>"
 		}
 	}
 	self.doc.Outputs = append(self.doc.Outputs, &StaticOutput{decl})
