@@ -131,3 +131,21 @@ func TestDoctype5SpecWithXhtmlFormat(t *testing.T) {
 	output := cdoc.Outputs[0].(*StaticOutput)
 	assert.Equal(t, output.Content, "<!DOCTYPE html>")
 }
+
+func TestDoctypeXmlSpecWithhtml5Format(t *testing.T) {
+	opts := CompilerOpts{}
+	opts.Format = "html5"
+	nodes := []p.Node{&p.DoctypeNode{"XML"}}
+	pdoc := p.ParsedDoc{}
+	pdoc.Nodes = nodes
+	compiler := DefaultCompiler{}
+
+	cdoc, e := compiler.Compile(pdoc, opts)
+
+	assert.Nil(t, e)
+	assert.NotNil(t, cdoc)
+	assert.Equal(t, len(cdoc.Outputs), 1)
+
+	output := cdoc.Outputs[0].(*StaticOutput)
+	assert.Equal(t, output.Content, "")
+}
