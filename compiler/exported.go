@@ -95,6 +95,8 @@ func (self *DefaultCompiler) VisitTag(node *p.TagNode) {
 		val = fmt.Sprintf("<%s />", node.Name)
 	case self.opts.Format == "html4" && len(self.opts.Autoclose) > 0 && self.opts.Autoclose[i] == node.Name:
 		val = fmt.Sprintf("<%s>", node.Name)
+	case self.opts.Format == "html5" && len(self.opts.Autoclose) > 0 && self.opts.Autoclose[i] == node.Name:
+		val = fmt.Sprintf("<%s>", node.Name)
 	default:
 		val = fmt.Sprintf("<%s></%s>", node.Name, node.Name)
 	}

@@ -84,3 +84,30 @@ func TestSelfClosingTagInHtml4(t *testing.T) {
 	output := cdoc.Outputs[0].(*StaticOutput)
 	assert.Equal(t, output.Content, "<br>")
 }
+
+func TestSelfClosingTagInHtml5(t *testing.T) {
+	opts := CompilerOpts{}
+	opts.Format = "html5"
+	opts.Autoclose = []string{"br"}
+	node := &p.TagNode{}
+	node.Name = "br"
+	nodes := []p.Node{node}
+	pdoc := p.ParsedDoc{}
+	pdoc.Nodes = nodes
+	compiler := DefaultCompiler{}
+
+	cdoc, e := compiler.Compile(pdoc, opts)
+
+	if ok := assert.Nil(t, e); !ok {
+		return
+	}
+	if ok := assert.NotNil(t, cdoc); !ok {
+		return
+	}
+	if ok := assert.Equal(t, 1, len(cdoc.Outputs)); !ok {
+		return
+	}
+
+	output := cdoc.Outputs[0].(*StaticOutput)
+	assert.Equal(t, output.Content, "<br>")
+}
