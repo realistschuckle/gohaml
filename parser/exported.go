@@ -111,7 +111,7 @@ type TagParser struct {
 
 func (self *TagParser) Parse(input []rune) (n Node, err *ParseError) {
 	tn := &TagNode{"div", "", nil, nil, nil, false}
-	if input[0] != '%' && input[0] != '#' {
+	if input[0] != '%' && input[0] != '#' && input[0] != '.' {
 		err = &ParseError{1, 1}
 		return
 	}

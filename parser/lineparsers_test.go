@@ -150,3 +150,30 @@ func TestTagParserReturnsDivForJustCssId(t *testing.T) {
 	assert.Equal(t, 0, len(dn.Classes))
 	assert.False(t, dn.Close)
 }
+
+func TestTagParserReturnsDivForJustCssClass(t *testing.T) {
+	input := []rune(".i_am_legend")
+	parser := TagParser{}
+
+	n, e := parser.Parse(input)
+
+	if ok := assert.Nil(t, e); !ok {
+		return
+	}
+	if ok := assert.NotNil(t, n); !ok {
+		return
+	}
+
+	dn := n.(*TagNode)
+	assert.Equal(t, "div", dn.Name)
+	assert.Equal(t, "", dn.Id)
+	assert.Equal(t, 0, len(dn.Attrs))
+	assert.Equal(t, 0, len(dn.Children))
+	assert.False(t, dn.Close)
+
+	if ok := assert.Equal(t, 1, len(dn.Classes)); !ok {
+		return
+	}
+
+	assert.Equal(t, "i_am_legend", dn.Classes[0])
+}
