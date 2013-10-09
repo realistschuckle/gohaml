@@ -27,7 +27,7 @@ func TestDoctypeParserReturnsDoctypeNodeWithDoctypeSpecifier(t *testing.T) {
 	assert.Equal(t, "some_specifier", dn.Specifier)
 }
 
-func TestTagParserReturnsErrorWhenDoesNotStartWithPercentSign(t *testing.T) {
+func TestTagParserReturnsErrorWhenDoesNotStartWithPercentSignOrOctothorpe(t *testing.T) {
 	input := []rune("blah")
 	parser := TagParser{}
 
@@ -123,6 +123,28 @@ func TestTagParserReturnsIdForTagWithId(t *testing.T) {
 	dn := n.(*TagNode)
 	assert.Equal(t, "video", dn.Name)
 	assert.Equal(t, "vid43", dn.Id)
+	assert.Equal(t, 0, len(dn.Attrs))
+	assert.Equal(t, 0, len(dn.Children))
+	assert.Equal(t, 0, len(dn.Classes))
+	assert.False(t, dn.Close)
+}
+
+func TestTagParserReturnsDivForJustCssId(t *testing.T) {
+	input := []rune("#you-wish")
+	parser := TagParser{}
+
+	n, e := parser.Parse(input)
+
+	if ok := assert.Nil(t, e); !ok {
+		return
+	}
+	if ok := assert.NotNil(t, n); !ok {
+		return
+	}
+
+	dn := n.(*TagNode)
+	assert.Equal(t, "div", dn.Name)
+	assert.Equal(t, "you-wish", dn.Id)
 	assert.Equal(t, 0, len(dn.Attrs))
 	assert.Equal(t, 0, len(dn.Children))
 	assert.Equal(t, 0, len(dn.Classes))
