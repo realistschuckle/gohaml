@@ -106,3 +106,25 @@ func TestTagParserReturnsClassNameForTagWithClass(t *testing.T) {
 
 	assert.Equal(t, "ui-helper-hidden", dn.Classes[0])
 }
+
+func TestTagParserReturnsIdForTagWithId(t *testing.T) {
+	input := []rune("%video#vid43")
+	parser := TagParser{}
+
+	n, e := parser.Parse(input)
+
+	if ok := assert.Nil(t, e); !ok {
+		return
+	}
+	if ok := assert.NotNil(t, n); !ok {
+		return
+	}
+
+	dn := n.(*TagNode)
+	assert.Equal(t, "video", dn.Name)
+	assert.Equal(t, "vid43", dn.Id)
+	assert.Equal(t, 0, len(dn.Attrs))
+	assert.Equal(t, 0, len(dn.Children))
+	assert.Equal(t, 0, len(dn.Classes))
+	assert.False(t, dn.Close)
+}

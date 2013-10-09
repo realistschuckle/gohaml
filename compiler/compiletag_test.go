@@ -276,57 +276,112 @@ func TestAutoClosingTagInHtml5WithClass(t *testing.T) {
 	assert.Equal(t, output.Content, "<br class='ui-state-default'>")
 }
 
-// func TestSelfClosingTagInXhtml(t *testing.T) {
-// 	opts := CompilerOpts{}
-// 	opts.Format = "xhtml"
-// 	node := &p.TagNode{}
-// 	node.Name = "whatever"
-// 	node.Close = true
-// 	nodes := []p.Node{node}
-// 	pdoc := p.ParsedDoc{}
-// 	pdoc.Nodes = nodes
-// 	compiler := DefaultCompiler{}
+func TestAutoClosingTagInXhtmlWithId(t *testing.T) {
+	opts := CompilerOpts{}
+	opts.Format = "xhtml"
+	opts.Autoclose = []string{"br"}
+	node := &p.TagNode{}
+	node.Name = "br"
+	node.Id = "marklar"
+	nodes := []p.Node{node}
+	pdoc := p.ParsedDoc{}
+	pdoc.Nodes = nodes
+	compiler := DefaultCompiler{}
 
-// 	cdoc, e := compiler.Compile(pdoc, opts)
+	cdoc, e := compiler.Compile(pdoc, opts)
 
-// 	if ok := assert.Nil(t, e); !ok {
-// 		return
-// 	}
-// 	if ok := assert.NotNil(t, cdoc); !ok {
-// 		return
-// 	}
-// 	if ok := assert.Equal(t, 1, len(cdoc.Outputs)); !ok {
-// 		return
-// 	}
+	if ok := assert.Nil(t, e); !ok {
+		return
+	}
+	if ok := assert.NotNil(t, cdoc); !ok {
+		return
+	}
+	if ok := assert.Equal(t, 1, len(cdoc.Outputs)); !ok {
+		return
+	}
 
-// 	output := cdoc.Outputs[0].(*StaticOutput)
-// 	assert.Equal(t, output.Content, "<whatever />")
-// }
+	output := cdoc.Outputs[0].(*StaticOutput)
+	assert.Equal(t, output.Content, "<br id='marklar' />")
+}
 
-// func TestSelfClosingTagInHtml5(t *testing.T) {
-// 	opts := CompilerOpts{}
-// 	opts.Format = "html5"
-// 	node := &p.TagNode{}
-// 	node.Name = "whatever"
-// 	node.Close = true
-// 	nodes := []p.Node{node}
-// 	pdoc := p.ParsedDoc{}
-// 	pdoc.Nodes = nodes
-// 	compiler := DefaultCompiler{}
+func TestAutoClosingTagInHtml4WithId(t *testing.T) {
+	opts := CompilerOpts{}
+	opts.Format = "html4"
+	opts.Autoclose = []string{"br"}
+	node := &p.TagNode{}
+	node.Name = "br"
+	node.Id = "marklar"
+	nodes := []p.Node{node}
+	pdoc := p.ParsedDoc{}
+	pdoc.Nodes = nodes
+	compiler := DefaultCompiler{}
 
-// 	cdoc, e := compiler.Compile(pdoc, opts)
+	cdoc, e := compiler.Compile(pdoc, opts)
 
-// 	if ok := assert.Nil(t, e); !ok {
-// 		return
-// 	}
-// 	if ok := assert.NotNil(t, cdoc); !ok {
-// 		return
-// 	}
-// 	if ok := assert.Equal(t, 1, len(cdoc.Outputs)); !ok {
-// 		return
-// 	}
+	if ok := assert.Nil(t, e); !ok {
+		return
+	}
+	if ok := assert.NotNil(t, cdoc); !ok {
+		return
+	}
+	if ok := assert.Equal(t, 1, len(cdoc.Outputs)); !ok {
+		return
+	}
 
-// 	output := cdoc.Outputs[0].(*StaticOutput)
-// 	assert.Equal(t, output.Content, "<whatever>")
-// }
+	output := cdoc.Outputs[0].(*StaticOutput)
+	assert.Equal(t, output.Content, "<br id='marklar'>")
+}
 
+func TestAutoClosingTagInHtml5WithId(t *testing.T) {
+	opts := CompilerOpts{}
+	opts.Format = "html5"
+	opts.Autoclose = []string{"br"}
+	node := &p.TagNode{}
+	node.Name = "br"
+	node.Id = "marklar"
+	nodes := []p.Node{node}
+	pdoc := p.ParsedDoc{}
+	pdoc.Nodes = nodes
+	compiler := DefaultCompiler{}
+
+	cdoc, e := compiler.Compile(pdoc, opts)
+
+	if ok := assert.Nil(t, e); !ok {
+		return
+	}
+	if ok := assert.NotNil(t, cdoc); !ok {
+		return
+	}
+	if ok := assert.Equal(t, 1, len(cdoc.Outputs)); !ok {
+		return
+	}
+
+	output := cdoc.Outputs[0].(*StaticOutput)
+	assert.Equal(t, output.Content, "<br id='marklar'>")
+}
+
+func TestTagWithIdOuptutsId(t *testing.T) {
+	opts := CompilerOpts{}
+	node := &p.TagNode{}
+	node.Name = "h1"
+	node.Id = "marklar"
+	nodes := []p.Node{node}
+	pdoc := p.ParsedDoc{}
+	pdoc.Nodes = nodes
+	compiler := DefaultCompiler{}
+
+	cdoc, e := compiler.Compile(pdoc, opts)
+
+	if ok := assert.Nil(t, e); !ok {
+		return
+	}
+	if ok := assert.NotNil(t, cdoc); !ok {
+		return
+	}
+	if ok := assert.Equal(t, 1, len(cdoc.Outputs)); !ok {
+		return
+	}
+
+	output := cdoc.Outputs[0].(*StaticOutput)
+	assert.Equal(t, output.Content, "<h1 id='marklar'></h1>")
+}

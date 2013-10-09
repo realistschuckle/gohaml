@@ -155,6 +155,23 @@ func (self *TagParser) Parse(input []rune) (n Node, err *ParseError) {
 			i -= 1
 			continue
 		}
+		if input[i] == '#' {
+			start = i + 1
+			for i = i + 1; i < len(input); i += 1 {
+				if !unicode.IsLetter(input[i]) &&
+				   !unicode.IsDigit(input[i]) &&
+				   input[i] != '-' &&
+				   input[i] != '_' {
+				   	tn.Id = string(input[start:i])
+				   	break
+				}
+				if i == len(input) - 1 {
+					tn.Id = string(input[start:i + 1])
+				}
+			}
+			i -= 1
+			continue
+		}
 		if input[i] == '/' {
 			tn.Close = true
 		}
