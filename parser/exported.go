@@ -110,11 +110,15 @@ type TagParser struct {
 }
 
 func (self *TagParser) Parse(input []rune) (n Node, err *ParseError) {
-	tn := &TagNode{"div", "", nil, nil, nil}
+	tn := &TagNode{"div", "", nil, nil, nil, false}
 	if input[0] == '%' {
 		tn.Name = strings.TrimFunc(string(input[1:]), func(r rune) bool {
 			return unicode.IsSpace(r)
 		})
+		if tn.Name[len(tn.Name)-1] == '/' {
+			tn.Name = tn.Name[0 : len(tn.Name)-1]
+			tn.Close = true
+		}
 	}
 	n = tn
 	return
@@ -134,6 +138,7 @@ type TagNode struct {
 	Classes  []string
 	Attrs    map[string]string
 	Children []Node
+	Close    bool
 }
 
 func (self *TagNode) Accept(visitor NodeVisitor) {

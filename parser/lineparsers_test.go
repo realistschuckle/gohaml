@@ -46,4 +46,27 @@ func TestTagParserReturnsTagNodeWithNameForPercentSignInput(t *testing.T) {
 	assert.Equal(t, 0, len(dn.Classes))
 	assert.Equal(t, 0, len(dn.Attrs))
 	assert.Equal(t, 0, len(dn.Children))
+	assert.False(t, dn.Close)
+}
+
+func TestTagParserReturnsCloseFlagTrueForIndicator(t *testing.T) {
+	input := []rune("%giggety/")
+	parser := TagParser{}
+
+	n, e := parser.Parse(input)
+
+	if ok := assert.Nil(t, e); !ok {
+		return
+	}
+	if ok := assert.NotNil(t, n); !ok {
+		return
+	}
+
+	dn := n.(*TagNode)
+	assert.Equal(t, "giggety", dn.Name)
+	assert.Equal(t, "", dn.Id)
+	assert.Equal(t, 0, len(dn.Classes))
+	assert.Equal(t, 0, len(dn.Attrs))
+	assert.Equal(t, 0, len(dn.Children))
+	assert.True(t, dn.Close)
 }
