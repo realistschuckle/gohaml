@@ -165,3 +165,29 @@ func TestSelfClosingTagInHtml5(t *testing.T) {
 	output := cdoc.Outputs[0].(*StaticOutput)
 	assert.Equal(t, output.Content, "<whatever>")
 }
+
+func TestTagWithSingleClassNameOutputsClassAttribute(t *testing.T) {
+	opts := CompilerOpts{}
+	node := &p.TagNode{}
+	node.Name = "h1"
+	node.Classes = []string{"ui-helper-hidden"}
+	nodes := []p.Node{node}
+	pdoc := p.ParsedDoc{}
+	pdoc.Nodes = nodes
+	compiler := DefaultCompiler{}
+
+	cdoc, e := compiler.Compile(pdoc, opts)
+
+	if ok := assert.Nil(t, e); !ok {
+		return
+	}
+	if ok := assert.NotNil(t, cdoc); !ok {
+		return
+	}
+	if ok := assert.Equal(t, 1, len(cdoc.Outputs)); !ok {
+		return
+	}
+
+	output := cdoc.Outputs[0].(*StaticOutput)
+	assert.Equal(t, output.Content, "<h1 class='ui-helper-hidden'></h1>")
+}

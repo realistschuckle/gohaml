@@ -5,6 +5,7 @@ import (
 	"fmt"
 	p "github.com/realistschuckle/gohaml/parser"
 	"sort"
+	"strings"
 )
 
 type HamlCompiler interface {
@@ -89,20 +90,23 @@ func (self *DefaultCompiler) VisitDoctype(node *p.DoctypeNode) {
 func (self *DefaultCompiler) VisitTag(node *p.TagNode) {
 	var val string
 	i := sort.SearchStrings(self.opts.Autoclose, node.Name)
+	autoClose := len(self.opts.Autoclose) > 0 && i < len(self.opts.Autoclose) && self.opts.Autoclose[i] == node.Name
+	shouldClose := node.Close || autoClose
+
+	classes := ""
+	if len(node.Classes) > 0 {
+		classes = fmt.Sprintf(" class='%v'", strings.Join(node.Classes, " "))
+	}
 
 	switch {
-	case self.opts.Format == "xhtml" && len(self.opts.Autoclose) > 0 && i < len(self.opts.Autoclose) && self.opts.Autoclose[i] == node.Name:
+	case self.opts.Format == "xhtml" && shouldClose:
 		val = fmt.Sprintf("<%s />", node.Name)
-	case self.opts.Format == "xhtml" && node.Close:
-		val = fmt.Sprintf("<%s />", node.Name)
-	case self.opts.Format == "html4" && len(self.opts.Autoclose) > 0 && i < len(self.opts.Autoclose) && self.opts.Autoclose[i] == node.Name:
+	case self.opts.Format == "html4" && shouldClose:
 		val = fmt.Sprintf("<%s>", node.Name)
-	case self.opts.Format == "html5" && len(self.opts.Autoclose) > 0 && i < len(self.opts.Autoclose) && self.opts.Autoclose[i] == node.Name:
-		val = fmt.Sprintf("<%s>", node.Name)
-	case self.opts.Format == "html5" && node.Close:
+	case self.opts.Format == "html5" && shouldClose:
 		val = fmt.Sprintf("<%s>", node.Name)
 	default:
-		val = fmt.Sprintf("<%s></%s>", node.Name, node.Name)
+		val = fmt.Sprintf("<%s%s></%s>", node.Name, classes, node.Name)
 	}
 	output := &StaticOutput{val}
 	self.doc.Outputs = append(self.doc.Outputs, output)
