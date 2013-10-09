@@ -3,6 +3,7 @@ package compiler
 import (
 	"bytes"
 	"fmt"
+	"sort"
 	p "github.com/realistschuckle/gohaml/parser"
 )
 
@@ -37,6 +38,7 @@ type DefaultCompiler struct {
 func (self *DefaultCompiler) Compile(input p.ParsedDoc, opts CompilerOpts) (doc CompiledDoc, e error) {
 	self.doc = CompiledDoc{}
 	self.opts = opts
+	sort.Strings(self.opts.Autoclose)
 	input.Accept(self)
 	doc = self.doc
 	return
@@ -85,7 +87,17 @@ func (self *DefaultCompiler) VisitDoctype(node *p.DoctypeNode) {
 }
 
 func (self *DefaultCompiler) VisitTag(node *p.TagNode) {
-	val := fmt.Sprintf("<%s></%s>", node.Name, node.Name)
+	var val string
+	i := sort.SearchStrings(self.opts.Autoclose, node.Name)
+
+	switch {
+	case self.opts.Format == "xhtml" && len(self.opts.Autoclose) > 0 && self.opts.Autoclose[i] == node.Name:
+		val = fmt.Sprintf("<%s />", node.Name)
+	case self.opts.Format == "html4" && len(self.opts.Autoclose) > 0 && self.opts.Autoclose[i] == node.Name:
+		val = fmt.Sprintf("<%s>", node.Name)
+	default:
+		val = fmt.Sprintf("<%s></%s>", node.Name, node.Name)
+	}
 	output := &StaticOutput{val}
 	self.doc.Outputs = append(self.doc.Outputs, output)
 }
