@@ -31,7 +31,7 @@ func (self *CompiledDoc) Render(scope map[string]interface{}) (output string, er
 type DefaultCompiler struct {
 	doc  CompiledDoc
 	opts CompilerOpts
-	err error
+	err  error
 }
 
 func (self *DefaultCompiler) Compile(input p.ParsedDoc, opts CompilerOpts) (doc CompiledDoc, e error) {

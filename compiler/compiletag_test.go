@@ -30,4 +30,3 @@ func TestTagWithOnlyTagName(t *testing.T) {
 	output := cdoc.Outputs[0].(*StaticOutput)
 	assert.Equal(t, output.Content, "<p></p>")
 }
-

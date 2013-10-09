@@ -129,10 +129,10 @@ func (self *DoctypeNode) Accept(visitor NodeVisitor) {
 }
 
 type TagNode struct {
-	Name string
-	Id string
-	Classes []string
-	Attrs map[string]string
+	Name     string
+	Id       string
+	Classes  []string
+	Attrs    map[string]string
 	Children []Node
 }
 
