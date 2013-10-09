@@ -20,6 +20,10 @@ func (self *mockVisitor) VisitDoctype(node *DoctypeNode) {
 	self.Mock.Called(node)
 }
 
+func (self *mockVisitor) VisitTag(node *TagNode) {
+	self.Mock.Called(node)
+}
+
 type mockRuneReader struct {
 	mock.Mock
 }

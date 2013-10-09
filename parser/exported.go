@@ -9,6 +9,7 @@ import (
 
 type NodeVisitor interface {
 	VisitDoctype(*DoctypeNode)
+	VisitTag(*TagNode)
 }
 
 type Node interface {
@@ -20,7 +21,7 @@ type HamlParser interface {
 }
 
 type LineParser interface {
-	Parse([]rune) (Node, ParseError)
+	Parse([]rune) (Node, *ParseError)
 }
 
 type ParseError struct {
@@ -53,19 +54,36 @@ func (self *DefaultParser) Parse(input io.RuneReader) (doc ParsedDoc, err error)
 	linebuf := [1000]rune{}
 	line := linebuf[0:0]
 	nodes := []Node{}
+	var parser LineParser
 
 	for r, _, ok := scanner.ReadRune(); ok == nil; r, _, ok = scanner.ReadRune() {
 		line = append(line, r)
 		if r == '\n' {
-			parser := DoctypeParser{}
-			n, _ := parser.Parse(line)
+			if line[0] == '!' {
+				parser = &DoctypeParser{}
+			} else {
+				parser = &TagParser{}
+			}
+			n, e := parser.Parse(line)
+			if e != nil {
+				err = e
+				return
+			}
 			nodes = append(nodes, n)
 			line = linebuf[0:0]
 		}
 	}
 	if len(line) > 0 {
-		parser := DoctypeParser{}
-		n, _ := parser.Parse(line)
+		if line[0] == '!' {
+			parser = &DoctypeParser{}
+		} else {
+			parser = &TagParser{}
+		}
+		n, e := parser.Parse(line)
+		if e != nil {
+			err = e
+			return
+		}
 		nodes = append(nodes, n)
 	}
 
@@ -76,14 +94,29 @@ func (self *DefaultParser) Parse(input io.RuneReader) (doc ParsedDoc, err error)
 type DoctypeParser struct {
 }
 
-func (self *DoctypeParser) Parse(input []rune) (n Node, err error) {
+func (self *DoctypeParser) Parse(input []rune) (n Node, err *ParseError) {
 	if len(input) < 3 || input[0] != '!' || input[1] != '!' || input[2] != '!' {
 		err = &ParseError{1, 1}
+		return
 	}
 	specifier := strings.TrimFunc(string(input[3:]), func(r rune) bool {
 		return unicode.IsSpace(r)
 	})
 	n = &DoctypeNode{specifier}
+	return
+}
+
+type TagParser struct {
+}
+
+func (self *TagParser) Parse(input []rune) (n Node, err *ParseError) {
+	tn := &TagNode{"div", "", nil, nil, nil}
+	if input[0] == '%' {
+		tn.Name = strings.TrimFunc(string(input[1:]), func(r rune) bool {
+			return unicode.IsSpace(r)
+		})
+	}
+	n = tn
 	return
 }
 
@@ -93,4 +126,16 @@ type DoctypeNode struct {
 
 func (self *DoctypeNode) Accept(visitor NodeVisitor) {
 	visitor.VisitDoctype(self)
+}
+
+type TagNode struct {
+	Name string
+	Id string
+	Classes []string
+	Attrs map[string]string
+	Children []Node
+}
+
+func (self *TagNode) Accept(visitor NodeVisitor) {
+	visitor.VisitTag(self)
 }

@@ -2,6 +2,7 @@ package compiler
 
 import (
 	"bytes"
+	"fmt"
 	p "github.com/realistschuckle/gohaml/parser"
 )
 
@@ -81,6 +82,12 @@ func (self *DefaultCompiler) VisitDoctype(node *p.DoctypeNode) {
 		}
 	}
 	self.doc.Outputs = append(self.doc.Outputs, &StaticOutput{decl})
+}
+
+func (self *DefaultCompiler) VisitTag(node *p.TagNode) {
+	val := fmt.Sprintf("<%s></%s>", node.Name, node.Name)
+	output := &StaticOutput{val}
+	self.doc.Outputs = append(self.doc.Outputs, output)
 }
 
 type StaticOutput struct {
