@@ -385,3 +385,117 @@ func TestTagWithIdOuptutsId(t *testing.T) {
 	output := cdoc.Outputs[0].(*StaticOutput)
 	assert.Equal(t, output.Content, "<h1 id='marklar'></h1>")
 }
+
+func TestAutoClosingTagInXhtmlWithIdAndClassOutputsClassesFirst(t *testing.T) {
+	opts := CompilerOpts{}
+	opts.Format = "xhtml"
+	opts.Autoclose = []string{"br"}
+	node := &p.TagNode{}
+	node.Name = "br"
+	node.Id = "marklar"
+	node.Classes = []string{"one", "two", "three"}
+	nodes := []p.Node{node}
+	pdoc := p.ParsedDoc{}
+	pdoc.Nodes = nodes
+	compiler := DefaultCompiler{}
+
+	cdoc, e := compiler.Compile(pdoc, opts)
+
+	if ok := assert.Nil(t, e); !ok {
+		return
+	}
+	if ok := assert.NotNil(t, cdoc); !ok {
+		return
+	}
+	if ok := assert.Equal(t, 1, len(cdoc.Outputs)); !ok {
+		return
+	}
+
+	output := cdoc.Outputs[0].(*StaticOutput)
+	assert.Equal(t, output.Content, "<br class='one two three' id='marklar' />")
+}
+
+func TestAutoClosingTagInHtml4WithIdAndClassesOutputsClassesFirst(t *testing.T) {
+	opts := CompilerOpts{}
+	opts.Format = "html4"
+	opts.Autoclose = []string{"br"}
+	node := &p.TagNode{}
+	node.Name = "br"
+	node.Id = "marklar"
+	node.Classes = []string{"one", "two", "three"}
+	nodes := []p.Node{node}
+	pdoc := p.ParsedDoc{}
+	pdoc.Nodes = nodes
+	compiler := DefaultCompiler{}
+
+	cdoc, e := compiler.Compile(pdoc, opts)
+
+	if ok := assert.Nil(t, e); !ok {
+		return
+	}
+	if ok := assert.NotNil(t, cdoc); !ok {
+		return
+	}
+	if ok := assert.Equal(t, 1, len(cdoc.Outputs)); !ok {
+		return
+	}
+
+	output := cdoc.Outputs[0].(*StaticOutput)
+	assert.Equal(t, output.Content, "<br class='one two three' id='marklar'>")
+}
+
+func TestAutoClosingTagInHtml5WithIdAndClassesOutputsClassesFirst(t *testing.T) {
+	opts := CompilerOpts{}
+	opts.Format = "html5"
+	opts.Autoclose = []string{"br"}
+	node := &p.TagNode{}
+	node.Name = "br"
+	node.Id = "marklar"
+	node.Classes = []string{"one", "two", "three"}
+	nodes := []p.Node{node}
+	pdoc := p.ParsedDoc{}
+	pdoc.Nodes = nodes
+	compiler := DefaultCompiler{}
+
+	cdoc, e := compiler.Compile(pdoc, opts)
+
+	if ok := assert.Nil(t, e); !ok {
+		return
+	}
+	if ok := assert.NotNil(t, cdoc); !ok {
+		return
+	}
+	if ok := assert.Equal(t, 1, len(cdoc.Outputs)); !ok {
+		return
+	}
+
+	output := cdoc.Outputs[0].(*StaticOutput)
+	assert.Equal(t, output.Content, "<br class='one two three' id='marklar'>")
+}
+
+func TestTagWithIdAndClassesOuptutsClassesFirst(t *testing.T) {
+	opts := CompilerOpts{}
+	node := &p.TagNode{}
+	node.Name = "h1"
+	node.Id = "marklar"
+	node.Classes = []string{"one", "two", "three"}
+	nodes := []p.Node{node}
+	pdoc := p.ParsedDoc{}
+	pdoc.Nodes = nodes
+	compiler := DefaultCompiler{}
+
+	cdoc, e := compiler.Compile(pdoc, opts)
+
+	if ok := assert.Nil(t, e); !ok {
+		return
+	}
+	if ok := assert.NotNil(t, cdoc); !ok {
+		return
+	}
+	if ok := assert.Equal(t, 1, len(cdoc.Outputs)); !ok {
+		return
+	}
+
+	output := cdoc.Outputs[0].(*StaticOutput)
+	assert.Equal(t, output.Content, "<h1 class='one two three' id='marklar'></h1>")
+}

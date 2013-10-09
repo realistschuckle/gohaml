@@ -105,13 +105,13 @@ func (self *DefaultCompiler) VisitTag(node *p.TagNode) {
 
 	switch {
 	case self.opts.Format == "xhtml" && shouldClose:
-		val = fmt.Sprintf("<%s%s%s />", node.Name, id, classes)
+		val = fmt.Sprintf("<%s%s%s />", node.Name, classes, id)
 	case self.opts.Format == "html4" && shouldClose:
-		val = fmt.Sprintf("<%s%s%s>", node.Name, id, classes)
+		val = fmt.Sprintf("<%s%s%s>", node.Name, classes, id)
 	case self.opts.Format == "html5" && shouldClose:
-		val = fmt.Sprintf("<%s%s%s>", node.Name, id, classes)
+		val = fmt.Sprintf("<%s%s%s>", node.Name, classes, id)
 	default:
-		val = fmt.Sprintf("<%s%s%s></%s>", node.Name, id, classes, node.Name)
+		val = fmt.Sprintf("<%s%s%s></%s>", node.Name, classes, id, node.Name)
 	}
 	output := &StaticOutput{val}
 	self.doc.Outputs = append(self.doc.Outputs, output)
