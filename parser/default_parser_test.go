@@ -9,7 +9,7 @@ import (
 func TestDefaultParserReadsUntilErrorReturnedFromReadRune(t *testing.T) {
 	reader := &mockRuneReader{}
 	parser := &DefaultParser{}
-	content := []rune("%html\n  %head\n    %title Hello\n  %body This is great!")
+	content := []rune("!!!\n%html")
 	i := 0
 	width := int(1)
 

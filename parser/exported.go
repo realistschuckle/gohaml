@@ -111,15 +111,55 @@ type TagParser struct {
 
 func (self *TagParser) Parse(input []rune) (n Node, err *ParseError) {
 	tn := &TagNode{"div", "", nil, nil, nil, false}
-	if input[0] == '%' {
-		tn.Name = strings.TrimFunc(string(input[1:]), func(r rune) bool {
-			return unicode.IsSpace(r)
-		})
-		if tn.Name[len(tn.Name)-1] == '/' {
-			tn.Name = tn.Name[0 : len(tn.Name)-1]
+	if input[0] != '%' {
+		err = &ParseError{1, 1}
+		return
+	}
+
+	start := 0
+	for i := 0; i < len(input); i += 1 {
+		if input[i] == '%' {
+			start = i + 1
+			for i = i + 1; i < len(input); i += 1 {
+				if !unicode.IsLetter(input[i]) &&
+				   !unicode.IsDigit(input[i]) &&
+				   input[i] != '-' &&
+				   input[i] != '_' &&
+				   input[i] != ':' {
+				   	tn.Name = string(input[start:i])
+				   	break
+			   }
+			   if i == len(input) - 1 {
+				   	tn.Name = string(input[start:i + 1])
+			   }
+			}
+			i -= 1
+			continue
+		}
+		if input[i] == '.' {
+			start = i + 1
+			for i = i + 1; i < len(input); i += 1 {
+				if !unicode.IsLetter(input[i]) &&
+				   !unicode.IsDigit(input[i]) &&
+				   input[i] != '-' &&
+				   input[i] != '_' {
+				   	class := string(input[start:i])
+				   	tn.Classes = append(tn.Classes, class)
+				   	break
+			   }
+			   if i == len(input) - 1 {
+				   	class := string(input[start:i + 1])
+				   	tn.Classes = append(tn.Classes, class)
+			   }
+			}
+			i -= 1
+			continue
+		}
+		if input[i] == '/' {
 			tn.Close = true
 		}
 	}
+
 	n = tn
 	return
 }
