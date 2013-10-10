@@ -18,7 +18,12 @@ func TestDefaultParserReadsUntilErrorReturnedFromReadRune(t *testing.T) {
 	}
 	reader.On("ReadRune").Return('\000', width, errors.New(""))
 
-	parser.Parse(reader)
+	_, e := parser.Parse(reader)
+
+	if ok := assert.Nil(t, e); !ok {
+		assert.Fail(t, e.Error())
+		return
+	}
 
 	reader.AssertExpectations(t)
 	assert.Equal(t, i, len(content))
@@ -66,4 +71,62 @@ func TestDefaultParserReturnsTag(t *testing.T) {
 	assert.Equal(t, 0, len(dn.Classes))
 	assert.Equal(t, 0, len(dn.Attrs))
 	assert.Equal(t, 0, len(dn.Children))
+}
+
+func TestDefaultParserUnderstandsIndentation(t *testing.T) {
+	reader := &mockRuneReader{}
+	parser := &DefaultParser{}
+	content := []rune("%div\n  %div\n    %div")
+	i := 0
+
+	for ; i < len(content); i += 1 {
+		reader.On("ReadRune").Return(content[i], 1, nil).Once()
+	}
+	reader.On("ReadRune").Return('\000', 0, errors.New(""))
+
+	_, e := parser.Parse(reader)
+	if ok := assert.Nil(t, e); !ok {
+		return
+	}
+
+	assert.Equal(t, "  ", parser.Indentation())
+}
+
+func TestDefaultParserPutsChildrenInTheRightPlace(t *testing.T) {
+	reader := &mockRuneReader{}
+	parser := &DefaultParser{}
+	content := []rune("%div\n  %div\n    %div\n  %div\n%div")
+	i := 0
+
+	for ; i < len(content); i += 1 {
+		reader.On("ReadRune").Return(content[i], 1, nil).Once()
+	}
+	reader.On("ReadRune").Return('\000', 0, errors.New(""))
+
+	doc, e := parser.Parse(reader)
+	if ok := assert.Nil(t, e); !ok {
+		return
+	}
+
+	if ok := assert.Equal(t, 2, len(doc.Nodes)); !ok {
+		return
+	}
+
+	dn := doc.Nodes[0].(*TagNode)
+	assert.Equal(t, "div", dn.Name)
+	assert.Equal(t, "", dn.Id)
+	assert.Equal(t, 0, len(dn.Classes))
+	assert.Equal(t, 0, len(dn.Attrs))
+	if ok := assert.Equal(t, 2, len(dn.Children)); !ok {
+		return
+	}
+
+	dn = doc.Nodes[0].(*TagNode).Children[0].(*TagNode)
+	assert.Equal(t, "div", dn.Name)
+	assert.Equal(t, "", dn.Id)
+	assert.Equal(t, 0, len(dn.Classes))
+	assert.Equal(t, 0, len(dn.Attrs))
+	if ok := assert.Equal(t, 1, len(dn.Children)); !ok {
+		return
+	}
 }

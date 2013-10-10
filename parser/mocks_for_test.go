@@ -12,6 +12,11 @@ func (self *mockNode) Accept(visitor NodeVisitor) {
 	self.Mock.Called(visitor)
 }
 
+func (self *mockNode) AddChild(child Node) bool {
+	args := self.Mock.Called(child)
+	return args.Bool(0)
+}
+
 type mockVisitor struct {
 	mock.Mock
 }

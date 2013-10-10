@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"container/list"
 	"fmt"
 	"io"
 	"strings"
@@ -14,10 +15,12 @@ type NodeVisitor interface {
 
 type Node interface {
 	Accept(NodeVisitor)
+	AddChild(Node) (ok bool)
 }
 
 type HamlParser interface {
 	Parse(io.RuneReader) (ParsedDoc, ParseError)
+	Indentation() string
 }
 
 type LineParser interface {
@@ -47,44 +50,81 @@ func (self *ParsedDoc) Accept(visitor NodeVisitor) {
 }
 
 type DefaultParser struct {
+	indentation string
+}
+
+func (self *DefaultParser) Indentation() (s string) {
+	s = self.indentation
+	return
 }
 
 func (self *DefaultParser) Parse(input io.RuneReader) (doc ParsedDoc, err error) {
 	scanner := scanner{input, [8]rune{}, 0, 0}
 	linebuf := [1000]rune{}
 	line := linebuf[0:0]
+	lineNumber := 0
 	nodes := []Node{}
+	stack := list.New()
+	indentDepth := 0
 	var parser LineParser
 
-	for r, _, ok := scanner.ReadRune(); ok == nil; r, _, ok = scanner.ReadRune() {
-		line = append(line, r)
-		if r == '\n' {
-			if line[0] == '!' {
-				parser = &DoctypeParser{}
-			} else {
-				parser = &TagParser{}
+	parseLine := func(line []rune) (n Node, space string, e *ParseError) {
+		for i := 0; i < len(line); i += 1 {
+			if !unicode.IsSpace(line[i]) {
+				space = string(line[0:i])
+				line = line[i:]
+				break
 			}
-			n, e := parser.Parse(line)
-			if e != nil {
-				err = e
-				return
-			}
-			nodes = append(nodes, n)
-			line = linebuf[0:0]
 		}
-	}
-	if len(line) > 0 {
+		if len(self.indentation) == 0 && len(space) > 0 {
+			self.indentation = space
+		}
+		if len(self.indentation) > 0 {
+			indentDepth = len(space) / len(self.indentation)
+		}
 		if line[0] == '!' {
 			parser = &DoctypeParser{}
 		} else {
 			parser = &TagParser{}
 		}
-		n, e := parser.Parse(line)
+		n, e = parser.Parse(line)
+		for stack.Len() > indentDepth {
+			stack.Remove(stack.Back())
+		}
+		if stack.Len() > 0 {
+			parent := stack.Back().Value.(Node)
+			parent.AddChild(n)
+		} else {
+			nodes = append(nodes, n)
+		}
+		stack.PushBack(n)
 		if e != nil {
+			e.column += len(space)
+		}
+		return
+	}
+
+	for r, _, ok := scanner.ReadRune(); ok == nil; r, _, ok = scanner.ReadRune() {
+		if r == '\n' {
+			lineNumber += 1
+			_, _, e := parseLine(line)
+			if e != nil {
+				e.line = lineNumber
+				err = e
+				return
+			}
+			line = linebuf[0:0]
+		} else {
+			line = append(line, r)
+		}
+	}
+	if len(line) > 0 {
+		_, _, e := parseLine(line)
+		if e != nil {
+			e.line = lineNumber
 			err = e
 			return
 		}
-		nodes = append(nodes, n)
 	}
 
 	doc = ParsedDoc{nodes}
@@ -189,6 +229,10 @@ func (self *DoctypeNode) Accept(visitor NodeVisitor) {
 	visitor.VisitDoctype(self)
 }
 
+func (self *DoctypeNode) AddChild(child Node) (ok bool) {
+	return
+}
+
 type TagNode struct {
 	Name     string
 	Id       string
@@ -200,4 +244,10 @@ type TagNode struct {
 
 func (self *TagNode) Accept(visitor NodeVisitor) {
 	visitor.VisitTag(self)
+}
+
+func (self *TagNode) AddChild(child Node) (ok bool) {
+	ok = child != nil
+	self.Children = append(self.Children, child)
+	return
 }
