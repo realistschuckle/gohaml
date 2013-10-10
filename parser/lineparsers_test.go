@@ -9,7 +9,7 @@ func TestDoctypeParserReturnsErrorWhenDoesNotStartWithTripleBang(t *testing.T) {
 	input := []rune("Not a valid doctype")
 	parser := DoctypeParser{}
 
-	_, e := parser.Parse(input)
+	_, e := parser.Parse("", input)
 
 	assert.NotNil(t, e)
 }
@@ -18,7 +18,7 @@ func TestDoctypeParserReturnsDoctypeNodeWithDoctypeSpecifier(t *testing.T) {
 	input := []rune("!!! some_specifier  \r\n")
 	parser := DoctypeParser{}
 
-	n, e := parser.Parse(input)
+	n, e := parser.Parse("", input)
 
 	assert.Nil(t, e)
 	assert.NotNil(t, n)
@@ -31,7 +31,7 @@ func TestTagParserReturnsErrorWhenDoesNotStartWithPercentSignOrOctothorpe(t *tes
 	input := []rune("blah")
 	parser := TagParser{}
 
-	_, e := parser.Parse(input)
+	_, e := parser.Parse("", input)
 
 	assert.NotNil(t, e)
 }
@@ -40,7 +40,7 @@ func TestTagParserReturnsTagNodeWithNameForPercentSignInput(t *testing.T) {
 	input := []rune("%html")
 	parser := TagParser{}
 
-	n, e := parser.Parse(input)
+	n, e := parser.Parse("", input)
 
 	if ok := assert.Nil(t, e); !ok {
 		return
@@ -62,7 +62,7 @@ func TestTagParserReturnsCloseFlagTrueForIndicator(t *testing.T) {
 	input := []rune("%giggety/")
 	parser := TagParser{}
 
-	n, e := parser.Parse(input)
+	n, e := parser.Parse("", input)
 
 	if ok := assert.Nil(t, e); !ok {
 		return
@@ -84,7 +84,7 @@ func TestTagParserReturnsClassNameForTagWithClass(t *testing.T) {
 	input := []rune("%sup.ui-helper-hidden")
 	parser := TagParser{}
 
-	n, e := parser.Parse(input)
+	n, e := parser.Parse("", input)
 
 	if ok := assert.Nil(t, e); !ok {
 		return
@@ -111,7 +111,7 @@ func TestTagParserReturnsIdForTagWithId(t *testing.T) {
 	input := []rune("%video#vid43")
 	parser := TagParser{}
 
-	n, e := parser.Parse(input)
+	n, e := parser.Parse("", input)
 
 	if ok := assert.Nil(t, e); !ok {
 		return
@@ -133,7 +133,7 @@ func TestTagParserReturnsDivForJustCssId(t *testing.T) {
 	input := []rune("#you-wish")
 	parser := TagParser{}
 
-	n, e := parser.Parse(input)
+	n, e := parser.Parse("", input)
 
 	if ok := assert.Nil(t, e); !ok {
 		return
@@ -155,7 +155,7 @@ func TestTagParserReturnsDivForJustCssClass(t *testing.T) {
 	input := []rune(".i_am_legend")
 	parser := TagParser{}
 
-	n, e := parser.Parse(input)
+	n, e := parser.Parse("", input)
 
 	if ok := assert.Nil(t, e); !ok {
 		return

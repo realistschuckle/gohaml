@@ -499,3 +499,39 @@ func TestTagWithIdAndClassesOuptutsClassesFirst(t *testing.T) {
 	output := cdoc.Outputs[0].(*StaticOutput)
 	assert.Equal(t, output.Content, "<h1 class='one two three' id='marklar'></h1>")
 }
+
+func TestTagWithChild(t *testing.T) {
+	opts := CompilerOpts{}
+	a := &p.TagNode{}
+	a.Name = "a"
+	a.Indent = "  "
+	a.LineBreak = "\n"
+	div := &p.TagNode{}
+	div.Name = "div"
+	div.Children = []p.Node{a}
+	div.LineBreak = "\n"
+	nodes := []p.Node{div}
+	pdoc := p.ParsedDoc{}
+	pdoc.Nodes = nodes
+	compiler := DefaultCompiler{}
+
+	cdoc, e := compiler.Compile(pdoc, opts)
+	if ok := assert.Nil(t, e); !ok {
+		return
+	}
+	if ok := assert.NotNil(t, cdoc); !ok {
+		return
+	}
+	if ok := assert.Equal(t, 3, len(cdoc.Outputs)); !ok {
+		return
+	}
+
+	output := cdoc.Outputs[0].(*StaticOutput)
+	assert.Equal(t, output.Content, "<div>\n")
+
+	output = cdoc.Outputs[1].(*StaticOutput)
+	assert.Equal(t, output.Content, "  <a></a>\n")
+
+	output = cdoc.Outputs[2].(*StaticOutput)
+	assert.Equal(t, output.Content, "</div>\n")
+}

@@ -6,6 +6,7 @@ import (
 	p "github.com/realistschuckle/gohaml/parser"
 	"sort"
 	"strings"
+	"unicode"
 )
 
 type HamlCompiler interface {
@@ -24,6 +25,11 @@ func (self *CompiledDoc) Render(scope map[string]interface{}) (output string, er
 	buf := bytes.Buffer{}
 	for i := 0; i < len(self.Outputs); i += 1 {
 		o, _ := self.Outputs[i].Render(scope)
+		if i == len(self.Outputs) - 1 && len(o) > 1 {
+			o = strings.TrimRightFunc(o, func(r rune) bool {
+				return unicode.IsSpace(r)
+			})
+		}
 		buf.WriteString(o)
 	}
 	output = buf.String()
@@ -103,18 +109,30 @@ func (self *DefaultCompiler) VisitTag(node *p.TagNode) {
 		id = fmt.Sprintf(" id='%v'", node.Id)
 	}
 
-	switch {
-	case self.opts.Format == "xhtml" && shouldClose:
-		val = fmt.Sprintf("<%s%s%s />", node.Name, classes, id)
-	case self.opts.Format == "html4" && shouldClose:
-		val = fmt.Sprintf("<%s%s%s>", node.Name, classes, id)
-	case self.opts.Format == "html5" && shouldClose:
-		val = fmt.Sprintf("<%s%s%s>", node.Name, classes, id)
-	default:
-		val = fmt.Sprintf("<%s%s%s></%s>", node.Name, classes, id, node.Name)
+	if len(node.Children) == 0 {
+		switch {
+		case self.opts.Format == "xhtml" && shouldClose:
+			val = fmt.Sprintf("<%s%s%s />", node.Name, classes, id)
+		case self.opts.Format == "html4" && shouldClose:
+			val = fmt.Sprintf("<%s%s%s>", node.Name, classes, id)
+		case self.opts.Format == "html5" && shouldClose:
+			val = fmt.Sprintf("<%s%s%s>", node.Name, classes, id)
+		default:
+			val = fmt.Sprintf("%s<%s%s%s></%s>%s", node.Indent, node.Name, classes, id, node.Name, node.LineBreak)
+		}
+		output := &StaticOutput{val}
+		self.doc.Outputs = append(self.doc.Outputs, output)
+	} else {
+		output := &StaticOutput{fmt.Sprintf("%s<%s>%s", node.Indent, node.Name, node.LineBreak)}
+		self.doc.Outputs = append(self.doc.Outputs, output)
+
+		for _, child := range node.Children {
+			child.Accept(self)
+		}
+
+		output = &StaticOutput{fmt.Sprintf("%s</%s>%s", node.Indent, node.Name, node.LineBreak)}
+		self.doc.Outputs = append(self.doc.Outputs, output)
 	}
-	output := &StaticOutput{val}
-	self.doc.Outputs = append(self.doc.Outputs, output)
 }
 
 type StaticOutput struct {

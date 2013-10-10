@@ -24,7 +24,7 @@ type HamlParser interface {
 }
 
 type LineParser interface {
-	Parse([]rune) (Node, *ParseError)
+	Parse(string, []rune) (Node, *ParseError)
 }
 
 type ParseError struct {
@@ -87,7 +87,7 @@ func (self *DefaultParser) Parse(input io.RuneReader) (doc ParsedDoc, err error)
 		} else {
 			parser = &TagParser{}
 		}
-		n, e = parser.Parse(line)
+		n, e = parser.Parse(space, line)
 		for stack.Len() > indentDepth {
 			stack.Remove(stack.Back())
 		}
@@ -105,6 +105,7 @@ func (self *DefaultParser) Parse(input io.RuneReader) (doc ParsedDoc, err error)
 	}
 
 	for r, _, ok := scanner.ReadRune(); ok == nil; r, _, ok = scanner.ReadRune() {
+		line = append(line, r)
 		if r == '\n' {
 			lineNumber += 1
 			_, _, e := parseLine(line)
@@ -114,8 +115,6 @@ func (self *DefaultParser) Parse(input io.RuneReader) (doc ParsedDoc, err error)
 				return
 			}
 			line = linebuf[0:0]
-		} else {
-			line = append(line, r)
 		}
 	}
 	if len(line) > 0 {
@@ -134,7 +133,7 @@ func (self *DefaultParser) Parse(input io.RuneReader) (doc ParsedDoc, err error)
 type DoctypeParser struct {
 }
 
-func (self *DoctypeParser) Parse(input []rune) (n Node, err *ParseError) {
+func (self *DoctypeParser) Parse(indent string, input []rune) (n Node, err *ParseError) {
 	if len(input) < 3 || input[0] != '!' || input[1] != '!' || input[2] != '!' {
 		err = &ParseError{1, 1}
 		return
@@ -149,11 +148,18 @@ func (self *DoctypeParser) Parse(input []rune) (n Node, err *ParseError) {
 type TagParser struct {
 }
 
-func (self *TagParser) Parse(input []rune) (n Node, err *ParseError) {
-	tn := &TagNode{"div", "", nil, nil, nil, false}
+func (self *TagParser) Parse(indent string, input []rune) (n Node, err *ParseError) {
+	tn := &TagNode{"div", "", nil, nil, nil, false, indent, ""}
 	if input[0] != '%' && input[0] != '#' && input[0] != '.' {
 		err = &ParseError{1, 1}
 		return
+	}
+	if input[len(input) - 1] == '\n' {
+		tn.LineBreak = "\n"
+		input = input[0:len(input) - 1]
+	}
+	if len(indent) > 0 {
+		tn.LineBreak = "\n"
 	}
 
 	start := 0
@@ -240,6 +246,8 @@ type TagNode struct {
 	Attrs    map[string]string
 	Children []Node
 	Close    bool
+	Indent   string
+	LineBreak string
 }
 
 func (self *TagNode) Accept(visitor NodeVisitor) {
