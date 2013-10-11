@@ -153,7 +153,7 @@ func (self *DefaultCompiler) VisitTag(node *p.TagNode) {
 			output := &StaticOutput{strings.Join(content, "")}
 			self.doc.Outputs = append(self.doc.Outputs, output)
 		} else {
-			output := &StaticOutput{fmt.Sprintf("%s<%s>%s", node.Indent, node.Name, node.LineBreak)}
+			output := &StaticOutput{fmt.Sprintf("%s<%s%s%s>%s", node.Indent, node.Name, classes, id, node.LineBreak)}
 			self.doc.Outputs = append(self.doc.Outputs, output)
 
 			for _, child := range node.Children {
