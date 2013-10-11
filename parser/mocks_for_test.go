@@ -33,6 +33,10 @@ func (self *mockVisitor) VisitStatic(node *StaticNode) {
 	self.Mock.Called(node)
 }
 
+func (self *mockVisitor) VisitStaticLine(node *StaticLineNode) {
+	self.Mock.Called(node)
+}
+
 type mockRuneReader struct {
 	mock.Mock
 }

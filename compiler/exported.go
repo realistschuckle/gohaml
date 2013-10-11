@@ -166,7 +166,10 @@ func (self *DefaultCompiler) VisitTag(node *p.TagNode) {
 	}
 }
 
-func (self *DefaultCompiler) VisitStatic(node *p.StaticNode) {
+func (self *DefaultCompiler) VisitStaticLine(node *p.StaticLineNode) {
+	val := fmt.Sprintf("%s%s\n", node.Indent, node.Content)
+	output := &StaticOutput{val}
+	self.doc.Outputs = append(self.doc.Outputs, output)
 }
 
 type StaticOutput struct {

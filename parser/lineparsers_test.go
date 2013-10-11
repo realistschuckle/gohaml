@@ -206,3 +206,22 @@ func TestTagParserReturnsDivWithProvidedContentAsChild(t *testing.T) {
 	sn := dn.Children[0].(*StaticNode)
 	assert.Equal(t, "Hello, World!", sn.Content)
 }
+
+func TestStaticParserReturnsStaticLineNodeWithContentAndIndent(t *testing.T) {
+	input := []rune("Here's some content.")
+	indent := "    "
+	parser := StaticParser{}
+
+	n, e := parser.Parse(indent, input)
+
+	if ok := assert.Nil(t, e); !ok {
+		return
+	}
+	if ok := assert.NotNil(t, n); !ok {
+		return
+	}
+
+	sn := n.(*StaticLineNode)
+	assert.Equal(t, string(input), sn.Content)
+	assert.Equal(t, indent, sn.Indent)
+}

@@ -11,7 +11,7 @@ import (
 type NodeVisitor interface {
 	VisitDoctype(*DoctypeNode)
 	VisitTag(*TagNode)
-	VisitStatic(*StaticNode)
+	VisitStaticLine(*StaticLineNode)
 }
 
 type Node interface {
@@ -83,10 +83,13 @@ func (self *DefaultParser) Parse(input io.RuneReader) (doc ParsedDoc, err error)
 		if len(self.indentation) > 0 {
 			indentDepth = len(space) / len(self.indentation)
 		}
-		if line[0] == '!' {
+		switch line[0] {
+		case '!':
 			parser = &DoctypeParser{}
-		} else {
+		case '#', '.', '%':
 			parser = &TagParser{}
+		default:
+			parser = &StaticParser{}
 		}
 		n, e = parser.Parse(space, line)
 		for stack.Len() > indentDepth {
@@ -221,7 +224,8 @@ func (self *TagParser) Parse(indent string, input []rune) (n Node, err *ParseErr
 		}
 		if unicode.IsSpace(input[i]) {
 			staticContent := string(input[i + 1:])
-			sn := &StaticNode{staticContent}
+			sn := &StaticNode{}
+			sn.Content = staticContent
 			tn.AddChild(sn)
 			break
 		}
@@ -231,6 +235,17 @@ func (self *TagParser) Parse(indent string, input []rune) (n Node, err *ParseErr
 	}
 
 	n = tn
+	return
+}
+
+type StaticParser struct {
+}
+
+func (self *StaticParser) Parse(indent string, input []rune) (n Node, err *ParseError) {
+	sn := &StaticLineNode{}
+	sn.Content = string(input)
+	sn.Indent = indent
+	n = sn
 	return
 }
 
@@ -272,10 +287,22 @@ type StaticNode struct {
 }
 
 func (self *StaticNode) Accept(visitor NodeVisitor) {
-	visitor.VisitStatic(self)
 }
 
 func (self *StaticNode) AddChild(child Node) (ok bool) {
+	return
+}
+
+type StaticLineNode struct {
+	StaticNode
+	Indent string
+}
+
+func (self *StaticLineNode) Accept(visitor NodeVisitor) {
+	visitor.VisitStaticLine(self)
+}
+
+func (self *StaticLineNode) AddChild(child Node) (ok bool) {
 	return
 }
 

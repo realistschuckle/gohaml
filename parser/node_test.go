@@ -53,9 +53,24 @@ func TestStaticNodeReturnsFalseForAddingChild(t *testing.T) {
 func TestStaticNodeAcceptsVisitor(t *testing.T) {
 	node := StaticNode{}
 	visitor := new(mockVisitor)
-	visitor.On("VisitStatic", &node).Return()
 
 	node.Accept(visitor)
 
-	visitor.AssertCalled(t, "VisitStatic", &node)
+	visitor.AssertNotCalled(t, "VisitStatic", &node)
+}
+
+func TestStaticLineNodeReturnsFalseForAddingChild(t *testing.T) {
+	node := StaticLineNode{}
+	assert.False(t, node.AddChild(nil))
+	assert.False(t, node.AddChild(&mockNode{}))
+}
+
+func TestStaticLineNodeAcceptsVisitor(t *testing.T) {
+	node := StaticLineNode{}
+	visitor := new(mockVisitor)
+	visitor.On("VisitStaticLine", &node).Return()
+
+	node.Accept(visitor)
+
+	visitor.AssertCalled(t, "VisitStaticLine", &node)
 }

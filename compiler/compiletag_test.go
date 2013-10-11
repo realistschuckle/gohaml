@@ -622,3 +622,35 @@ func TestTagWithContentAndIdAndClasses(t *testing.T) {
 	output := cdoc.Outputs[0].(*StaticOutput)
 	assert.Equal(t, output.Content, "    <div class='father brother sister' id='mother'>This is my weapon; this is my div.</div>")
 }
+
+func TestTagWithChildContentAndIdAndClasses(t *testing.T) {
+	opts := CompilerOpts{}
+	s := &p.StaticLineNode{}
+	s.Content = "This is my weapon; this is my div."
+	s.Indent = "      "
+	div := &p.TagNode{}
+	div.Name = "div"
+	div.Children = []p.Node{s}
+	div.LineBreak = "\n"
+	div.Id = "mother"
+	div.Indent = "    "
+	div.Classes = []string{"father brother sister"}
+	nodes := []p.Node{div}
+	pdoc := p.ParsedDoc{}
+	pdoc.Nodes = nodes
+	compiler := DefaultCompiler{}
+
+	cdoc, e := compiler.Compile(pdoc, opts)
+	if ok := assert.Nil(t, e); !ok {
+		return
+	}
+	if ok := assert.NotNil(t, cdoc); !ok {
+		return
+	}
+	if ok := assert.Equal(t, 1, len(cdoc.Outputs)); !ok {
+		return
+	}
+
+	output := cdoc.Outputs[0].(*StaticOutput)
+	assert.Equal(t, output.Content, "    <div class='father brother sister' id='mother'>\n      This is my weapon; this is my div.\n    </div>\n")
+}
