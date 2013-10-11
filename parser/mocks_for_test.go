@@ -29,6 +29,10 @@ func (self *mockVisitor) VisitTag(node *TagNode) {
 	self.Mock.Called(node)
 }
 
+func (self *mockVisitor) VisitStatic(node *StaticNode) {
+	self.Mock.Called(node)
+}
+
 type mockRuneReader struct {
 	mock.Mock
 }

@@ -11,6 +11,7 @@ import (
 type NodeVisitor interface {
 	VisitDoctype(*DoctypeNode)
 	VisitTag(*TagNode)
+	VisitStatic(*StaticNode)
 }
 
 type Node interface {
@@ -218,6 +219,12 @@ func (self *TagParser) Parse(indent string, input []rune) (n Node, err *ParseErr
 			i -= 1
 			continue
 		}
+		if unicode.IsSpace(input[i]) {
+			staticContent := string(input[i + 1:])
+			sn := &StaticNode{staticContent}
+			tn.AddChild(sn)
+			break
+		}
 		if input[i] == '/' {
 			tn.Close = true
 		}
@@ -259,3 +266,16 @@ func (self *TagNode) AddChild(child Node) (ok bool) {
 	self.Children = append(self.Children, child)
 	return
 }
+
+type StaticNode struct {
+	Content string
+}
+
+func (self *StaticNode) Accept(visitor NodeVisitor) {
+	visitor.VisitStatic(self)
+}
+
+func (self *StaticNode) AddChild(child Node) (ok bool) {
+	return
+}
+

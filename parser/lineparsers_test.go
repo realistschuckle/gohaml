@@ -177,3 +177,31 @@ func TestTagParserReturnsDivForJustCssClass(t *testing.T) {
 
 	assert.Equal(t, "i_am_legend", dn.Classes[0])
 }
+
+func TestTagParserReturnsDivWithProvidedContentAsChild(t *testing.T) {
+	input := []rune("%h1 Hello, World!")
+	parser := TagParser{}
+
+	n, e := parser.Parse("", input)
+
+	if ok := assert.Nil(t, e); !ok {
+		return
+	}
+	if ok := assert.NotNil(t, n); !ok {
+		return
+	}
+
+	dn := n.(*TagNode)
+	assert.Equal(t, "h1", dn.Name)
+	assert.Equal(t, "", dn.Id)
+	assert.Equal(t, 0, len(dn.Attrs))
+	assert.Equal(t, 0, len(dn.Classes))
+	assert.False(t, dn.Close)
+
+	if ok := assert.Equal(t, 1, len(dn.Children), "no static content"); !ok {
+		return
+	}
+
+	sn := dn.Children[0].(*StaticNode)
+	assert.Equal(t, "Hello, World!", sn.Content)
+}

@@ -43,3 +43,19 @@ func TestDoctypeNodeReturnsFalseForAddingNilChild(t *testing.T) {
 	node := TagNode{}
 	assert.False(t, node.AddChild(nil))
 }
+
+func TestStaticNodeReturnsFalseForAddingChild(t *testing.T) {
+	node := StaticNode{}
+	assert.False(t, node.AddChild(nil))
+	assert.False(t, node.AddChild(&mockNode{}))
+}
+
+func TestStaticNodeAcceptsVisitor(t *testing.T) {
+	node := StaticNode{}
+	visitor := new(mockVisitor)
+	visitor.On("VisitStatic", &node).Return()
+
+	node.Accept(visitor)
+
+	visitor.AssertCalled(t, "VisitStatic", &node)
+}

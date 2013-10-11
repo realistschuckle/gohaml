@@ -155,6 +155,9 @@ func (self *DefaultCompiler) VisitTag(node *p.TagNode) {
 	}
 }
 
+func (self *DefaultCompiler) VisitStatic(node *p.StaticNode) {
+}
+
 type StaticOutput struct {
 	Content string
 }
