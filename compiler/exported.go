@@ -146,9 +146,9 @@ func (self *DefaultCompiler) VisitTag(node *p.TagNode) {
 		sn, ok := node.Children[0].(*p.StaticNode)
 		if ok && len(node.Children) == 1 {
 			content := []string{
-				fmt.Sprintf("%s<%s>", node.Indent, node.Name),
+				fmt.Sprintf("%s<%s%s%s>", node.Indent, node.Name, classes, id),
 				sn.Content,
-				fmt.Sprintf("%s</%s>%s", node.Indent, node.Name, node.LineBreak),
+				fmt.Sprintf("</%s>%s", node.Name, node.LineBreak),
 			}
 			output := &StaticOutput{strings.Join(content, "")}
 			self.doc.Outputs = append(self.doc.Outputs, output)
