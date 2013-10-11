@@ -143,15 +143,26 @@ func (self *DefaultCompiler) VisitTag(node *p.TagNode) {
 		output := &StaticOutput{val}
 		self.doc.Outputs = append(self.doc.Outputs, output)
 	} else {
-		output := &StaticOutput{fmt.Sprintf("%s<%s>%s", node.Indent, node.Name, node.LineBreak)}
-		self.doc.Outputs = append(self.doc.Outputs, output)
+		sn, ok := node.Children[0].(*p.StaticNode)
+		if ok && len(node.Children) == 1 {
+			content := []string{
+				fmt.Sprintf("%s<%s>", node.Indent, node.Name),
+				sn.Content,
+				fmt.Sprintf("%s</%s>%s", node.Indent, node.Name, node.LineBreak),
+			}
+			output := &StaticOutput{strings.Join(content, "")}
+			self.doc.Outputs = append(self.doc.Outputs, output)
+		} else {
+			output := &StaticOutput{fmt.Sprintf("%s<%s>%s", node.Indent, node.Name, node.LineBreak)}
+			self.doc.Outputs = append(self.doc.Outputs, output)
 
-		for _, child := range node.Children {
-			child.Accept(self)
+			for _, child := range node.Children {
+				child.Accept(self)
+			}
+
+			output = &StaticOutput{fmt.Sprintf("%s</%s>%s", node.Indent, node.Name, node.LineBreak)}
+			self.doc.Outputs = append(self.doc.Outputs, output)
 		}
-
-		output = &StaticOutput{fmt.Sprintf("%s</%s>%s", node.Indent, node.Name, node.LineBreak)}
-		self.doc.Outputs = append(self.doc.Outputs, output)
 	}
 }
 

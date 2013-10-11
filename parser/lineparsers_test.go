@@ -197,6 +197,7 @@ func TestTagParserReturnsDivWithProvidedContentAsChild(t *testing.T) {
 	assert.Equal(t, 0, len(dn.Attrs))
 	assert.Equal(t, 0, len(dn.Classes))
 	assert.False(t, dn.Close)
+	assert.Empty(t, dn.LineBreak)
 
 	if ok := assert.Equal(t, 1, len(dn.Children), "no static content"); !ok {
 		return
