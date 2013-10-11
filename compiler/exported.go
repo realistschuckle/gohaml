@@ -36,6 +36,25 @@ func (self *CompiledDoc) Render(scope map[string]interface{}) (output string, er
 	return
 }
 
+func (self *CompiledDoc) Compress() {
+	if len(self.Outputs) == 0 {
+		return
+	}
+	outputs := []CompiledOutput{self.Outputs[0]}
+	for i := 1; i < len(self.Outputs); i += 1 {
+		output := self.Outputs[i]
+		lastOutput := outputs[len(outputs) - 1]
+		if lastStatic, ok := lastOutput.(*StaticOutput); ok {
+			if static, ok := output.(*StaticOutput); ok {
+				lastStatic.Content += static.Content
+			} else {
+				outputs = append(outputs, output)
+			}
+		}
+	}
+	self.Outputs = outputs
+}
+
 type DefaultCompiler struct {
 	doc  CompiledDoc
 	opts CompilerOpts
@@ -48,6 +67,7 @@ func (self *DefaultCompiler) Compile(input p.ParsedDoc, opts CompilerOpts) (doc 
 	sort.Strings(self.opts.Autoclose)
 	input.Accept(self)
 	doc = self.doc
+	doc.Compress()
 	return
 }
 

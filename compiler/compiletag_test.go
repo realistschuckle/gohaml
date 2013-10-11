@@ -522,16 +522,10 @@ func TestTagWithChild(t *testing.T) {
 	if ok := assert.NotNil(t, cdoc); !ok {
 		return
 	}
-	if ok := assert.Equal(t, 3, len(cdoc.Outputs)); !ok {
+	if ok := assert.Equal(t, 1, len(cdoc.Outputs)); !ok {
 		return
 	}
 
 	output := cdoc.Outputs[0].(*StaticOutput)
-	assert.Equal(t, output.Content, "<div>\n")
-
-	output = cdoc.Outputs[1].(*StaticOutput)
-	assert.Equal(t, output.Content, "  <a></a>\n")
-
-	output = cdoc.Outputs[2].(*StaticOutput)
-	assert.Equal(t, output.Content, "</div>\n")
+	assert.Equal(t, output.Content, "<div>\n  <a></a>\n</div>\n")
 }
