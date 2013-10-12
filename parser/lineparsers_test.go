@@ -11,7 +11,7 @@ func TestDoctypeParserReturnsErrorWhenDoesNotStartWithTripleBang(t *testing.T) {
 	input := []rune("Not a valid doctype")
 	parser := DoctypeParser{}
 
-	_, e := parser.Parse("", input)
+	_, _, e := parser.Parse("", input)
 
 	assert.NotNil(t, e)
 }
@@ -20,7 +20,7 @@ func TestDoctypeParserReturnsDoctypeNodeWithDoctypeSpecifier(t *testing.T) {
 	input := []rune("!!! some_specifier  \r\n")
 	parser := DoctypeParser{}
 
-	n, e := parser.Parse("", input)
+	n, _, e := parser.Parse("", input)
 
 	assert.Nil(t, e)
 	assert.NotNil(t, n)
@@ -33,7 +33,7 @@ func TestTagParserReturnsErrorWhenDoesNotStartWithPercentSignOrOctothorpe(t *tes
 	input := []rune("blah")
 	parser := TagParser{}
 
-	_, e := parser.Parse("", input)
+	_, _, e := parser.Parse("", input)
 
 	assert.NotNil(t, e)
 }
@@ -42,7 +42,7 @@ func TestTagParserReturnsTagNodeWithNameForPercentSignInput(t *testing.T) {
 	input := []rune("%html")
 	parser := TagParser{}
 
-	n, e := parser.Parse("", input)
+	n, _, e := parser.Parse("", input)
 
 	if ok := assert.Nil(t, e); !ok {
 		return
@@ -64,7 +64,7 @@ func TestTagParserReturnsCloseFlagTrueForIndicator(t *testing.T) {
 	input := []rune("%giggety/")
 	parser := TagParser{}
 
-	n, e := parser.Parse("", input)
+	n, _, e := parser.Parse("", input)
 
 	if ok := assert.Nil(t, e); !ok {
 		return
@@ -86,7 +86,7 @@ func TestTagParserReturnsClassNameForTagWithClass(t *testing.T) {
 	input := []rune("%sup.ui-helper-hidden")
 	parser := TagParser{}
 
-	n, e := parser.Parse("", input)
+	n, _, e := parser.Parse("", input)
 
 	if ok := assert.Nil(t, e); !ok {
 		return
@@ -113,7 +113,7 @@ func TestTagParserReturnsIdForTagWithId(t *testing.T) {
 	input := []rune("%video#vid43")
 	parser := TagParser{}
 
-	n, e := parser.Parse("", input)
+	n, _, e := parser.Parse("", input)
 
 	if ok := assert.Nil(t, e); !ok {
 		return
@@ -135,7 +135,7 @@ func TestTagParserReturnsDivForJustCssId(t *testing.T) {
 	input := []rune("#you-wish")
 	parser := TagParser{}
 
-	n, e := parser.Parse("", input)
+	n, _, e := parser.Parse("", input)
 
 	if ok := assert.Nil(t, e); !ok {
 		return
@@ -157,7 +157,7 @@ func TestTagParserReturnsDivForJustCssClass(t *testing.T) {
 	input := []rune(".i_am_legend")
 	parser := TagParser{}
 
-	n, e := parser.Parse("", input)
+	n, _, e := parser.Parse("", input)
 
 	if ok := assert.Nil(t, e); !ok {
 		return
@@ -184,7 +184,7 @@ func TestTagParserReturnsDivWithProvidedContentAsChild(t *testing.T) {
 	input := []rune("%h1 Hello, World!")
 	parser := TagParser{}
 
-	n, e := parser.Parse("", input)
+	n, _, e := parser.Parse("", input)
 
 	if ok := assert.Nil(t, e); !ok {
 		return
@@ -214,7 +214,7 @@ func TestStaticParserReturnsStaticLineNodeWithContentAndIndent(t *testing.T) {
 	indent := "    "
 	parser := StaticParser{}
 
-	n, e := parser.Parse(indent, input)
+	n, _, e := parser.Parse(indent, input)
 
 	if ok := assert.Nil(t, e); !ok {
 		return
@@ -232,7 +232,7 @@ func TestTagParserReturnsDivWithProvidedHtmlStyleAttributes(t *testing.T) {
 	input := []rune("%h1(style='background-color:red;')")
 	parser := TagParser{}
 
-	n, e := parser.Parse("", input)
+	n, _, e := parser.Parse("", input)
 
 	if ok := assert.Nil(t, e); !ok {
 		return
@@ -277,7 +277,7 @@ func TestTagParserReturnsDivWithManyProvidedHtmlStyleAttributes(t *testing.T) {
 	input := []rune(rawInput)
 	parser := TagParser{}
 
-	n, e := parser.Parse("", input)
+	n, complete, e := parser.Parse("", input)
 
 	if ok := assert.Nil(t, e); !ok {
 		return
@@ -293,6 +293,7 @@ func TestTagParserReturnsDivWithManyProvidedHtmlStyleAttributes(t *testing.T) {
 	assert.Equal(t, 0, len(dn.Classes))
 	assert.False(t, dn.Close)
 	assert.Empty(t, dn.LineBreak)
+	assert.True(t, complete)
 
 	if ok := assert.Equal(t, 4, len(dn.Attrs), "no HTML attributes"); !ok {
 		return
@@ -304,4 +305,19 @@ func TestTagParserReturnsDivWithManyProvidedHtmlStyleAttributes(t *testing.T) {
 		val := attr.Value.(*StaticNode)
 		assert.Equal(t, values[i], val.Content)
 	}
+}
+
+func TestTagParserReturnsIncompleteStatusWithNewLine(t *testing.T) {
+	input := []rune("%h1(a='b'\n")
+	parser := TagParser{}
+
+	n, complete, e := parser.Parse("", input)
+
+	if ok := assert.Nil(t, e); !ok {
+		return
+	}
+	if ok := assert.NotNil(t, n); !ok {
+		return
+	}
+	assert.False(t, complete)
 }

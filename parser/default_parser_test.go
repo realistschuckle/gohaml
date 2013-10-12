@@ -154,3 +154,28 @@ func TestDefaultParserRecognizesSaticContentOnLine(t *testing.T) {
 	sn := doc.Nodes[0].(*StaticLineNode)
 	assert.Equal(t, "Bite my shiny, metal ass!", sn.Content)
 }
+
+func TestDefaultParserMaintainsTagParserForMultiLineHtmlAttributes(t *testing.T) {
+	reader := &mockRuneReader{}
+	parser := &DefaultParser{}
+	content := []rune("%p(a='a'\nb='b'\nc='c')")
+	i := 0
+
+	for ; i < len(content); i += 1 {
+		reader.On("ReadRune").Return(content[i], 1, nil).Once()
+	}
+	reader.On("ReadRune").Return('\000', 0, errors.New(""))
+
+	doc, e := parser.Parse(reader)
+	if ok := assert.Nil(t, e); !ok {
+		return
+	}
+
+	if ok := assert.Equal(t, 1, len(doc.Nodes)); !ok {
+		return
+	}
+
+	tn := doc.Nodes[0].(*TagNode)
+	assert.Equal(t, "p", tn.Name)
+	assert.Equal(t, 3, len(tn.Attrs))
+}

@@ -25,7 +25,7 @@ type HamlParser interface {
 }
 
 type LineParser interface {
-	Parse(string, []rune) (Node, *ParseError)
+	Parse(string, []rune) (Node, bool, *ParseError)
 }
 
 type Attribute struct {
@@ -89,15 +89,22 @@ func (self *DefaultParser) Parse(input io.RuneReader) (doc ParsedDoc, err error)
 		if len(self.indentation) > 0 {
 			indentDepth = len(space) / len(self.indentation)
 		}
-		switch line[0] {
-		case '!':
-			parser = &DoctypeParser{}
-		case '#', '.', '%':
-			parser = &TagParser{}
-		default:
-			parser = &StaticParser{}
+		if parser == nil {
+			switch line[0] {
+			case '!':
+				parser = &DoctypeParser{}
+			case '#', '.', '%':
+				parser = &TagParser{}
+			default:
+				parser = &StaticParser{}
+			}
+		} else {
+			space = ""
 		}
-		n, e := parser.Parse(space, line)
+		n, complete, e := parser.Parse(space, line)
+		if !complete {
+			return
+		}
 		for stack.Len() > indentDepth {
 			stack.Remove(stack.Back())
 		}
@@ -110,6 +117,9 @@ func (self *DefaultParser) Parse(input io.RuneReader) (doc ParsedDoc, err error)
 		stack.PushBack(n)
 		if e != nil {
 			e.column += len(space)
+		}
+		if complete {
+			parser = nil
 		}
 		return
 	}
@@ -143,7 +153,7 @@ func (self *DefaultParser) Parse(input io.RuneReader) (doc ParsedDoc, err error)
 type DoctypeParser struct {
 }
 
-func (self *DoctypeParser) Parse(indent string, input []rune) (n Node, err *ParseError) {
+func (self *DoctypeParser) Parse(indent string, input []rune) (n Node, completed bool, err *ParseError) {
 	if len(input) < 3 || input[0] != '!' || input[1] != '!' || input[2] != '!' {
 		err = &ParseError{1, 1}
 		return
@@ -152,24 +162,30 @@ func (self *DoctypeParser) Parse(indent string, input []rune) (n Node, err *Pars
 		return unicode.IsSpace(r)
 	})
 	n = &DoctypeNode{specifier}
+	completed = true
 	return
 }
 
 type TagParser struct {
+	tag *TagNode
+	completed bool
 }
 
-func (self *TagParser) Parse(indent string, input []rune) (n Node, err *ParseError) {
-	tn := &TagNode{"div", "", nil, nil, nil, false, indent, ""}
-	if input[0] != '%' && input[0] != '#' && input[0] != '.' {
-		err = &ParseError{1, 1}
-		return
-	}
-	if input[len(input)-1] == '\n' {
-		tn.LineBreak = "\n"
-		input = input[0 : len(input)-1]
-	}
-	if len(indent) > 0 {
-		tn.LineBreak = "\n"
+func (self *TagParser) Parse(indent string, input []rune) (n Node, completed bool, err *ParseError) {
+	if self.tag == nil {
+		self.completed = true
+		self.tag = &TagNode{"div", "", nil, nil, nil, false, indent, ""}
+		if input[0] != '%' && input[0] != '#' && input[0] != '.' {
+			err = &ParseError{1, 1}
+			return
+		}
+		if input[len(input)-1] == '\n' {
+			self.tag.LineBreak = "\n"
+			input = input[0 : len(input)-1]
+		}
+		if len(indent) > 0 {
+			self.tag.LineBreak = "\n"
+		}
 	}
 
 	start := 0
@@ -182,11 +198,11 @@ func (self *TagParser) Parse(indent string, input []rune) (n Node, err *ParseErr
 					input[i] != '-' &&
 					input[i] != '_' &&
 					input[i] != ':' {
-					tn.Name = string(input[start:i])
+					self.tag.Name = string(input[start:i])
 					break
 				}
 				if i == len(input)-1 {
-					tn.Name = string(input[start : i+1])
+					self.tag.Name = string(input[start : i+1])
 				}
 			}
 			i -= 1
@@ -200,12 +216,12 @@ func (self *TagParser) Parse(indent string, input []rune) (n Node, err *ParseErr
 					input[i] != '-' &&
 					input[i] != '_' {
 					class := string(input[start:i])
-					tn.Classes = append(tn.Classes, class)
+					self.tag.Classes = append(self.tag.Classes, class)
 					break
 				}
 				if i == len(input)-1 {
 					class := string(input[start : i+1])
-					tn.Classes = append(tn.Classes, class)
+					self.tag.Classes = append(self.tag.Classes, class)
 				}
 			}
 			i -= 1
@@ -218,17 +234,22 @@ func (self *TagParser) Parse(indent string, input []rune) (n Node, err *ParseErr
 					!unicode.IsDigit(input[i]) &&
 					input[i] != '-' &&
 					input[i] != '_' {
-					tn.Id = string(input[start:i])
+					self.tag.Id = string(input[start:i])
 					break
 				}
 				if i == len(input)-1 {
-					tn.Id = string(input[start : i+1])
+					self.tag.Id = string(input[start : i+1])
 				}
 			}
 			i -= 1
 			continue
 		}
-		if input[i] == '(' {
+		if input[i] == '(' || !self.completed {
+			if !self.completed {
+				i -= 1
+			}
+			var sn *StaticNode
+			self.completed = false
 			start = i + 1
 			attr := Attribute{}
 			for i = i + 1; i < len(input); i += 1 {
@@ -237,46 +258,52 @@ func (self *TagParser) Parse(indent string, input []rune) (n Node, err *ParseErr
 					attr.Name = string(input[start:i])
 					start = i + 1
 				case ' ':
-					sn := &StaticNode{}
+					sn = &StaticNode{}
 					sn.Content = string(input[start+1 : i-1])
 					attr.Value = sn
-					tn.Attrs = append(tn.Attrs, attr)
+					self.tag.Attrs = append(self.tag.Attrs, attr)
 					attr = Attribute{}
 					start = i + 1
 				case ')':
-					sn := &StaticNode{}
+					self.completed = true
+					sn = &StaticNode{}
 					sn.Content = string(input[start+1 : i-1])
 					attr.Value = sn
 					goto EndAttrs
 				}
 			}
+			sn = &StaticNode{}
+			sn.Content = string(input[start+1 : i-1])
+			attr.Value = sn
 		EndAttrs:
-			tn.Attrs = append(tn.Attrs, attr)
+			self.tag.Attrs = append(self.tag.Attrs, attr)
 		}
-		if unicode.IsSpace(input[i]) {
+		if i < len(input) && unicode.IsSpace(input[i]) {
 			staticContent := string(input[i+1:])
 			sn := &StaticNode{}
 			sn.Content = staticContent
-			tn.AddChild(sn)
+			self.tag.AddChild(sn)
 			break
 		}
-		if input[i] == '/' {
-			tn.Close = true
+		if i < len(input) && input[i] == '/' {
+			self.tag.Close = true
 		}
 	}
 
-	n = tn
+	n = self.tag
+	completed = self.completed
 	return
 }
 
 type StaticParser struct {
 }
 
-func (self *StaticParser) Parse(indent string, input []rune) (n Node, err *ParseError) {
+func (self *StaticParser) Parse(indent string, input []rune) (n Node, completed bool, err *ParseError) {
 	sn := &StaticLineNode{}
 	sn.Content = string(input)
 	sn.Indent = indent
 	n = sn
+	completed = true
 	return
 }
 
