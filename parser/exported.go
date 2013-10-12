@@ -235,6 +235,13 @@ func (self *TagParser) Parse(indent string, input []rune) (n Node, err *ParseErr
 				case '=':
 					attr.Name = string(input[start:i])
 					start = i + 1
+				case ' ':
+					sn := &StaticNode{}
+					sn.Content = string(input[start + 1:i - 1])
+					attr.Value = sn
+					tn.Attrs = append(tn.Attrs, attr)
+					attr = Attribute{}
+					start = i + 1
 				case ')':
 					sn := &StaticNode{}
 					sn.Content = string(input[start + 1:i - 1])
