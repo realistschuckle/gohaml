@@ -3,6 +3,8 @@ package parser
 import (
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"fmt"
+	"strings"
 )
 
 func TestDoctypeParserReturnsErrorWhenDoesNotStartWithTripleBang(t *testing.T) {
@@ -260,5 +262,47 @@ func TestTagParserReturnsDivWithProvidedHtmlStyleAttributes(t *testing.T) {
 
 	val := attr.Value.(*StaticNode)
 	assert.Equal(t, "background-color:red;", val.Content)
+}
+
+func TestTagParserReturnsDivWithManyProvidedHtmlStyleAttributes(t *testing.T) {
+	keys := []string{"alpha", "beta", "gamma", "delta"}
+	values := []string{"a", "b", "c", "d"}
+	attrs := []string{}
+	for i := range keys {
+		key := keys[i]
+		value := values[i]
+		attrs = append(attrs, fmt.Sprintf("%s='%s'", key, value))
+	}
+	rawInput := fmt.Sprintf("%%h1(%s)", strings.Join(attrs, " "))
+	input := []rune(rawInput)
+	parser := TagParser{}
+
+	n, e := parser.Parse("", input)
+
+	if ok := assert.Nil(t, e); !ok {
+		return
+	}
+	if ok := assert.NotNil(t, n); !ok {
+		return
+	}
+
+	dn := n.(*TagNode)
+	assert.Equal(t, "h1", dn.Name)
+	assert.Equal(t, "", dn.Id)
+	assert.Equal(t, 0, len(dn.Children))
+	assert.Equal(t, 0, len(dn.Classes))
+	assert.False(t, dn.Close)
+	assert.Empty(t, dn.LineBreak)
+
+	if ok := assert.Equal(t, 4, len(dn.Attrs), "no HTML attributes"); !ok {
+		return
+	}
+
+	for i := 0; i < len(keys); i += 1 {
+		attr := dn.Attrs[i]
+		assert.Equal(t, keys[i], attr.Name)
+		val := attr.Value.(*StaticNode)
+		assert.Equal(t, values[i], val.Content)
+	}
 }
 
