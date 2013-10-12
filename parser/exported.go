@@ -74,7 +74,8 @@ func (self *DefaultParser) Parse(input io.RuneReader) (doc ParsedDoc, err error)
 	indentDepth := 0
 	var parser LineParser
 
-	parseLine := func(line []rune) (n Node, space string, e *ParseError) {
+	parseLine := func(line []rune) (e *ParseError) {
+		var space string
 		for i := 0; i < len(line); i += 1 {
 			if !unicode.IsSpace(line[i]) {
 				space = string(line[0:i])
@@ -96,7 +97,7 @@ func (self *DefaultParser) Parse(input io.RuneReader) (doc ParsedDoc, err error)
 		default:
 			parser = &StaticParser{}
 		}
-		n, e = parser.Parse(space, line)
+		n, e := parser.Parse(space, line)
 		for stack.Len() > indentDepth {
 			stack.Remove(stack.Back())
 		}
@@ -117,7 +118,7 @@ func (self *DefaultParser) Parse(input io.RuneReader) (doc ParsedDoc, err error)
 		line = append(line, r)
 		if r == '\n' {
 			lineNumber += 1
-			_, _, e := parseLine(line)
+			e := parseLine(line)
 			if e != nil {
 				e.line = lineNumber
 				err = e
@@ -127,7 +128,7 @@ func (self *DefaultParser) Parse(input io.RuneReader) (doc ParsedDoc, err error)
 		}
 	}
 	if len(line) > 0 {
-		_, _, e := parseLine(line)
+		e := parseLine(line)
 		if e != nil {
 			e.line = lineNumber
 			err = e
