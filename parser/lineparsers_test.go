@@ -1,10 +1,10 @@
 package parser
 
 import (
-	"github.com/stretchr/testify/assert"
-	"testing"
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"strings"
+	"testing"
 )
 
 func TestDoctypeParserReturnsErrorWhenDoesNotStartWithTripleBang(t *testing.T) {
@@ -305,4 +305,3 @@ func TestTagParserReturnsDivWithManyProvidedHtmlStyleAttributes(t *testing.T) {
 		assert.Equal(t, values[i], val.Content)
 	}
 }
-

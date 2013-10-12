@@ -29,7 +29,7 @@ type LineParser interface {
 }
 
 type Attribute struct {
-	Name string
+	Name  string
 	Value Node
 }
 
@@ -163,9 +163,9 @@ func (self *TagParser) Parse(indent string, input []rune) (n Node, err *ParseErr
 		err = &ParseError{1, 1}
 		return
 	}
-	if input[len(input) - 1] == '\n' {
+	if input[len(input)-1] == '\n' {
 		tn.LineBreak = "\n"
-		input = input[0:len(input) - 1]
+		input = input[0 : len(input)-1]
 	}
 	if len(indent) > 0 {
 		tn.LineBreak = "\n"
@@ -177,16 +177,16 @@ func (self *TagParser) Parse(indent string, input []rune) (n Node, err *ParseErr
 			start = i + 1
 			for i = i + 1; i < len(input); i += 1 {
 				if !unicode.IsLetter(input[i]) &&
-				   !unicode.IsDigit(input[i]) &&
-				   input[i] != '-' &&
-				   input[i] != '_' &&
-				   input[i] != ':' {
-				   	tn.Name = string(input[start:i])
-				   	break
-			   }
-			   if i == len(input) - 1 {
-				   	tn.Name = string(input[start:i + 1])
-			   }
+					!unicode.IsDigit(input[i]) &&
+					input[i] != '-' &&
+					input[i] != '_' &&
+					input[i] != ':' {
+					tn.Name = string(input[start:i])
+					break
+				}
+				if i == len(input)-1 {
+					tn.Name = string(input[start : i+1])
+				}
 			}
 			i -= 1
 			continue
@@ -195,17 +195,17 @@ func (self *TagParser) Parse(indent string, input []rune) (n Node, err *ParseErr
 			start = i + 1
 			for i = i + 1; i < len(input); i += 1 {
 				if !unicode.IsLetter(input[i]) &&
-				   !unicode.IsDigit(input[i]) &&
-				   input[i] != '-' &&
-				   input[i] != '_' {
-				   	class := string(input[start:i])
-				   	tn.Classes = append(tn.Classes, class)
-				   	break
-			   }
-			   if i == len(input) - 1 {
-				   	class := string(input[start:i + 1])
-				   	tn.Classes = append(tn.Classes, class)
-			   }
+					!unicode.IsDigit(input[i]) &&
+					input[i] != '-' &&
+					input[i] != '_' {
+					class := string(input[start:i])
+					tn.Classes = append(tn.Classes, class)
+					break
+				}
+				if i == len(input)-1 {
+					class := string(input[start : i+1])
+					tn.Classes = append(tn.Classes, class)
+				}
 			}
 			i -= 1
 			continue
@@ -214,14 +214,14 @@ func (self *TagParser) Parse(indent string, input []rune) (n Node, err *ParseErr
 			start = i + 1
 			for i = i + 1; i < len(input); i += 1 {
 				if !unicode.IsLetter(input[i]) &&
-				   !unicode.IsDigit(input[i]) &&
-				   input[i] != '-' &&
-				   input[i] != '_' {
-				   	tn.Id = string(input[start:i])
-				   	break
+					!unicode.IsDigit(input[i]) &&
+					input[i] != '-' &&
+					input[i] != '_' {
+					tn.Id = string(input[start:i])
+					break
 				}
-				if i == len(input) - 1 {
-					tn.Id = string(input[start:i + 1])
+				if i == len(input)-1 {
+					tn.Id = string(input[start : i+1])
 				}
 			}
 			i -= 1
@@ -237,23 +237,23 @@ func (self *TagParser) Parse(indent string, input []rune) (n Node, err *ParseErr
 					start = i + 1
 				case ' ':
 					sn := &StaticNode{}
-					sn.Content = string(input[start + 1:i - 1])
+					sn.Content = string(input[start+1 : i-1])
 					attr.Value = sn
 					tn.Attrs = append(tn.Attrs, attr)
 					attr = Attribute{}
 					start = i + 1
 				case ')':
 					sn := &StaticNode{}
-					sn.Content = string(input[start + 1:i - 1])
+					sn.Content = string(input[start+1 : i-1])
 					attr.Value = sn
 					goto EndAttrs
 				}
 			}
-			EndAttrs:
+		EndAttrs:
 			tn.Attrs = append(tn.Attrs, attr)
 		}
 		if unicode.IsSpace(input[i]) {
-			staticContent := string(input[i + 1:])
+			staticContent := string(input[i+1:])
 			sn := &StaticNode{}
 			sn.Content = staticContent
 			tn.AddChild(sn)
@@ -292,13 +292,13 @@ func (self *DoctypeNode) AddChild(child Node) (ok bool) {
 }
 
 type TagNode struct {
-	Name     string
-	Id       string
-	Classes  []string
-	Attrs    []Attribute
-	Children []Node
-	Close    bool
-	Indent   string
+	Name      string
+	Id        string
+	Classes   []string
+	Attrs     []Attribute
+	Children  []Node
+	Close     bool
+	Indent    string
 	LineBreak string
 }
 
@@ -335,4 +335,3 @@ func (self *StaticLineNode) Accept(visitor NodeVisitor) {
 func (self *StaticLineNode) AddChild(child Node) (ok bool) {
 	return
 }
-

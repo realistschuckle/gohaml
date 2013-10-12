@@ -25,7 +25,7 @@ func (self *CompiledDoc) Render(scope map[string]interface{}) (output string, er
 	buf := bytes.Buffer{}
 	for i := 0; i < len(self.Outputs); i += 1 {
 		o, _ := self.Outputs[i].Render(scope)
-		if i == len(self.Outputs) - 1 && len(o) > 1 {
+		if i == len(self.Outputs)-1 && len(o) > 1 {
 			o = strings.TrimRightFunc(o, func(r rune) bool {
 				return unicode.IsSpace(r)
 			})
@@ -43,7 +43,7 @@ func (self *CompiledDoc) Compress() {
 	outputs := []CompiledOutput{self.Outputs[0]}
 	for i := 1; i < len(self.Outputs); i += 1 {
 		output := self.Outputs[i]
-		lastOutput := outputs[len(outputs) - 1]
+		lastOutput := outputs[len(outputs)-1]
 		if lastStatic, ok := lastOutput.(*StaticOutput); ok {
 			if static, ok := output.(*StaticOutput); ok {
 				lastStatic.Content += static.Content

@@ -1,8 +1,8 @@
 package parser
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestDoctypeNodeAcceptsVisitor(t *testing.T) {
@@ -17,8 +17,8 @@ func TestDoctypeNodeAcceptsVisitor(t *testing.T) {
 
 func TestDoctypeNodeReturnsFalseForAddingChild(t *testing.T) {
 	node := DoctypeNode{}
-	assert.False(t, node.AddChild(nil))	
-	assert.False(t, node.AddChild(&mockNode{}))	
+	assert.False(t, node.AddChild(nil))
+	assert.False(t, node.AddChild(&mockNode{}))
 }
 
 func TestTagNodeAcceptsVisitor(t *testing.T) {

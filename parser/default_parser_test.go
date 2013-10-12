@@ -150,7 +150,7 @@ func TestDefaultParserRecognizesSaticContentOnLine(t *testing.T) {
 	if ok := assert.Equal(t, 1, len(doc.Nodes)); !ok {
 		return
 	}
-	
+
 	sn := doc.Nodes[0].(*StaticLineNode)
 	assert.Equal(t, "Bite my shiny, metal ass!", sn.Content)
 }
