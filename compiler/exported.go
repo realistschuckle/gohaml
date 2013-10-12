@@ -129,16 +129,27 @@ func (self *DefaultCompiler) VisitTag(node *p.TagNode) {
 		id = fmt.Sprintf(" id='%v'", node.Id)
 	}
 
+	attrs := ""
+	if len(node.Attrs) > 0 {
+		attributes := []string{}
+		for _, attr := range node.Attrs {
+			content := attr.Value.(*p.StaticNode).Content
+			a := fmt.Sprintf("%s='%s'", attr.Name, content)
+			attributes = append(attributes, a)
+		}
+		attrs = " " + strings.Join(attributes, " ")
+	}
+
 	if len(node.Children) == 0 {
 		switch {
 		case self.opts.Format == "xhtml" && shouldClose:
-			val = fmt.Sprintf("<%s%s%s />", node.Name, classes, id)
+			val = fmt.Sprintf("<%s%s%s%s />", node.Name, classes, id, attrs)
 		case self.opts.Format == "html4" && shouldClose:
-			val = fmt.Sprintf("<%s%s%s>", node.Name, classes, id)
+			val = fmt.Sprintf("<%s%s%s%s>", node.Name, classes, id, attrs)
 		case self.opts.Format == "html5" && shouldClose:
-			val = fmt.Sprintf("<%s%s%s>", node.Name, classes, id)
+			val = fmt.Sprintf("<%s%s%s%s>", node.Name, classes, id, attrs)
 		default:
-			val = fmt.Sprintf("%s<%s%s%s></%s>%s", node.Indent, node.Name, classes, id, node.Name, node.LineBreak)
+			val = fmt.Sprintf("%s<%s%s%s%s></%s>%s", node.Indent, node.Name, classes, id, attrs, node.Name, node.LineBreak)
 		}
 		output := &StaticOutput{val}
 		self.doc.Outputs = append(self.doc.Outputs, output)
@@ -146,14 +157,14 @@ func (self *DefaultCompiler) VisitTag(node *p.TagNode) {
 		sn, ok := node.Children[0].(*p.StaticNode)
 		if ok && len(node.Children) == 1 {
 			content := []string{
-				fmt.Sprintf("%s<%s%s%s>", node.Indent, node.Name, classes, id),
+				fmt.Sprintf("%s<%s%s%s%s>", node.Indent, node.Name, classes, id, attrs),
 				sn.Content,
 				fmt.Sprintf("</%s>%s", node.Name, node.LineBreak),
 			}
 			output := &StaticOutput{strings.Join(content, "")}
 			self.doc.Outputs = append(self.doc.Outputs, output)
 		} else {
-			output := &StaticOutput{fmt.Sprintf("%s<%s%s%s>%s", node.Indent, node.Name, classes, id, node.LineBreak)}
+			output := &StaticOutput{fmt.Sprintf("%s<%s%s%s%s>%s", node.Indent, node.Name, classes, id, attrs, node.LineBreak)}
 			self.doc.Outputs = append(self.doc.Outputs, output)
 
 			for _, child := range node.Children {

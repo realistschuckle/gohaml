@@ -225,3 +225,40 @@ func TestStaticParserReturnsStaticLineNodeWithContentAndIndent(t *testing.T) {
 	assert.Equal(t, string(input), sn.Content)
 	assert.Equal(t, indent, sn.Indent)
 }
+
+func TestTagParserReturnsDivWithProvidedHtmlStyleAttributes(t *testing.T) {
+	input := []rune("%h1(style='background-color:red;')")
+	parser := TagParser{}
+
+	n, e := parser.Parse("", input)
+
+	if ok := assert.Nil(t, e); !ok {
+		return
+	}
+	if ok := assert.NotNil(t, n); !ok {
+		return
+	}
+
+	dn := n.(*TagNode)
+	assert.Equal(t, "h1", dn.Name)
+	assert.Equal(t, "", dn.Id)
+	assert.Equal(t, 0, len(dn.Children))
+	assert.Equal(t, 0, len(dn.Classes))
+	assert.False(t, dn.Close)
+	assert.Empty(t, dn.LineBreak)
+
+	if ok := assert.Equal(t, 1, len(dn.Attrs), "no HTML attributes"); !ok {
+		return
+	}
+
+	attr := dn.Attrs[0]
+	assert.Equal(t, "style", attr.Name)
+
+	if ok := assert.NotNil(t, attr.Value); !ok {
+		return
+	}
+
+	val := attr.Value.(*StaticNode)
+	assert.Equal(t, "background-color:red;", val.Content)
+}
+

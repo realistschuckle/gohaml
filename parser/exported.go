@@ -28,6 +28,11 @@ type LineParser interface {
 	Parse(string, []rune) (Node, *ParseError)
 }
 
+type Attribute struct {
+	Name string
+	Value Node
+}
+
 type ParseError struct {
 	line   int
 	column int
@@ -222,6 +227,24 @@ func (self *TagParser) Parse(indent string, input []rune) (n Node, err *ParseErr
 			i -= 1
 			continue
 		}
+		if input[i] == '(' {
+			start = i + 1
+			attr := Attribute{}
+			for i = i + 1; i < len(input); i += 1 {
+				switch input[i] {
+				case '=':
+					attr.Name = string(input[start:i])
+					start = i + 1
+				case ')':
+					sn := &StaticNode{}
+					sn.Content = string(input[start + 1:i - 1])
+					attr.Value = sn
+					goto EndAttrs
+				}
+			}
+			EndAttrs:
+			tn.Attrs = append(tn.Attrs, attr)
+		}
 		if unicode.IsSpace(input[i]) {
 			staticContent := string(input[i + 1:])
 			sn := &StaticNode{}
@@ -265,7 +288,7 @@ type TagNode struct {
 	Name     string
 	Id       string
 	Classes  []string
-	Attrs    map[string]string
+	Attrs    []Attribute
 	Children []Node
 	Close    bool
 	Indent   string

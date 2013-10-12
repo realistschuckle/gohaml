@@ -654,3 +654,178 @@ func TestTagWithChildContentAndIdAndClasses(t *testing.T) {
 	output := cdoc.Outputs[0].(*StaticOutput)
 	assert.Equal(t, output.Content, "    <div class='father brother sister' id='mother'>\n      This is my weapon; this is my div.\n    </div>\n")
 }
+
+func TestTagWithValueAndAttributes(t *testing.T) {
+	opts := CompilerOpts{}
+	s := &p.StaticNode{}
+	s.Content = "This is my weapon; this is my div."
+	div := &p.TagNode{}
+	div.Name = "div"
+	div.Children = []p.Node{s}
+	div.LineBreak = "\n"
+	div.Id = "mother"
+	div.Indent = "    "
+	div.Classes = []string{"father brother sister"}
+	div.Attrs = []p.Attribute{p.Attribute{"uno", &p.StaticNode{"dos"}}}
+	nodes := []p.Node{div}
+	pdoc := p.ParsedDoc{}
+	pdoc.Nodes = nodes
+	compiler := DefaultCompiler{}
+
+	cdoc, e := compiler.Compile(pdoc, opts)
+	if ok := assert.Nil(t, e); !ok {
+		return
+	}
+	if ok := assert.NotNil(t, cdoc); !ok {
+		return
+	}
+	if ok := assert.Equal(t, 1, len(cdoc.Outputs)); !ok {
+		return
+	}
+
+	output := cdoc.Outputs[0].(*StaticOutput)
+	assert.Equal(t, "    <div class='father brother sister' id='mother' uno='dos'>This is my weapon; this is my div.</div>\n", output.Content)
+}
+
+func TestTagWithChildValueAndAttributes(t *testing.T) {
+	opts := CompilerOpts{}
+	s := &p.StaticLineNode{}
+	s.Content = "This is my weapon; this is my div."
+	s.Indent = "    "
+	div := &p.TagNode{}
+	div.Name = "div"
+	div.Children = []p.Node{s}
+	div.LineBreak = "\n"
+	div.Id = "mother"
+	div.Indent = "  "
+	div.Classes = []string{"father brother sister"}
+	div.Attrs = []p.Attribute{p.Attribute{"uno", &p.StaticNode{"dos"}}}
+	nodes := []p.Node{div}
+	pdoc := p.ParsedDoc{}
+	pdoc.Nodes = nodes
+	compiler := DefaultCompiler{}
+
+	cdoc, e := compiler.Compile(pdoc, opts)
+	if ok := assert.Nil(t, e); !ok {
+		return
+	}
+	if ok := assert.NotNil(t, cdoc); !ok {
+		return
+	}
+	if ok := assert.Equal(t, 1, len(cdoc.Outputs)); !ok {
+		return
+	}
+
+	output := cdoc.Outputs[0].(*StaticOutput)
+	assert.Equal(t, "  <div class='father brother sister' id='mother' uno='dos'>\n    This is my weapon; this is my div.\n  </div>\n", output.Content)
+}
+
+func TestAutoClosingTagInXhtmlWithAttributes(t *testing.T) {
+	opts := CompilerOpts{}
+	opts.Format = "xhtml"
+	opts.Autoclose = []string{"br"}
+	node := &p.TagNode{}
+	node.Name = "br"
+	node.Attrs = []p.Attribute{p.Attribute{"uno", &p.StaticNode{"dos"}}}
+	nodes := []p.Node{node}
+	pdoc := p.ParsedDoc{}
+	pdoc.Nodes = nodes
+	compiler := DefaultCompiler{}
+
+	cdoc, e := compiler.Compile(pdoc, opts)
+
+	if ok := assert.Nil(t, e); !ok {
+		return
+	}
+	if ok := assert.NotNil(t, cdoc); !ok {
+		return
+	}
+	if ok := assert.Equal(t, 1, len(cdoc.Outputs)); !ok {
+		return
+	}
+
+	output := cdoc.Outputs[0].(*StaticOutput)
+	assert.Equal(t, output.Content, "<br uno='dos' />")
+}
+
+func TestAutoClosingTagInHtml4WithAttributes(t *testing.T) {
+	opts := CompilerOpts{}
+	opts.Format = "html4"
+	opts.Autoclose = []string{"br"}
+	node := &p.TagNode{}
+	node.Name = "br"
+	node.Attrs = []p.Attribute{p.Attribute{"uno", &p.StaticNode{"dos"}}}
+	nodes := []p.Node{node}
+	pdoc := p.ParsedDoc{}
+	pdoc.Nodes = nodes
+	compiler := DefaultCompiler{}
+
+	cdoc, e := compiler.Compile(pdoc, opts)
+
+	if ok := assert.Nil(t, e); !ok {
+		return
+	}
+	if ok := assert.NotNil(t, cdoc); !ok {
+		return
+	}
+	if ok := assert.Equal(t, 1, len(cdoc.Outputs)); !ok {
+		return
+	}
+
+	output := cdoc.Outputs[0].(*StaticOutput)
+	assert.Equal(t, output.Content, "<br uno='dos'>")
+}
+
+func TestAutoClosingTagInHtml5WithAttributes(t *testing.T) {
+	opts := CompilerOpts{}
+	opts.Format = "html5"
+	opts.Autoclose = []string{"br"}
+	node := &p.TagNode{}
+	node.Name = "br"
+	node.Attrs = []p.Attribute{p.Attribute{"uno", &p.StaticNode{"dos"}}}
+	nodes := []p.Node{node}
+	pdoc := p.ParsedDoc{}
+	pdoc.Nodes = nodes
+	compiler := DefaultCompiler{}
+
+	cdoc, e := compiler.Compile(pdoc, opts)
+
+	if ok := assert.Nil(t, e); !ok {
+		return
+	}
+	if ok := assert.NotNil(t, cdoc); !ok {
+		return
+	}
+	if ok := assert.Equal(t, 1, len(cdoc.Outputs)); !ok {
+		return
+	}
+
+	output := cdoc.Outputs[0].(*StaticOutput)
+	assert.Equal(t, output.Content, "<br uno='dos'>")
+}
+
+func TestTagWithOnlyTagNameAndAttributes(t *testing.T) {
+	opts := CompilerOpts{}
+	node := &p.TagNode{}
+	node.Name = "p"
+	node.Attrs = []p.Attribute{p.Attribute{"uno", &p.StaticNode{"dos"}}}
+	nodes := []p.Node{node}
+	pdoc := p.ParsedDoc{}
+	pdoc.Nodes = nodes
+	compiler := DefaultCompiler{}
+
+	cdoc, e := compiler.Compile(pdoc, opts)
+
+	if ok := assert.Nil(t, e); !ok {
+		return
+	}
+	if ok := assert.NotNil(t, cdoc); !ok {
+		return
+	}
+	if ok := assert.Equal(t, 1, len(cdoc.Outputs)); !ok {
+		return
+	}
+
+	output := cdoc.Outputs[0].(*StaticOutput)
+	assert.Equal(t, output.Content, "<p uno='dos'></p>")
+}
