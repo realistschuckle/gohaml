@@ -2,8 +2,8 @@
 
 # What is it?
 
-You can find out more about HAML at "haml-lang.com":http://haml-lang.com
-You can find out more about GO at "golang.org":http://golang.org
+You can find out more about HAML at http://haml-lang.com
+You can find out more about GO at http://golang.org
 
 I've tried to remain diligent about reproducing the output from the canonical
 Ruby-based parser, so if you feel familiar with the one, then you should feel
