@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"github.com/realistschuckle/testify/mock"
+	"github.com/stretchr/testify/mock"
 )
 
 type mockNode struct {

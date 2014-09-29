@@ -1,7 +1,7 @@
 package compiler
 
 import (
-	"github.com/realistschuckle/testify/mock"
+	"github.com/stretchr/testify/mock"
 )
 
 type mockCompiledOutput struct {
