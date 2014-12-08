@@ -2,7 +2,6 @@ package gohaml
 
 import (
 	"bytes"
-	//"container/vector"
 	"fmt"
 	"reflect"
 	"strings"
@@ -126,8 +125,26 @@ func (self tree) resolve(scope map[string]interface{}, indent string, autoclose 
 
 func (self node) resolve(scope map[string]interface{}, buf *bytes.Buffer, curIndent string, indent string, autoclose bool) {
 	remainder := self._remainder.resolve(scope)
-	//if self._attrs.Len() > 0 && len(remainder) > 0 {
-	if len(self._attrs) > 0 && len(remainder) > 0 {
+	if self._name == "doctype" {
+		buf.WriteString("<!DOCTYPE html")
+		switch strings.TrimSpace(self._remainder.value) {
+		case "":
+			buf.WriteString(" PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"")
+		case "Strict":
+			buf.WriteString(" PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\"")
+		case "Frameset":
+			buf.WriteString(" PUBLIC \"-//W3C//DTD XHTML 1.0 Frameset//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd\"")
+		case "1.1":
+			buf.WriteString(" PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\"")
+		case "Basic":
+			buf.WriteString(" PUBLIC \"-//W3C//DTD XHTML Basic 1.1//EN\" \"http://www.w3.org/TR/xhtml-basic/xhtml-basic11.dtd\"")
+		case "Mobile":
+			buf.WriteString(" PUBLIC \"-//WAPFORUM//DTD XHTML Mobile 1.2//EN\" \"http://www.openmobilealliance.org/tech/DTD/xhtml-mobile12.dtd\"")
+		case "RDFa":
+			buf.WriteString(" PUBLIC \"-//W3C//DTD XHTML+RDFa 1.0//EN\" \"http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd\"")
+		}
+		buf.WriteString(">")
+	} else if len(self._attrs) > 0 && len(remainder) > 0 {
 		if len(self._name) == 0 {
 			self._name = "div"
 		}

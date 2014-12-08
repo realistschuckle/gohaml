@@ -71,6 +71,12 @@ func parseLeadingSpace(input string, lastSpaceChar rune, line int) (output inode
 	node := new(node)
 	for i, r := range input {
 		switch {
+		case r == '!' && len(input) >= i+2 && input[i+1] == '!' && input[i+2] == '!':
+			if len(input) > i+2 {
+				output = parseDoctype(input[i+3:], node, line)
+			} else {
+				output = parseDoctype("", node, line)
+			}
 		case r == '-':
 			output = parseCode(input[i+1:], node, line)
 		case r == '%':
@@ -93,7 +99,6 @@ func parseLeadingSpace(input string, lastSpaceChar rune, line int) (output inode
 					to = "space"
 				}
 				msg := fmt.Sprintf("Syntax error on line %d: Inconsistent spacing in document changed from %s to %s characters.\n", line, from, to)
-				//err = os.NewError(msg)
 				err = errors.New(msg)
 			} else {
 				lastSpaceChar = r
@@ -111,6 +116,15 @@ func parseLeadingSpace(input string, lastSpaceChar rune, line int) (output inode
 	return
 }
 
+func parseDoctype(input string, n *node, line int) (output inode) {
+	output = n
+	n._name = "doctype"
+	if len(input) > 0 {
+		output = parseRemainder(input, n, line)
+	}
+	return
+}
+
 func parseKey(input string, n *node, line int) (output inode) {
 	if input[len(input)-1] == '<' {
 		n = parseNoNewline("", n, line)
@@ -125,7 +139,6 @@ func parseKey(input string, n *node, line int) (output inode) {
 
 func parseTag(input string, node *node, newTag bool, line int) (output inode, err error) {
 	if 0 == len(input) && newTag {
-		//err = os.NewError(fmt.Sprintf("Syntax error on line %d: Invalid tag: %s.\n", line, input))
 		err = errors.New(fmt.Sprintf("Syntax error on line %d: Invalid tag: %s.\n", line, input))
 		return
 	}
