@@ -1,4 +1,4 @@
-package parser
+package gohaml
 
 import (
 	"container/list"
@@ -167,7 +167,7 @@ func (self *DoctypeParser) Parse(indent string, input []rune) (n Node, completed
 }
 
 type TagParser struct {
-	tag *TagNode
+	tag       *TagNode
 	completed bool
 }
 

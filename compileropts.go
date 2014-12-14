@@ -1,4 +1,4 @@
-package compiler
+package gohaml
 
 /*
 CompilerOptions provides the structure of options available to customize the

@@ -1,7 +1,6 @@
-package compiler
+package gohaml
 
 import (
-	p "github.com/realistschuckle/gohaml/parser"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -9,8 +8,8 @@ import (
 func TestDoctypeXmlSpecWithXhtmlFormat(t *testing.T) {
 	opts := CompilerOpts{}
 	opts.Format = "xhtml"
-	nodes := []p.Node{&p.DoctypeNode{"XML"}}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{&DoctypeNode{"XML"}}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -27,8 +26,8 @@ func TestDoctypeXmlSpecWithXhtmlFormat(t *testing.T) {
 func TestDoctypeEmptySpecWithXhtmlFormat(t *testing.T) {
 	opts := CompilerOpts{}
 	opts.Format = "xhtml"
-	nodes := []p.Node{&p.DoctypeNode{""}}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{&DoctypeNode{""}}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -45,8 +44,8 @@ func TestDoctypeEmptySpecWithXhtmlFormat(t *testing.T) {
 func TestDoctype1Point1SpecWithXhtmlFormat(t *testing.T) {
 	opts := CompilerOpts{}
 	opts.Format = "xhtml"
-	nodes := []p.Node{&p.DoctypeNode{"1.1"}}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{&DoctypeNode{"1.1"}}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -63,8 +62,8 @@ func TestDoctype1Point1SpecWithXhtmlFormat(t *testing.T) {
 func TestDoctypeMobileSpecWithXhtmlFormat(t *testing.T) {
 	opts := CompilerOpts{}
 	opts.Format = "xhtml"
-	nodes := []p.Node{&p.DoctypeNode{"mobile"}}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{&DoctypeNode{"mobile"}}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -81,8 +80,8 @@ func TestDoctypeMobileSpecWithXhtmlFormat(t *testing.T) {
 func TestDoctypeBasicSpecWithXhtmlFormat(t *testing.T) {
 	opts := CompilerOpts{}
 	opts.Format = "xhtml"
-	nodes := []p.Node{&p.DoctypeNode{"basic"}}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{&DoctypeNode{"basic"}}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -99,8 +98,8 @@ func TestDoctypeBasicSpecWithXhtmlFormat(t *testing.T) {
 func TestDoctypeFramesetSpecWithXhtmlFormat(t *testing.T) {
 	opts := CompilerOpts{}
 	opts.Format = "xhtml"
-	nodes := []p.Node{&p.DoctypeNode{"frameset"}}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{&DoctypeNode{"frameset"}}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -117,8 +116,8 @@ func TestDoctypeFramesetSpecWithXhtmlFormat(t *testing.T) {
 func TestDoctype5SpecWithXhtmlFormat(t *testing.T) {
 	opts := CompilerOpts{}
 	opts.Format = "xhtml"
-	nodes := []p.Node{&p.DoctypeNode{"5"}}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{&DoctypeNode{"5"}}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -135,8 +134,8 @@ func TestDoctype5SpecWithXhtmlFormat(t *testing.T) {
 func TestDoctypeXmlSpecWithHtml5Format(t *testing.T) {
 	opts := CompilerOpts{}
 	opts.Format = "html5"
-	nodes := []p.Node{&p.DoctypeNode{"XML"}}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{&DoctypeNode{"XML"}}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -153,8 +152,8 @@ func TestDoctypeXmlSpecWithHtml5Format(t *testing.T) {
 func TestDoctypeEmptySpecWithHtml5Format(t *testing.T) {
 	opts := CompilerOpts{}
 	opts.Format = "html5"
-	nodes := []p.Node{&p.DoctypeNode{""}}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{&DoctypeNode{""}}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -171,8 +170,8 @@ func TestDoctypeEmptySpecWithHtml5Format(t *testing.T) {
 func TestDoctypeXmlSpecWithHtml4Format(t *testing.T) {
 	opts := CompilerOpts{}
 	opts.Format = "html4"
-	nodes := []p.Node{&p.DoctypeNode{"XML"}}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{&DoctypeNode{"XML"}}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -189,8 +188,8 @@ func TestDoctypeXmlSpecWithHtml4Format(t *testing.T) {
 func TestDoctypeEmptySpecWithHtml4Format(t *testing.T) {
 	opts := CompilerOpts{}
 	opts.Format = "html4"
-	nodes := []p.Node{&p.DoctypeNode{""}}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{&DoctypeNode{""}}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -207,8 +206,8 @@ func TestDoctypeEmptySpecWithHtml4Format(t *testing.T) {
 func TestDoctypeFramesetSpecWithHtml4Format(t *testing.T) {
 	opts := CompilerOpts{}
 	opts.Format = "html4"
-	nodes := []p.Node{&p.DoctypeNode{"frameset"}}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{&DoctypeNode{"frameset"}}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -225,8 +224,8 @@ func TestDoctypeFramesetSpecWithHtml4Format(t *testing.T) {
 func TestDoctypeStrictSpecWithHtml4Format(t *testing.T) {
 	opts := CompilerOpts{}
 	opts.Format = "html4"
-	nodes := []p.Node{&p.DoctypeNode{"strict"}}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{&DoctypeNode{"strict"}}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 

@@ -1,16 +1,15 @@
-package compiler
+package gohaml
 
 import (
 	"bytes"
 	"fmt"
-	p "github.com/realistschuckle/gohaml/parser"
 	"sort"
 	"strings"
 	"unicode"
 )
 
 type HamlCompiler interface {
-	Compile(p.ParsedDoc, CompilerOpts) (CompiledDoc, error)
+	Compile(ParsedDoc, CompilerOpts) (CompiledDoc, error)
 }
 
 type CompiledOutput interface {
@@ -61,7 +60,7 @@ type DefaultCompiler struct {
 	err  error
 }
 
-func (self *DefaultCompiler) Compile(input p.ParsedDoc, opts CompilerOpts) (doc CompiledDoc, e error) {
+func (self *DefaultCompiler) Compile(input ParsedDoc, opts CompilerOpts) (doc CompiledDoc, e error) {
 	self.doc = CompiledDoc{}
 	self.opts = opts
 	sort.Strings(self.opts.Autoclose)
@@ -71,7 +70,7 @@ func (self *DefaultCompiler) Compile(input p.ParsedDoc, opts CompilerOpts) (doc 
 	return
 }
 
-func (self *DefaultCompiler) VisitDoctype(node *p.DoctypeNode) {
+func (self *DefaultCompiler) VisitDoctype(node *DoctypeNode) {
 	decl := "unknown"
 	switch self.opts.Format {
 	case "xhtml":
@@ -113,7 +112,7 @@ func (self *DefaultCompiler) VisitDoctype(node *p.DoctypeNode) {
 	self.doc.Outputs = append(self.doc.Outputs, &StaticOutput{decl})
 }
 
-func (self *DefaultCompiler) VisitTag(node *p.TagNode) {
+func (self *DefaultCompiler) VisitTag(node *TagNode) {
 	var val string
 	i := sort.SearchStrings(self.opts.Autoclose, node.Name)
 	autoClose := len(self.opts.Autoclose) > 0 && i < len(self.opts.Autoclose) && self.opts.Autoclose[i] == node.Name
@@ -133,7 +132,7 @@ func (self *DefaultCompiler) VisitTag(node *p.TagNode) {
 	if len(node.Attrs) > 0 {
 		attributes := []string{}
 		for _, attr := range node.Attrs {
-			content := attr.Value.(*p.StaticNode).Content
+			content := attr.Value.(*StaticNode).Content
 			a := fmt.Sprintf("%s='%s'", attr.Name, content)
 			attributes = append(attributes, a)
 		}
@@ -154,7 +153,7 @@ func (self *DefaultCompiler) VisitTag(node *p.TagNode) {
 		output := &StaticOutput{val}
 		self.doc.Outputs = append(self.doc.Outputs, output)
 	} else {
-		sn, ok := node.Children[0].(*p.StaticNode)
+		sn, ok := node.Children[0].(*StaticNode)
 		if ok && len(node.Children) == 1 {
 			content := []string{
 				fmt.Sprintf("%s<%s%s%s%s>", node.Indent, node.Name, classes, id, attrs),
@@ -177,7 +176,7 @@ func (self *DefaultCompiler) VisitTag(node *p.TagNode) {
 	}
 }
 
-func (self *DefaultCompiler) VisitStaticLine(node *p.StaticLineNode) {
+func (self *DefaultCompiler) VisitStaticLine(node *StaticLineNode) {
 	val := fmt.Sprintf("%s%s\n", node.Indent, node.Content)
 	output := &StaticOutput{val}
 	self.doc.Outputs = append(self.doc.Outputs, output)

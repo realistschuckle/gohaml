@@ -1,4 +1,4 @@
-package parser
+package gohaml
 
 import (
 	"github.com/stretchr/testify/assert"

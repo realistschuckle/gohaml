@@ -1,8 +1,6 @@
 package gohaml
 
 import (
-	"github.com/realistschuckle/gohaml/compiler"
-	"github.com/realistschuckle/gohaml/parser"
 	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
@@ -35,7 +33,7 @@ func TestDefaultEngineOptionsHasFalseCdataFlag(t *testing.T) {
 }
 
 func TestDefaultEngineOptionsHasDefaultCompilerClassAsCompilerClass(t *testing.T) {
-	var c compiler.DefaultCompiler
+	var c DefaultCompiler
 	cType := reflect.TypeOf(c)
 	opts := DefaultEngineOptions()
 	assert.Equal(t, cType, opts.CompilerClass)
@@ -67,7 +65,7 @@ func TestDefaultEngineOptionsHasDataAttributeHyphenation(t *testing.T) {
 }
 
 func TestDefaultEngineOptionsHasDefaultParserClassAsParserClass(t *testing.T) {
-	var p parser.DefaultParser
+	var p DefaultParser
 	pType := reflect.TypeOf(p)
 	opts := DefaultEngineOptions()
 	assert.Equal(t, pType, opts.ParserClass)

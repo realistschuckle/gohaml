@@ -5,11 +5,7 @@
 // http://github.com/realistschuckle/gohaml.
 package gohaml
 
-import (
-	"github.com/realistschuckle/gohaml/compiler"
-	"github.com/realistschuckle/gohaml/parser"
-	"strings"
-)
+import "strings"
 
 /*
 Engine provides the template interpretation functionality to convert a HAML
@@ -17,7 +13,7 @@ template into its corresponding tag-based representation.
 */
 type Engine struct {
 	options *EngineOptions
-	doc     compiler.CompiledDoc
+	doc     CompiledDoc
 }
 
 /*
@@ -33,10 +29,10 @@ func NewEngine(input string, options *EngineOptions) (e *Engine, err error) {
 		options = &o
 	}
 	reader := strings.NewReader(input)
-	p := new(parser.DefaultParser)
+	p := new(DefaultParser)
 	pdoc, _ := p.Parse(reader)
 
-	opts := compiler.CompilerOpts{
+	opts := CompilerOpts{
 		options.AttributeWrapper,
 		options.Autoclose,
 		options.Cdata,
@@ -49,7 +45,7 @@ func NewEngine(input string, options *EngineOptions) (e *Engine, err error) {
 		options.SuppressEval,
 		options.Ugly,
 	}
-	c := new(compiler.DefaultCompiler)
+	c := new(DefaultCompiler)
 	cdoc, _ := c.Compile(pdoc, opts)
 
 	e = &Engine{options, cdoc}

@@ -1,10 +1,6 @@
 package gohaml
 
-import (
-	"github.com/realistschuckle/gohaml/compiler"
-	"github.com/realistschuckle/gohaml/parser"
-	"reflect"
-)
+import "reflect"
 
 /*
 EngineOptions provides the structure of options available to customize the
@@ -80,8 +76,8 @@ The default values are:
 	Ugly: true
 */
 func DefaultEngineOptions() (opt EngineOptions) {
-	var p parser.DefaultParser
-	var c compiler.DefaultCompiler
+	var p DefaultParser
+	var c DefaultCompiler
 	parserClass := reflect.TypeOf(p)
 	compilerClass := reflect.TypeOf(c)
 	closers := []string{"meta", "img", "link", "br", "hr", "input", "area", "param", "col", "base"}

@@ -1,17 +1,16 @@
-package compiler
+package gohaml
 
 import (
-	p "github.com/realistschuckle/gohaml/parser"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestTagWithOnlyTagName(t *testing.T) {
 	opts := CompilerOpts{}
-	node := &p.TagNode{}
+	node := &TagNode{}
 	node.Name = "p"
-	nodes := []p.Node{node}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{node}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -35,10 +34,10 @@ func TestAutoClosingTagInXhtml(t *testing.T) {
 	opts := CompilerOpts{}
 	opts.Format = "xhtml"
 	opts.Autoclose = []string{"br"}
-	node := &p.TagNode{}
+	node := &TagNode{}
 	node.Name = "br"
-	nodes := []p.Node{node}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{node}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -62,10 +61,10 @@ func TestAutoClosingTagInHtml4(t *testing.T) {
 	opts := CompilerOpts{}
 	opts.Format = "html4"
 	opts.Autoclose = []string{"br"}
-	node := &p.TagNode{}
+	node := &TagNode{}
 	node.Name = "br"
-	nodes := []p.Node{node}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{node}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -89,10 +88,10 @@ func TestAutoClosingTagInHtml5(t *testing.T) {
 	opts := CompilerOpts{}
 	opts.Format = "html5"
 	opts.Autoclose = []string{"br"}
-	node := &p.TagNode{}
+	node := &TagNode{}
 	node.Name = "br"
-	nodes := []p.Node{node}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{node}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -115,11 +114,11 @@ func TestAutoClosingTagInHtml5(t *testing.T) {
 func TestSelfClosingTagInXhtml(t *testing.T) {
 	opts := CompilerOpts{}
 	opts.Format = "xhtml"
-	node := &p.TagNode{}
+	node := &TagNode{}
 	node.Name = "whatever"
 	node.Close = true
-	nodes := []p.Node{node}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{node}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -142,11 +141,11 @@ func TestSelfClosingTagInXhtml(t *testing.T) {
 func TestSelfClosingTagInHtml5(t *testing.T) {
 	opts := CompilerOpts{}
 	opts.Format = "html5"
-	node := &p.TagNode{}
+	node := &TagNode{}
 	node.Name = "whatever"
 	node.Close = true
-	nodes := []p.Node{node}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{node}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -168,11 +167,11 @@ func TestSelfClosingTagInHtml5(t *testing.T) {
 
 func TestTagWithSingleClassNameOutputsClassAttribute(t *testing.T) {
 	opts := CompilerOpts{}
-	node := &p.TagNode{}
+	node := &TagNode{}
 	node.Name = "h1"
 	node.Classes = []string{"ui-helper-hidden"}
-	nodes := []p.Node{node}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{node}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -196,11 +195,11 @@ func TestAutoClosingTagInXhtmlWithClass(t *testing.T) {
 	opts := CompilerOpts{}
 	opts.Format = "xhtml"
 	opts.Autoclose = []string{"br"}
-	node := &p.TagNode{}
+	node := &TagNode{}
 	node.Name = "br"
 	node.Classes = []string{"ui-helper-hidden"}
-	nodes := []p.Node{node}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{node}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -224,11 +223,11 @@ func TestAutoClosingTagInHtml4WithClass(t *testing.T) {
 	opts := CompilerOpts{}
 	opts.Format = "html4"
 	opts.Autoclose = []string{"br"}
-	node := &p.TagNode{}
+	node := &TagNode{}
 	node.Name = "br"
 	node.Classes = []string{"ui-state-highlight"}
-	nodes := []p.Node{node}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{node}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -252,11 +251,11 @@ func TestAutoClosingTagInHtml5WithClass(t *testing.T) {
 	opts := CompilerOpts{}
 	opts.Format = "html5"
 	opts.Autoclose = []string{"br"}
-	node := &p.TagNode{}
+	node := &TagNode{}
 	node.Name = "br"
 	node.Classes = []string{"ui-state-default"}
-	nodes := []p.Node{node}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{node}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -280,11 +279,11 @@ func TestAutoClosingTagInXhtmlWithId(t *testing.T) {
 	opts := CompilerOpts{}
 	opts.Format = "xhtml"
 	opts.Autoclose = []string{"br"}
-	node := &p.TagNode{}
+	node := &TagNode{}
 	node.Name = "br"
 	node.Id = "marklar"
-	nodes := []p.Node{node}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{node}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -308,11 +307,11 @@ func TestAutoClosingTagInHtml4WithId(t *testing.T) {
 	opts := CompilerOpts{}
 	opts.Format = "html4"
 	opts.Autoclose = []string{"br"}
-	node := &p.TagNode{}
+	node := &TagNode{}
 	node.Name = "br"
 	node.Id = "marklar"
-	nodes := []p.Node{node}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{node}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -336,11 +335,11 @@ func TestAutoClosingTagInHtml5WithId(t *testing.T) {
 	opts := CompilerOpts{}
 	opts.Format = "html5"
 	opts.Autoclose = []string{"br"}
-	node := &p.TagNode{}
+	node := &TagNode{}
 	node.Name = "br"
 	node.Id = "marklar"
-	nodes := []p.Node{node}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{node}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -362,11 +361,11 @@ func TestAutoClosingTagInHtml5WithId(t *testing.T) {
 
 func TestTagWithIdOuptutsId(t *testing.T) {
 	opts := CompilerOpts{}
-	node := &p.TagNode{}
+	node := &TagNode{}
 	node.Name = "h1"
 	node.Id = "marklar"
-	nodes := []p.Node{node}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{node}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -390,12 +389,12 @@ func TestAutoClosingTagInXhtmlWithIdAndClassOutputsClassesFirst(t *testing.T) {
 	opts := CompilerOpts{}
 	opts.Format = "xhtml"
 	opts.Autoclose = []string{"br"}
-	node := &p.TagNode{}
+	node := &TagNode{}
 	node.Name = "br"
 	node.Id = "marklar"
 	node.Classes = []string{"one", "two", "three"}
-	nodes := []p.Node{node}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{node}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -419,12 +418,12 @@ func TestAutoClosingTagInHtml4WithIdAndClassesOutputsClassesFirst(t *testing.T) 
 	opts := CompilerOpts{}
 	opts.Format = "html4"
 	opts.Autoclose = []string{"br"}
-	node := &p.TagNode{}
+	node := &TagNode{}
 	node.Name = "br"
 	node.Id = "marklar"
 	node.Classes = []string{"one", "two", "three"}
-	nodes := []p.Node{node}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{node}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -448,12 +447,12 @@ func TestAutoClosingTagInHtml5WithIdAndClassesOutputsClassesFirst(t *testing.T) 
 	opts := CompilerOpts{}
 	opts.Format = "html5"
 	opts.Autoclose = []string{"br"}
-	node := &p.TagNode{}
+	node := &TagNode{}
 	node.Name = "br"
 	node.Id = "marklar"
 	node.Classes = []string{"one", "two", "three"}
-	nodes := []p.Node{node}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{node}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -475,12 +474,12 @@ func TestAutoClosingTagInHtml5WithIdAndClassesOutputsClassesFirst(t *testing.T) 
 
 func TestTagWithIdAndClassesOuptutsClassesFirst(t *testing.T) {
 	opts := CompilerOpts{}
-	node := &p.TagNode{}
+	node := &TagNode{}
 	node.Name = "h1"
 	node.Id = "marklar"
 	node.Classes = []string{"one", "two", "three"}
-	nodes := []p.Node{node}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{node}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -502,16 +501,16 @@ func TestTagWithIdAndClassesOuptutsClassesFirst(t *testing.T) {
 
 func TestTagWithChild(t *testing.T) {
 	opts := CompilerOpts{}
-	a := &p.TagNode{}
+	a := &TagNode{}
 	a.Name = "a"
 	a.Indent = "  "
 	a.LineBreak = "\n"
-	div := &p.TagNode{}
+	div := &TagNode{}
 	div.Name = "div"
-	div.Children = []p.Node{a}
+	div.Children = []Node{a}
 	div.LineBreak = "\n"
-	nodes := []p.Node{div}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{div}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -532,20 +531,20 @@ func TestTagWithChild(t *testing.T) {
 
 func TestTagWithIdAndClassesWithChildWithIdAndClasses(t *testing.T) {
 	opts := CompilerOpts{}
-	a := &p.TagNode{}
+	a := &TagNode{}
 	a.Name = "a"
 	a.Indent = "  "
 	a.LineBreak = "\n"
 	a.Id = "my_a"
 	a.Classes = []string{"foo", "bar"}
-	div := &p.TagNode{}
+	div := &TagNode{}
 	div.Name = "div"
-	div.Children = []p.Node{a}
+	div.Children = []Node{a}
 	div.LineBreak = "\n"
 	div.Id = "my_div"
 	div.Classes = []string{"baz", "boo"}
-	nodes := []p.Node{div}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{div}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -566,14 +565,14 @@ func TestTagWithIdAndClassesWithChildWithIdAndClasses(t *testing.T) {
 
 func TestTagWithContent(t *testing.T) {
 	opts := CompilerOpts{}
-	s := &p.StaticNode{}
+	s := &StaticNode{}
 	s.Content = "This is my weapon; this is my div."
-	div := &p.TagNode{}
+	div := &TagNode{}
 	div.Name = "div"
-	div.Children = []p.Node{s}
+	div.Children = []Node{s}
 	div.LineBreak = ""
-	nodes := []p.Node{div}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{div}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -594,17 +593,17 @@ func TestTagWithContent(t *testing.T) {
 
 func TestTagWithContentAndIdAndClasses(t *testing.T) {
 	opts := CompilerOpts{}
-	s := &p.StaticNode{}
+	s := &StaticNode{}
 	s.Content = "This is my weapon; this is my div."
-	div := &p.TagNode{}
+	div := &TagNode{}
 	div.Name = "div"
-	div.Children = []p.Node{s}
+	div.Children = []Node{s}
 	div.LineBreak = ""
 	div.Id = "mother"
 	div.Indent = "    "
 	div.Classes = []string{"father brother sister"}
-	nodes := []p.Node{div}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{div}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -625,18 +624,18 @@ func TestTagWithContentAndIdAndClasses(t *testing.T) {
 
 func TestTagWithChildContentAndIdAndClasses(t *testing.T) {
 	opts := CompilerOpts{}
-	s := &p.StaticLineNode{}
+	s := &StaticLineNode{}
 	s.Content = "This is my weapon; this is my div."
 	s.Indent = "      "
-	div := &p.TagNode{}
+	div := &TagNode{}
 	div.Name = "div"
-	div.Children = []p.Node{s}
+	div.Children = []Node{s}
 	div.LineBreak = "\n"
 	div.Id = "mother"
 	div.Indent = "    "
 	div.Classes = []string{"father brother sister"}
-	nodes := []p.Node{div}
-	pdoc := p.ParsedDoc{}
+	nodes := []Node{div}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -657,18 +656,18 @@ func TestTagWithChildContentAndIdAndClasses(t *testing.T) {
 
 func TestTagWithValueAndAttributes(t *testing.T) {
 	opts := CompilerOpts{}
-	s := &p.StaticNode{}
+	s := &StaticNode{}
 	s.Content = "This is my weapon; this is my div."
-	div := &p.TagNode{}
+	div := &TagNode{}
 	div.Name = "div"
-	div.Children = []p.Node{s}
+	div.Children = []Node{s}
 	div.LineBreak = "\n"
 	div.Id = "mother"
 	div.Indent = "    "
 	div.Classes = []string{"father brother sister"}
-	div.Attrs = []p.Attribute{p.Attribute{"uno", &p.StaticNode{"dos"}}}
-	nodes := []p.Node{div}
-	pdoc := p.ParsedDoc{}
+	div.Attrs = []Attribute{Attribute{"uno", &StaticNode{"dos"}}}
+	nodes := []Node{div}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -689,19 +688,19 @@ func TestTagWithValueAndAttributes(t *testing.T) {
 
 func TestTagWithChildValueAndAttributes(t *testing.T) {
 	opts := CompilerOpts{}
-	s := &p.StaticLineNode{}
+	s := &StaticLineNode{}
 	s.Content = "This is my weapon; this is my div."
 	s.Indent = "    "
-	div := &p.TagNode{}
+	div := &TagNode{}
 	div.Name = "div"
-	div.Children = []p.Node{s}
+	div.Children = []Node{s}
 	div.LineBreak = "\n"
 	div.Id = "mother"
 	div.Indent = "  "
 	div.Classes = []string{"father brother sister"}
-	div.Attrs = []p.Attribute{p.Attribute{"uno", &p.StaticNode{"dos"}}}
-	nodes := []p.Node{div}
-	pdoc := p.ParsedDoc{}
+	div.Attrs = []Attribute{Attribute{"uno", &StaticNode{"dos"}}}
+	nodes := []Node{div}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -724,11 +723,11 @@ func TestAutoClosingTagInXhtmlWithAttributes(t *testing.T) {
 	opts := CompilerOpts{}
 	opts.Format = "xhtml"
 	opts.Autoclose = []string{"br"}
-	node := &p.TagNode{}
+	node := &TagNode{}
 	node.Name = "br"
-	node.Attrs = []p.Attribute{p.Attribute{"uno", &p.StaticNode{"dos"}}}
-	nodes := []p.Node{node}
-	pdoc := p.ParsedDoc{}
+	node.Attrs = []Attribute{Attribute{"uno", &StaticNode{"dos"}}}
+	nodes := []Node{node}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -752,11 +751,11 @@ func TestAutoClosingTagInHtml4WithAttributes(t *testing.T) {
 	opts := CompilerOpts{}
 	opts.Format = "html4"
 	opts.Autoclose = []string{"br"}
-	node := &p.TagNode{}
+	node := &TagNode{}
 	node.Name = "br"
-	node.Attrs = []p.Attribute{p.Attribute{"uno", &p.StaticNode{"dos"}}}
-	nodes := []p.Node{node}
-	pdoc := p.ParsedDoc{}
+	node.Attrs = []Attribute{Attribute{"uno", &StaticNode{"dos"}}}
+	nodes := []Node{node}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -780,11 +779,11 @@ func TestAutoClosingTagInHtml5WithAttributes(t *testing.T) {
 	opts := CompilerOpts{}
 	opts.Format = "html5"
 	opts.Autoclose = []string{"br"}
-	node := &p.TagNode{}
+	node := &TagNode{}
 	node.Name = "br"
-	node.Attrs = []p.Attribute{p.Attribute{"uno", &p.StaticNode{"dos"}}}
-	nodes := []p.Node{node}
-	pdoc := p.ParsedDoc{}
+	node.Attrs = []Attribute{Attribute{"uno", &StaticNode{"dos"}}}
+	nodes := []Node{node}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
@@ -806,11 +805,11 @@ func TestAutoClosingTagInHtml5WithAttributes(t *testing.T) {
 
 func TestTagWithOnlyTagNameAndAttributes(t *testing.T) {
 	opts := CompilerOpts{}
-	node := &p.TagNode{}
+	node := &TagNode{}
 	node.Name = "p"
-	node.Attrs = []p.Attribute{p.Attribute{"uno", &p.StaticNode{"dos"}}}
-	nodes := []p.Node{node}
-	pdoc := p.ParsedDoc{}
+	node.Attrs = []Attribute{Attribute{"uno", &StaticNode{"dos"}}}
+	nodes := []Node{node}
+	pdoc := ParsedDoc{}
 	pdoc.Nodes = nodes
 	compiler := DefaultCompiler{}
 
