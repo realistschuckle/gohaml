@@ -2,7 +2,7 @@
 
 h1. What is it?
 
-You can find out more about HAML at "haml-lang.com":http://haml-lang.com
+You can find out more about HAML at "haml-lang.com":http://haml.info/
 You can find out more about GO at "golang.org":http://golang.org
 
 I've tried to remain diligent about reproducing the output from the canonical Ruby-based parser, so if you feel familiar with the one, then you should feel familiar with the other.
