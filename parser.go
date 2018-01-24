@@ -298,13 +298,15 @@ func parseClass(input string, node *node, line int) (output inode, err error) {
 }
 
 func parseRemainder(input string, node *node, line int) (output inode) {
-	if input[len(input)-1] == '<' {
-		node = parseNoNewline("", node, line)
-		node._remainder.value = input[0 : len(input)-1]
-		node._remainder.needsResolution = false
-	} else {
-		node._remainder.value = input
-		node._remainder.needsResolution = false
+	if len(input) > 0 {
+		if input[len(input)-1] == '<' {
+			node = parseNoNewline("", node, line)
+			node._remainder.value = input[0 : len(input)-1]
+			node._remainder.needsResolution = false
+		} else {
+			node._remainder.value = input
+			node._remainder.needsResolution = false
+		}
 	}
 	output = node
 	return
