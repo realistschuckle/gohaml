@@ -296,18 +296,18 @@ func (self *node) addChild(n inode) {
 }
 
 func (self *node) addAttr(key string, value string) {
-	keyLookup, valueLookup := true, true
+	keyLookup, valueLookup := false, true
 	if key[0] == ':' {
-		keyLookup = false
+		// keyLookup = false
 		key = key[1:]
-	} else if key[0] == '"' {
-		keyLookup = false
+	} else if key[0] == '"' || key[0] == '\'' {
+		// keyLookup = false
 		key = key[1 : len(key)-1]
 	}
 	if value == "true" || value == "false" {
 		valueLookup = false
 	}
-	if value[0] == '"' {
+	if value[0] == '"' || value[0] == '\'' {
 		valueLookup = false
 		value = value[1 : len(value)-1]
 	}
