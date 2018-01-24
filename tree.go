@@ -7,6 +7,22 @@ import (
 	"strings"
 )
 
+var voidElements map[string]bool = map[string]bool{
+	"area":    true,
+	"base":    true,
+	"br":      true,
+	"col":     true,
+	"hr":      true,
+	"img":     true,
+	"input":   true,
+	"link":    true,
+	"meta":    true,
+	"param":   true,
+	"command": true,
+	"keygen":  true,
+	"source":  true,
+}
+
 type res struct {
 	value           string
 	needsResolution bool
@@ -204,16 +220,24 @@ func (self node) outputChildren(scope map[string]interface{}, buf *bytes.Buffer,
 			buf.WriteString("\n")
 			buf.WriteString(curIndent)
 		}
+		buf.WriteString("</")
+		buf.WriteString(self._name)
+		buf.WriteString(">")
 	} else {
-		if autoclose || self._autoclose {
-			buf.WriteString(" />")
+		if isVoidElement, ok := voidElements[self._name]; ok && isVoidElement {
+			if autoclose || self._autoclose {
+				buf.WriteString(" />")
+			} else {
+				buf.WriteString(">")
+			}
 		} else {
+			buf.WriteString(">")
+			buf.WriteString("</")
+			buf.WriteString(self._name)
 			buf.WriteString(">")
 		}
 	}
-	buf.WriteString("</")
-	buf.WriteString(self._name)
-	buf.WriteString(">")
+
 }
 
 func contains(value string, slice []string) bool {
