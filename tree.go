@@ -204,9 +204,6 @@ func (self node) outputChildren(scope map[string]interface{}, buf *bytes.Buffer,
 			buf.WriteString("\n")
 			buf.WriteString(curIndent)
 		}
-		buf.WriteString("</")
-		buf.WriteString(self._name)
-		buf.WriteString(">")
 	} else {
 		if autoclose || self._autoclose {
 			buf.WriteString(" />")
@@ -214,6 +211,9 @@ func (self node) outputChildren(scope map[string]interface{}, buf *bytes.Buffer,
 			buf.WriteString(">")
 		}
 	}
+	buf.WriteString("</")
+	buf.WriteString(self._name)
+	buf.WriteString(">")
 }
 
 func contains(value string, slice []string) bool {
