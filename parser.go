@@ -185,7 +185,7 @@ func parseAttributes(input string, node *node, line int) (output inode, err erro
 	inRocket := false
 	keyEnd, attrStart := 0, 0
 	for i, r := range input {
-		if inKey && (r == '=' || unicode.IsSpace(r)) {
+		if inKey && (r == '=' || (r == ':' && input[0] != ':') || unicode.IsSpace(r)) {
 			inKey = false
 			inRocket = true
 			keyEnd = i

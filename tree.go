@@ -300,6 +300,9 @@ func (self *node) addAttr(key string, value string) {
 	if key[0] == ':' {
 		keyLookup = false
 		key = key[1:]
+	} else if key[0] == '"' {
+		keyLookup = false
+		key = key[1 : len(key)-1]
 	}
 	if value == "true" || value == "false" {
 		valueLookup = false
