@@ -185,18 +185,23 @@ func parseAttributes(input string, node *node, line int) (output inode, err erro
 	inRocket := false
 	keyEnd, attrStart := 0, 0
 	for i, r := range input {
-		if inKey && (r == '=' || unicode.IsSpace(r)) {
+		if inKey && (r == '=' || (r == ':' && input[0] != ':') || unicode.IsSpace(r)) {
 			inKey = false
 			inRocket = true
 			keyEnd = i
 		} else if inRocket && r != '>' && r != '=' && r != '}' && !unicode.IsSpace(r) {
 			inRocket = false
 			attrStart = i
-		} else if r == ',' {
+		} else if r == ',' && (input[i-1] == '"' || input[i-4:i] == "true" || input[i-5:i] == "false") { //input[i-1] == '\'' ||
 			node.addAttr(t(input[0:keyEnd]), t(input[attrStart:i]))
 			output, err = parseAttributes(tl(input[i+1:]), node, line)
 			break
 		} else if r == '}' {
+			if i < len(input)-1 {
+				if input[i+1] == '}' || input[i-1] == '}' || input[i+1] == '"' {
+					continue
+				}
+			}
 			if attrStart == 0 {
 				msg := fmt.Sprintf("Syntax error on line %d: Attribute requires a value.\n", line)
 				//err = os.NewError(msg)
@@ -298,13 +303,15 @@ func parseClass(input string, node *node, line int) (output inode, err error) {
 }
 
 func parseRemainder(input string, node *node, line int) (output inode) {
-	if input[len(input)-1] == '<' {
-		node = parseNoNewline("", node, line)
-		node._remainder.value = input[0 : len(input)-1]
-		node._remainder.needsResolution = false
-	} else {
-		node._remainder.value = input
-		node._remainder.needsResolution = false
+	if len(input) > 0 {
+		if input[len(input)-1] == '<' {
+			node = parseNoNewline("", node, line)
+			node._remainder.value = input[0 : len(input)-1]
+			node._remainder.needsResolution = false
+		} else {
+			node._remainder.value = input
+			node._remainder.needsResolution = false
+		}
 	}
 	output = node
 	return
