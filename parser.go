@@ -192,7 +192,7 @@ func parseAttributes(input string, node *node, line int) (output inode, err erro
 		} else if inRocket && r != '>' && r != '=' && r != '}' && !unicode.IsSpace(r) {
 			inRocket = false
 			attrStart = i
-		} else if r == ',' && (input[i-1] == '\'' || input[i-1] == '"') {
+		} else if r == ',' && (input[i-1] == '\'' || input[i-1] == '"' || input[i-4:i] == "true" || input[i-5:i] == "false") {
 			node.addAttr(t(input[0:keyEnd]), t(input[attrStart:i]))
 			output, err = parseAttributes(tl(input[i+1:]), node, line)
 			break
