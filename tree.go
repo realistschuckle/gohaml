@@ -7,6 +7,22 @@ import (
 	"strings"
 )
 
+var voidElements map[string]bool = map[string]bool{
+	"area":    true,
+	"base":    true,
+	"br":      true,
+	"col":     true,
+	"hr":      true,
+	"img":     true,
+	"input":   true,
+	"link":    true,
+	"meta":    true,
+	"param":   true,
+	"command": true,
+	"keygen":  true,
+	"source":  true,
+}
+
 type res struct {
 	value           string
 	needsResolution bool
@@ -208,12 +224,20 @@ func (self node) outputChildren(scope map[string]interface{}, buf *bytes.Buffer,
 		buf.WriteString(self._name)
 		buf.WriteString(">")
 	} else {
-		if autoclose || self._autoclose {
-			buf.WriteString(" />")
+		if isVoidElement, ok := voidElements[self._name]; ok && isVoidElement {
+			if autoclose || self._autoclose {
+				buf.WriteString(" />")
+			} else {
+				buf.WriteString(">")
+			}
 		} else {
+			buf.WriteString(">")
+			buf.WriteString("</")
+			buf.WriteString(self._name)
 			buf.WriteString(">")
 		}
 	}
+
 }
 
 func contains(value string, slice []string) bool {
@@ -272,15 +296,18 @@ func (self *node) addChild(n inode) {
 }
 
 func (self *node) addAttr(key string, value string) {
-	keyLookup, valueLookup := true, true
+	keyLookup, valueLookup := false, true
 	if key[0] == ':' {
-		keyLookup = false
+		// keyLookup = false
 		key = key[1:]
+	} else if key[0] == '"' || key[0] == '\'' {
+		// keyLookup = false
+		key = key[1 : len(key)-1]
 	}
 	if value == "true" || value == "false" {
 		valueLookup = false
 	}
-	if value[0] == '"' {
+	if value[0] == '"' || value[0] == '\'' {
 		valueLookup = false
 		value = value[1 : len(value)-1]
 	}
